@@ -61,10 +61,11 @@ static unsigned int timeout_ticks;
 static uint8_t last_serial = 0xFF;
 static const size_t HEADER_LENGTH = 2U /* Frame control */ + 1U /* Seq# */ + 2U /* Dest PAN */ + 2U /* Dest */ + 2U /* Src */;
 static const size_t FOOTER_LENGTH = 2U /* FCS */ + 1U /* RSSI */ + 1U /* LQI */;
-static const size_t DRIVE_BODY_LENGTH = NUM_ROBOTS * RECEIVE_DRIVE_BYTES_PER_ROBOT + 1 + 8;
+static const size_t DRIVE_BODY_LENGTH = 1 /*msg purpose*/ + NUM_ROBOTS * RECEIVE_DRIVE_BYTES_PER_ROBOT + 1 /*estop */;
+static const int16_t MESSAGE_PURPOSE_ADDR = 2U /* Frame control */ + 1U /* Seq# */ + 2U /* Dest PAN */ + 2U /* Dest */ + 2U /* Src */;
+static const uint16_t MESSAGE_PAYLOAD_ADDR = 2U /* Frame control */ + 1U /* Seq# */ + 2U /* Dest PAN */ + 2U /* Dest */ + 2U /* Src */ + 1U /* Msg Purpose*/;
 
 static void receive_task(void *UNUSED(param)) {
-	fputs("in receive task", stdout);
 	uint16_t last_sequence_number = 0xFFFFU;
 	size_t frame_length;
 
@@ -83,13 +84,12 @@ static void receive_task(void *UNUSED(param)) {
 				// Handle packet
 				uint16_t dest_address = dma_buffer[5U] | (dma_buffer[6U] << 8U);
 				if (dest_address == 0xFFFFU) {
-					// Broadcast frame must contain a camera packet.
+					// Broadcast frame must contain a camera packet or drive packet
 					// Note that camera packets have a variable length.          
-					if (frame_length == HEADER_LENGTH + DRIVE_BODY_LENGTH + FOOTER_LENGTH) {
+					if (dma_buffer[MESSAGE_PURPOSE_ADDR] == 0x0FU) {
 						handle_drive_packet(dma_buffer);
-					}else{
-						//TODO: Need an actual flag to decide if it is drive or camera packet
-						uint8_t buffer_position = HEADER_LENGTH; 
+					}else if(dma_buffer[MESSAGE_PURPOSE_ADDR] == 0x10U){
+						uint8_t buffer_position = MESSAGE_PAYLOAD_ADDR; 
 						handle_camera_packet(dma_buffer, buffer_position);
 					}
 				}
@@ -161,11 +161,12 @@ uint8_t receive_last_serial(void) {
 	return __atomic_load_n(&last_serial, __ATOMIC_RELAXED);
 }
 void handle_drive_packet(uint8_t * dma_buffer){
+	printf("Got a drive packet");
 	// Grab emergency stop status from the end of the frame.
-	bool estop_run = !!dma_buffer[HEADER_LENGTH + NUM_ROBOTS * RECEIVE_DRIVE_BYTES_PER_ROBOT];
+	bool estop_run = !!dma_buffer[MESSAGE_PAYLOAD_ADDR + NUM_ROBOTS * RECEIVE_DRIVE_BYTES_PER_ROBOT];
 
 	// Grab a pointer to the robot’s own data block.
-	const uint8_t *robot_data = dma_buffer + HEADER_LENGTH + RECEIVE_DRIVE_BYTES_PER_ROBOT * robot_index;
+	const uint8_t *robot_data = dma_buffer + MESSAGE_PAYLOAD_ADDR +  RECEIVE_DRIVE_BYTES_PER_ROBOT * robot_index;
 
 	// Check if feedback should be sent.
 	if (robot_data[0] & 0x80) {
@@ -308,8 +309,6 @@ void handle_camera_packet(uint8_t * dma_buffer, uint8_t buffer_position){
 }
 
 void handle_other_packet(uint8_t * dma_buffer, size_t frame_length){
-	static const uint16_t MESSAGE_PURPOSE_ADDR = HEADER_LENGTH;
-	static const uint16_t MESSAGE_PAYLOAD_ADDR = MESSAGE_PURPOSE_ADDR + 1U;
 	switch (dma_buffer[MESSAGE_PURPOSE_ADDR]) {
 		case 0x00:
 			if (frame_length == HEADER_LENGTH + 4U + FOOTER_LENGTH) {

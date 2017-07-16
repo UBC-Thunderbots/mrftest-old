@@ -340,6 +340,9 @@ static void send_camera_packet(const void *packet)
 	// Camera packet. 1 = mask, 2-3 = Ball x, 4-5 = Ball y, 6-53 = Robots, 54-61 timestamp
 	const uint8_t *rptr = packet;
 
+	// Message purpose
+	mrf_write_long(address++, 0X10U);
+
 	// Write the mask vector (all values should already be defined). Byte 1
 	uint8_t mask = *rptr++;
 
@@ -413,6 +416,9 @@ static void send_drive_packet(const void *packet, const uint8_t *serials) {
 
 	// Record the header length, now that the header is finished.
 	mrf_write_long(header_length_address, address - header_start_address);
+	
+	// Message purpose
+	mrf_write_long(address++, 0X0FU);
 
 	// Write out the payload sent from the host, interleaved with the prefix
 	// byte for each robot.
@@ -424,13 +430,8 @@ static void send_drive_packet(const void *packet, const uint8_t *serials) {
 		}
 	}
 
-	// Write out the footer, which comprises the emergency stop status and
-	// timestamp.
+	// Write out the footer, which comprises the emergency stop status
 	mrf_write_long(address++, estop_read() == ESTOP_RUN);
-	uint64_t stamp = rtc_get();
-	for (unsigned int i = 0; i < 8; ++i) {
-		mrf_write_long(address++, (uint8_t)(stamp >> (8 * i)));
-	}
 
 	// Record the frame length, now that the frame is finished.
 	mrf_write_long(frame_length_address, address - header_start_address);
