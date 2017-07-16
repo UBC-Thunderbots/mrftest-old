@@ -19,5 +19,13 @@ float compute_accel_track_pos_1D(float d_target, float d_cur, float v_cur, float
 
 void Clamp(float *input, float limit);
 
+/* Calculates the scalar final velocity from the radio inputs to the primitive.
+ *
+ */
+float get_scalar_vf(vf_bits) {
+  switch
+
+}
+
 #endif
 
