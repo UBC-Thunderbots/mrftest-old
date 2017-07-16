@@ -56,6 +56,7 @@ namespace Geom {
 
 	bool intersects(const Triangle &first, const Circle& second);
 	bool intersects(const Circle &first, const Triangle& second);
+	bool intersects(const Circle &first, const Circle &second);
 	bool intersects(const Seg& first, const Circle& second);
 	bool intersects(const Circle& first, const Seg& second);
 	bool intersects(const Seg& first, const Seg& second);

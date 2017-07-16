@@ -24,8 +24,6 @@ namespace AI {
 
 				void move_straight(caller_t& ca, World world, Player player, Point dest, Angle orientation, bool should_wait = true);
 
-
-
                 void move_rrt(caller_t& ca, World world, Player player, Point dest, bool should_wait = true);
 
                 void move_rrt(caller_t& ca, World world, Player player, Point dest,  Angle orientation, bool should_wait = true);
@@ -33,7 +31,8 @@ namespace AI {
                 void move_slp(caller_t& ca, World world, Player player, Point dest, bool should_wait = true);
 
                 void move_slp(caller_t& ca, World world, Player player, Point dest,  Angle orientation, bool should_wait = true);
-				/**
+
+                /**
 				 * Move
 				 *
 				 * 

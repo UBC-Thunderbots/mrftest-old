@@ -129,7 +129,6 @@ void AI::HL::STP::Action::move_slp(caller_t& ca, World world, Player player, Poi
 		player.display_path(plan);
 		player.move_move(plan[0], orientation, 0);
 		yield(ca);
-		LOG_INFO(u8"move slp");
 	}
 }
 

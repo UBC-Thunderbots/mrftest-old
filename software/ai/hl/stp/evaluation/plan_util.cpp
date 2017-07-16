@@ -15,6 +15,7 @@ using namespace Geom;
 
 using namespace AI::HL::STP;
 namespace Plan = AI::HL::STP::Evaluation::Plan;
+using namespace AI::HL::STP::Evaluation::Plan;
 
 namespace {
 	DoubleParam POSITION_EPS(u8"Position tolerance in destination", u8"AI/Nav", 0.05, 0.01, 0.5);
@@ -72,15 +73,15 @@ namespace {
 	constexpr double CATCH_BALL_DISTANCE_AWAY = 0.1;
 	// if the ball velocity is below this value then act as if it isn't moving
 	constexpr double CATCH_BALL_VELOCITY_THRESH = 0.05;
-
+}
 	// this structure determines how far away to stay from a prohibited point or line-segment
-	double play_area() {
+	double Plan::play_area() {
 		return /*(2 * Player::MAX_RADIUS)*/ + PLAY_AREA_BUFFER;
 	}
-	double total_bounds_area() {
+	double Plan::total_bounds_area() {
 		return TOTAL_BOUNDS_BUFFER;
 	}
-	double enemy(World world, Robot player) {
+	double Plan::enemy(World world, Robot player) {
 		if (world.enemy_team().size() <= 0) {
 			return 0.0;
 		}
@@ -103,11 +104,11 @@ namespace {
 		return player.MAX_RADIUS + buffer;
 	}
 
-	double goal_post(Player player) {
+	double Plan::goal_post(Player player) {
 		return Ball::RADIUS + player.MAX_RADIUS + GOAL_POST_BUFFER;
 	}
 
-	double friendly(Player player, MovePrio obs_prio = MovePrio::MEDIUM) {
+	double Plan::friendly(Player player, MovePrio obs_prio) {
 		MovePrio player_prio = player.prio();
 		double buffer = FRIENDLY_BUFFER;
 		if (obs_prio < player_prio) {
@@ -122,32 +123,32 @@ namespace {
 
 		return player.MAX_RADIUS + buffer;
 	}
-	double ball_stop(Player player) {
+	double Plan::ball_stop(Player player) {
 		return Ball::RADIUS + player.MAX_RADIUS + AI::Util::BALL_STOP_DIST;
 	}
-	double ball_tiny(Player player) {
+	double Plan::ball_tiny(Player player) {
 		return Ball::RADIUS + player.MAX_RADIUS + BALL_TINY_BUFFER;
 	}
-	double ball_regular(Player player) {
+	double Plan::ball_regular(Player player) {
 		return Ball::RADIUS + player.MAX_RADIUS + BALL_REGULAR_BUFFER;
 	}
-	double friendly_defense(World world, Player player) {
+	double Plan::friendly_defense(World world, Player player) {
 		return world.field().defense_area_radius() + player.MAX_RADIUS + DEFENSE_AREA_BUFFER;
 	}
-	double friendly_kick(World world, Player player) {
+	double Plan::friendly_kick(World world, Player player) {
 		return world.field().defense_area_radius() + player.MAX_RADIUS + FRIENDLY_KICK_BUFFER;
 	}
-	double own_half(Player player) {
+	double Plan::own_half(Player player) {
 		return player.MAX_RADIUS + OWN_HALF_BUFFER;
 	}
-	double penalty_kick_friendly(Player player) {
+	double Plan::penalty_kick_friendly(Player player) {
 		return player.MAX_RADIUS + PENALTY_KICK_BUFFER + Ball::RADIUS;
 	}
-	double penalty_kick_enemy(Player player) {
+	double Plan::penalty_kick_enemy(Player player) {
 		return player.MAX_RADIUS + PENALTY_KICK_BUFFER + Ball::RADIUS;
 	}
 
-	double get_net_trespass(Point cur, Point dst, World world) {
+	double Plan::get_net_trespass(Point cur, Point dst, World world) {
 		double violate = 0.0;
 		double circle_radius = world.field().total_length() / 2.0 - world.field().length() / 2.0;
 		Point A(-world.field().total_length() / 2.0, world.field().goal_width() / 2.0);
@@ -157,7 +158,7 @@ namespace {
 		return violate;
 	}
 
-	double get_goal_post_trespass(Point cur, Point dst, World world, Player player) {
+	double Plan::get_goal_post_trespass(Point cur, Point dst, World world, Player player) {
 		double violate = 0.0;
 		double circle_radius = goal_post(player);
 		Point A(world.field().length() / 2.0, world.field().goal_width() / 2.0);
@@ -172,7 +173,7 @@ namespace {
 		return violate;
 	}
 
-	double get_enemy_trespass(Point cur, Point dst, World world) {
+	double Plan::get_enemy_trespass(Point cur, Point dst, World world) {
 		double violate = 0.0;
 		// avoid enemy robots
 		for (Robot rob : world.enemy_team()) {
@@ -184,7 +185,7 @@ namespace {
 		return violate;
 	}
 
-	double get_play_area_boundary_trespass(Point cur, Point dst, World world) {
+	double Plan::get_play_area_boundary_trespass(Point cur, Point dst, World world) {
 		const Field &f = world.field();
 		Point sw_corner(-f.length() / 2, -f.width() / 2);
 		Rect bounds(sw_corner, f.length(), f.width());
@@ -199,7 +200,7 @@ namespace {
 		return violation;
 	}
 
-	double get_total_bounds_trespass(Point cur, Point dst, World world) {
+	double Plan::get_total_bounds_trespass(Point cur, Point dst, World world) {
 		const Field &f = world.field();
 		Point sw_corner(-f.total_length() / 2, -f.total_width() / 2);
 		Rect bounds(sw_corner, f.total_length(), f.total_width());
@@ -214,7 +215,7 @@ namespace {
 		return violation;
 	}
 
-	double get_friendly_trespass(Point cur, Point dst, World world, Player player) {
+	double Plan::get_friendly_trespass(Point cur, Point dst, World world, Player player) {
 		double violate = 0.0;
 		// avoid enemy robots
 		for (Player rob : world.friendly_team()) {
@@ -228,7 +229,7 @@ namespace {
 		return violate;
 	}
 
-	double get_ball_stop_trespass(Point cur, Point dst, World world, Player player) {
+	double Plan::get_ball_stop_trespass(Point cur, Point dst, World world, Player player) {
 		double violate = 0.0;
 		const Ball &ball = world.ball();
 		double circle_radius = ball_stop(player);
@@ -237,7 +238,7 @@ namespace {
 		return violate;
 	}
 
-	double get_defense_area_trespass(Point cur, Point dst, World world, Player player) {
+	double Plan::get_defense_area_trespass(Point cur, Point dst, World world, Player player) {
 		const Field &f = world.field();
 		double defense_dist = friendly_defense(world, player);
 		Point defense_point1(-f.length() / 2, -f.defense_area_stretch() / 2);
@@ -245,7 +246,7 @@ namespace {
 		return std::max(0.0, defense_dist - dist(Seg(cur, dst), Seg(defense_point1, defense_point2)));
 	}
 
-	double get_own_half_trespass(Point, Point dst, World world, Player player) {
+	double Plan::get_own_half_trespass(Point, Point dst, World world, Player player) {
 		const Field &f = world.field();
 		Point p(-f.total_length() / 2, -f.total_width() / 2);
 		Rect bounds(p, f.total_length() / 2, f.total_width());
@@ -257,7 +258,7 @@ namespace {
 		return violation;
 	}
 
-	double get_offense_area_trespass(Point cur, Point dst, World world, Player player) {
+	double Plan::get_offense_area_trespass(Point cur, Point dst, World world, Player player) {
 		const Field &f = world.field();
 		double defense_dist = friendly_kick(world, player);
 		Point defense_point1(f.length() / 2, -f.defense_area_stretch() / 2);
@@ -265,21 +266,21 @@ namespace {
 		return std::max(0.0, defense_dist - dist(Seg(cur, dst), Seg(defense_point1, defense_point2)));
 	}
 
-	double get_ball_tiny_trespass(Point cur, Point dst, World world, Player player) {
+	double Plan::get_ball_tiny_trespass(Point cur, Point dst, World world, Player player) {
 		const Ball &ball = world.ball();
 		double circle_radius = ball_tiny(player);
 		double sdist = dist(Seg(cur, dst), ball.position());
 		return std::max(0.0, circle_radius - sdist);
 	}
 
-	double get_ball_regular_trespass(Point cur, Point dst, World world, Player player) {
+	double Plan::get_ball_regular_trespass(Point cur, Point dst, World world, Player player) {
 		const Ball &ball = world.ball();
 		double circle_radius = ball_regular(player);
 		double sdist = dist(Seg(cur, dst), ball.position());
 		return std::max(0.0, circle_radius - sdist);
 	}
 
-	double get_penalty_friendly_trespass(Point cur, Point dst, World world, Player player) {
+	double Plan::get_penalty_friendly_trespass(Point cur, Point dst, World world, Player player) {
 		const Ball &ball = world.ball();
 		const Field &f = world.field();
 		Point a(ball.position().x - penalty_kick_friendly(player), -f.total_width() / 2);
@@ -295,7 +296,7 @@ namespace {
 		return violation;
 	}
 
-	double get_penalty_enemy_trespass(Point cur, Point dst, World world, Player player) {
+	double Plan::get_penalty_enemy_trespass(Point cur, Point dst, World world, Player player) {
 		const Ball &ball = world.ball();
 		const Field &f = world.field();
 		Point a(ball.position().x + penalty_kick_enemy(player), -f.total_width() / 2);
@@ -310,7 +311,7 @@ namespace {
 		}
 		return violation;
 	}
-
+namespace {
 	struct Violation final {
 		double enemy, friendly, play_area, ball_stop, ball_tiny, ball_regular, friendly_defense, enemy_defense, own_half, penalty_kick_friendly, penalty_kick_enemy, goal_post, total_bounds, net_allowance;
 
@@ -426,7 +427,7 @@ namespace {
 			}
 		}
 	}
-};
+}
 
 std::vector<Point> Plan::get_destination_alternatives(Point dst, World world, Player player) {
 	const int POINTS_PER_OBSTACLE = 6;

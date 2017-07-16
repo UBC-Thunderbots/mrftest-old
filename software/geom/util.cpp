@@ -160,6 +160,10 @@ namespace Geom {
 	}
 	bool intersects(const Circle &first, const Triangle& second) { return intersects(second, first); }
 
+	bool intersects(const Circle &first, const Circle &second) {
+		return (first.origin - second.origin).len() < (first.radius + second.radius);
+	}
+
 	bool intersects(const Ray& first, const Seg& second) {
 		if (std::abs(first.to_vector2().cross(second.to_vector2())) > EPS) {
 			Vector2 isect = line_intersect(first.start, first.dir, second.start, second.end);

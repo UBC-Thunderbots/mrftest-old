@@ -8,11 +8,67 @@
 #include <cairomm/context.h>
 #include <cairomm/refptr.h>
 
+using namespace AI::Flags;
+
 namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Evaluation {
                 namespace Plan{
+					double play_area();
+
+					double total_bounds_area();
+
+					double enemy(World world, Robot player);
+
+					double goal_post(Player player);
+
+					double friendly(Player player, MovePrio obs_prio = MovePrio::MEDIUM);
+
+					double ball_stop(Player player);
+
+					double ball_tiny(Player player);
+
+					double ball_regular(Player player);
+
+					double friendly_defense(World world, Player player);
+
+					double friendly_kick(World world, Player player);
+
+					double own_half(Player player);
+
+					double penalty_kick_friendly(Player player);
+
+					double penalty_kick_enemy(Player player);
+
+					double get_net_trespass(Point cur, Point dst, World world);
+
+					double get_goal_post_trespass(Point cur, Point dst, World world, Player player);
+
+					double get_enemy_trespass(Point cur, Point dst, World world);
+
+					double get_play_area_boundary_trespass(Point cur, Point dst, World world);
+
+					double get_total_bounds_trespass(Point cur, Point dst, World world);
+
+					double get_friendly_trespass(Point cur, Point dst, World world, Player player);
+
+					double get_ball_stop_trespass(Point cur, Point dst, World world, Player player);
+
+					double get_defense_area_trespass(Point cur, Point dst, World world, Player player);
+
+					double get_own_half_trespass(Point, Point dst, World world, Player player);
+
+					double get_offense_area_trespass(Point cur, Point dst, World world, Player player);
+
+					double get_ball_tiny_trespass(Point cur, Point dst, World world, Player player);
+
+					double get_ball_regular_trespass(Point cur, Point dst, World world, Player player);
+
+					double get_penalty_friendly_trespass(Point cur, Point dst, World world, Player player);
+
+					double get_penalty_enemy_trespass(Point cur, Point dst, World world, Player player);
+
                     /**
                      * The absolute maximum value that a primitive parameter can take.
                      */
