@@ -121,4 +121,6 @@ void mm_add(int nrows, int ncols, float a[nrows][ncols], const float b[nrows][nc
 void mm_sub(int nrows, int ncols, const float a[nrows][ncols], const float b[nrows][ncols], float c[nrows][ncols]); 
 
 void mm_inv(int n, float a[n][n]);
+
+void decompose_speed(float speed,float* vf,float* init_pos,float* final_pos);
 #endif

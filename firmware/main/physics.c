@@ -473,3 +473,23 @@ float get_maximal_accel_scaling(const float linear_accel[2], float angular_accel
 	return get_maximal_torque_scaling(wheel_force);
 }
 
+/**
+ * \ingroup Physics
+ *
+ * \brief decompose desired final velocity into x and y components. Calculated
+ *        using the robot's initial coordinate system when the primitive began.
+ *
+ * \param[in]  final speed magnitude
+ * \param[out] array of x and y components of final velocity
+ * \param[in]  array of x and y coordinates of initial position
+ * \param[in]  array of x and y coordinates of final position
+ *
+ */
+
+void decompose_speed(float speed,float* vf,float* init_pos,float* final_pos)
+{
+	float angle = atan2f(final_pos[1] - init_pos[1], final_pos[0] - init_pos[0]);
+
+	vf[0] = cosf(angle) * speed;
+	vf[1] = sinf(angle) * speed;
+}
