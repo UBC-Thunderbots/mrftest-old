@@ -337,42 +337,23 @@ static void send_camera_packet(const void *packet)
 	// Record the header length, now that the header is finished.
 	mrf_write_long(header_length_address, address - header_start_address);
 
-	// Camera packet. 1 = mask, 2  = flags, 3-4 = Ball x, 5-6 = Ball y, 7-54 = Robots, 55 = status
+	// Camera packet. 1 = mask, 2-3 = Ball x, 4-5 = Ball y, 6-53 = Robots, 54-61 timestamp
 	const uint8_t *rptr = packet;
 
 	// Write the mask vector (all values should already be defined). Byte 1
 	uint8_t mask = *rptr++;
 
-	if(mask == 32){
-		led_blink(LED_TX);
-	}else{
-		led_blink(LED_RX);
-	}
-
-
 	mrf_write_long(address++, mask);
-
-	// Write flags (including estop). Bit 2 should already be assigned. Byte 2
-	uint8_t flags = *rptr++;
-	if(estop_read() != ESTOP_RUN) // If estop is broken or switched on. Set the first (Bit 0) bit of flags
-		flags |= 0x01;
-	else
-		flags |= 0x02; // If estop is not triggered, we will have a valid timestamp (generated below)
-
-	mrf_write_long(address++, flags);
+	
+	//TODO: update wiki to say that estop and flags are no longer in camera packet
 
 	// Write Ball-x and Ball-y positions. First 2 bytes are x-pos, and the next 2 are y-pos. Bytes 3-6
-	// Only write if we have valid ball positions
-	if( (flags >> 2) & 1)
-	{
-		for (unsigned int i=0; i < 4; ++i)
-		{
-			mrf_write_long(address++, *rptr++);
-		}
+	for (unsigned int i=0; i < 4; ++i){
+		mrf_write_long(address++, *rptr++);
 	}
 
 	// Write out the payload sent from the host. Only write data for robots with valid positions (look at mask vector)
-	// Each robot has 6 bytes of data (2b - xpos, 2b - ypos, 2b - thetapos). Bytes 7 to [(6*valid_robots) + 6] bytes
+	// Each robot has 6 bytes of data (2b - xpos, 2b - ypos, 2b - thetapos)
 	uint8_t num_valid_robots = 0;
 	for(size_t i = 0; i < 8; ++i)
 	{
@@ -387,25 +368,12 @@ static void send_camera_packet(const void *packet)
 		}
 	}
 
-	// Write out the timestamp if estop not set
-	if((flags & 1) == 0)
-	{
-		//uint64_t stamp = rtc_get();
-		for (unsigned int i = 0; i < 8; ++i) {
-			//mrf_write_long(address++, (uint8_t)(stamp >> (8 * i)));
-			mrf_write_long(address++, (uint8_t)(*rptr++));
-		}
+	// Write out the timestamp
+	for (unsigned int i = 0; i < 8; ++i) {
+		mrf_write_long(address++, (uint8_t)(*rptr++));
 	}
 
-	uint8_t status = 0;
-	// Advance the feedback polling index.
-	poll_index = (poll_index + 1U) % NUM_ROBOTS;
-
-	// Write the status vector. Last byte in camera packet
-	status |= poll_index;
-	//mrf_write_long(address++, (serials[i] & 0x0F) | ((poll_index == i) ? 0x80 : 0x00));
-	mrf_write_long(address++, status); //Warning: need to use real status info
-	//mrf_write_long(address++, *rptr++);
+	//Warning: status info not used currently in camera packet
 
 	// Record the frame length, now that the frame is finished.
 	mrf_write_long(frame_length_address, address - header_start_address);

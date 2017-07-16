@@ -335,7 +335,8 @@ void MRFDongle::dirty_drive() {
 	if (!drive_submit_connection.connected()) {
 		// Tells the Glib control loop to send a drive transfer when it has nothing else to do (only once though)
 		// This should ensure the AI tick function completes before it sends a drive packet
-		drive_submit_connection = Glib::signal_idle().connect(sigc::mem_fun(this, &MRFDongle::submit_drive_transfer));
+		//TODO: uncomment this
+		//drive_submit_connection = Glib::signal_idle().connect(sigc::mem_fun(this, &MRFDongle::submit_drive_transfer));
 	}
 }
 
@@ -419,7 +420,7 @@ void MRFDongle::send_camera_packet(std::vector<std::tuple<uint8_t, Point, Angle>
 	std::chrono::system_clock::duration diff = now - epoch;
 	std::chrono::microseconds micros = std::chrono::duration_cast<std::chrono::microseconds>(diff);
 	uint64_t stamp = static_cast<uint64_t>(micros.count());
-	std::unique_ptr<USB::BulkOutTransfer> elt(new USB::BulkOutTransfer(device, 1, camera_packet, 55, 55, 0));
+	std::unique_ptr<USB::BulkOutTransfer> elt(new USB::BulkOutTransfer(device, 2, camera_packet, 55, 55, 0));
 
 	auto i = camera_transfers.insert(camera_transfers.end(), std::pair<std::unique_ptr<USB::BulkOutTransfer>, uint64_t>(std::move(elt), stamp));
 	(*i).first->signal_done.connect(sigc::bind(sigc::mem_fun(this, &MRFDongle::handle_camera_transfer_done), i));
