@@ -10,9 +10,8 @@
 #define TIME_HORIZON 0.05f //s
 
 //Parameters
-static float destination[3];
+static float destination[3], final_velocities[2];
 static int counts, counts_passed;
-
 
 
 /**
@@ -40,6 +39,9 @@ static void move_start(const primitive_params_t *params)
 	//				destination_y [mm]
 	//				destination_ang [centi-rad]
 	//				time [ms]
+  //        scalar vf [enum, 0-3]
+  
+  float scalar_speed;
 
 	printf ("move_start\r\n");
 	// Convert into m/s and rad/s because physics is in m and s
@@ -51,11 +53,10 @@ static void move_start(const primitive_params_t *params)
 #warning magic constant should use tick time constant here
 	counts = (int)(params->params[3]/5.0f);
 	counts_passed = 0;
-	
 
+  scalar_speed = SCALAR_VF[params->params[4]]
 
-	//TODO: process slow
-	//TODO: process time
+  	
 }
 
 /**
@@ -87,9 +88,11 @@ static void move_tick(log_record_t *log) {
 	rotate(vel, -current_states.angle);
 
 	float relative_destination[3];
+
 	relative_destination[0] = destination[0] - current_states.x;
 	relative_destination[1] = destination[1] - current_states.y;
 	rotate(relative_destination, -current_states.angle);
+  rotate(final_velocities, -current_states.angle);
 
 	float dest_angle = destination[2];
 	float cur_angle = current_states.angle;
