@@ -374,7 +374,6 @@ void MRFDongle::send_camera_packet(std::vector<std::tuple<uint8_t, Point, Angle>
 		int16_t robotT  = static_cast<int16_t>((std::get<2>(detbots[i])).to_radians() * 1000);
 
 		mask_vec |=  int8_t(0x01 << (robotID));
-		std::cout << "Mask Vec: " << unsigned(mask_vec) << std::endl;
 		*rptr++ = static_cast<int8_t>(robotX);
 		*rptr++ = static_cast<int8_t>(robotX >> 8);
 		*rptr++ = static_cast<int8_t>(robotY);
@@ -396,7 +395,7 @@ void MRFDongle::send_camera_packet(std::vector<std::tuple<uint8_t, Point, Angle>
 
 	std::lock_guard<std::mutex> lock(cam_mtx);
 
-	if (camera_transfers.size() >= 16){
+	if (camera_transfers.size() >= 4){
 		std::cout << "Camera transfer queue is full, ignoring camera packet" << std::endl;	
 		return;
 	}
@@ -411,7 +410,7 @@ void MRFDongle::send_camera_packet(std::vector<std::tuple<uint8_t, Point, Angle>
 	auto i = camera_transfers.insert(camera_transfers.end(), std::pair<std::unique_ptr<USB::BulkOutTransfer>, uint64_t>(std::move(elt), stamp));
 	(*i).first->signal_done.connect(sigc::bind(sigc::mem_fun(this, &MRFDongle::handle_camera_transfer_done), i));
 	(*i).first->submit();
-	std::cout << "Submitted camera transfer in position:"<< camera_transfers.size() << std::endl;
+	//std::cout << "Submitted camera transfer in position:"<< camera_transfers.size() << std::endl;
 }
 bool MRFDongle::submit_drive_transfer() {
 	if (!drive_transfer) {
@@ -454,7 +453,7 @@ bool MRFDongle::submit_drive_transfer() {
 }
 
 void MRFDongle::handle_drive_transfer_done(AsyncOperation<void> &op) {
-	std::cout << "Drive Transfer done" << std::endl;
+	//std::cout << "Drive Transfer done" << std::endl;
 	op.result();
 	drive_transfer.reset();
 	if(std::find_if(robots, robots + sizeof(robots) / sizeof(*robots), [](const std::unique_ptr<MRFRobot> &bot) { return bot->drive_dirty; }) != robots + sizeof(robots) / sizeof(*robots)) {
@@ -470,7 +469,7 @@ void MRFDongle::handle_camera_transfer_done(AsyncOperation<void> &, std::list<st
 	uint64_t stamp  = static_cast<uint64_t>(micros.count());
 
 	std::lock_guard<std::mutex> lock(cam_mtx);
-	std::cout << "Camera transfer done, took: " << stamp - (*iter).second << " microseconds" << std::endl;
+	//std::cout << "Camera transfer done, took: " << stamp - (*iter).second << " microseconds" << std::endl;
 	(*iter).first->result();
 	camera_transfers.erase(iter);
 }

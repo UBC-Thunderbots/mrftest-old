@@ -486,7 +486,6 @@ USB::InterfaceClaimer::~InterfaceClaimer() {
 
 
 USB::Transfer::~Transfer() {
-	std::cout << "Destroying transfer" << std::endl;
 	try {
 		if (submitted_) {
 			// The transfer is submitted.
