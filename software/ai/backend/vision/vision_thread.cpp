@@ -177,15 +177,12 @@ void VisionThread::transmit_bots(SSL_WrapperPacket packet){
 	//only send every fourth packet
 	//TODO: make this for each camera
 	if(cam_count == 0){
-		//TODO: uncomment this
-		//dongle.send_camera_packet(detbots, ball_pos, t_capture);
+		dongle.send_camera_packet(detbots, ball_pos, t_capture);
 		cam_count = 0;
 	}else{
 		cam_count --;
 	}
 }
-
-
 
 
 

@@ -335,8 +335,7 @@ void MRFDongle::dirty_drive() {
 	if (!drive_submit_connection.connected()) {
 		// Tells the Glib control loop to send a drive transfer when it has nothing else to do (only once though)
 		// This should ensure the AI tick function completes before it sends a drive packet
-		//TODO: uncomment this
-		//drive_submit_connection = Glib::signal_idle().connect(sigc::mem_fun(this, &MRFDongle::submit_drive_transfer));
+		drive_submit_connection = Glib::signal_idle().connect(sigc::mem_fun(this, &MRFDongle::submit_drive_transfer));
 	}
 }
 
@@ -456,7 +455,7 @@ bool MRFDongle::submit_drive_transfer() {
 					length += 8;
 				}
 			}
-			drive_transfer.reset(new USB::BulkOutTransfer(device, 3, drive_packet, length, 64, 0));
+			drive_transfer.reset(new USB::BulkOutTransfer(device, 1, drive_packet, length, 64, 0));
 			drive_transfer->signal_done.connect(sigc::mem_fun(this, &MRFDongle::handle_drive_transfer_done));
 			drive_transfer->submit();
 			if (logger) {
