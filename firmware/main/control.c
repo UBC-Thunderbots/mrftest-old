@@ -26,7 +26,7 @@ static const float WHEEL_CORR_MAT[4][4] =
 	};
 
 /* Lookup table for the scalar final speeds for trajectory planning. */
-static const float SCALAR_VF[4] =
+const float SCALAR_VF[4] =
   {0.0f, 0.333f*MAX_X_V, 0.667f*MAX_X_V, MAX_X_V}; 
 
 

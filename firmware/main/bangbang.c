@@ -225,7 +225,7 @@ void PlanBBTrajectory(BBProfile *b) {
 	if (flip) {
 		b->Distance *= -1.0f;
 		b->Vinitial *= -1.0f;
-    b->Vfinal *= -1.0f
+    b->Vfinal *= -1.0f;
 	}
 	//we do all this so that we can assume a1 is posive
 	b->a1 = b->MaxA;

@@ -13,6 +13,7 @@
 static float destination[3], final_velocities[2];
 static int counts, counts_passed;
 
+extern float SCALAR_VF[4];
 
 /**
  * \brief Initializes the move primitive.
@@ -42,6 +43,8 @@ static void move_start(const primitive_params_t *params)
   //        scalar vf [enum, 0-3]
   
   float scalar_speed;
+  float init_position[2];
+	dr_data_t current_states;
 
 	printf ("move_start\r\n");
 	// Convert into m/s and rad/s because physics is in m and s
@@ -54,9 +57,12 @@ static void move_start(const primitive_params_t *params)
 	counts = (int)(params->params[3]/5.0f);
 	counts_passed = 0;
 
-  scalar_speed = SCALAR_VF[params->params[4]]
-
-  	
+  scalar_speed = SCALAR_VF[params->params[4]];
+	dr_get(&current_states);
+  init_position[0] = current_states.x;
+  init_position[1] = current_states.y;
+   
+  decompose_speed(scalar_speed, final_velocities, init_position, destination); 	
 }
 
 /**
