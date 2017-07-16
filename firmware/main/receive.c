@@ -64,7 +64,7 @@ static const size_t FOOTER_LENGTH = 2U /* FCS */ + 1U /* RSSI */ + 1U /* LQI */;
 static const size_t DRIVE_BODY_LENGTH = NUM_ROBOTS * RECEIVE_DRIVE_BYTES_PER_ROBOT + 1 + 8;
 
 static void receive_task(void *UNUSED(param)) {
-
+	fputs("in receive task", stdout);
 	uint16_t last_sequence_number = 0xFFFFU;
 	size_t frame_length;
 
@@ -230,6 +230,7 @@ void handle_drive_packet(uint8_t * dma_buffer){
 	pparams.extra = (words[2] >> 12) | ((words[3] >> 12) << 4);
 	pparams.slow = !!(pparams.extra & 0x80);
 	pparams.extra &= 0x7F;
+	//printf("prim number = %i", primitive);
 	if ((serial != last_serial /* Non-atomic because we are only writer */) || !estop_run || primitive_is_direct(primitive)) {
 		// Apply the movement primitive.
 		primitive_start(primitive, &pparams);
@@ -246,6 +247,8 @@ void handle_camera_packet(uint8_t * dma_buffer, uint8_t buffer_position){
 	// The first step is to get the mask vector, which contains
 	// which robots have valid camera data.
 	uint8_t mask_vector = dma_buffer[buffer_position++];
+	//printf("mask vector = %i", mask_vector);
+
 	// The next byte contains the flag information.
 	bool contains_robot = false;
 
@@ -257,7 +260,8 @@ void handle_camera_packet(uint8_t * dma_buffer, uint8_t buffer_position){
 	ball_x |= (dma_buffer[buffer_position++] << 8);
 	ball_y |= dma_buffer[buffer_position++];
 	ball_y |= (dma_buffer[buffer_position++] << 8);
-		 
+	
+ 
 	dr_set_ball_frame(ball_x, ball_y);
 		 
 	// The next bytes contain the robot camera information, if any.
@@ -280,6 +284,8 @@ void handle_camera_packet(uint8_t * dma_buffer, uint8_t buffer_position){
 				robot_angle |= dma_buffer[buffer_position++];
 				robot_angle |= (dma_buffer[buffer_position++] << 8);
 				dr_set_robot_frame(robot_x, robot_y, robot_angle);
+	
+  				printf("x pos = %i", robot_x);
 			}else {
 				buffer_position += 6;
 			}

@@ -150,8 +150,6 @@ void VisionThread::transmit_bots(SSL_WrapperPacket packet){
 		// if defending east side, flip the sign of all points (defending end is always negative)
 		bool neg = vis_inf.defendingEast();	
 		Point pos((neg ? -detbot.x() : detbot.x()) / 1000.0, (neg ? -detbot.y() : detbot.y()) / 1000.0);
-		//TODO: fix vision scaling
-		//pos = pos*0.66666666;
 		Angle ori = (Angle::of_radians(detbot.orientation()) + (neg ? Angle::half() : Angle::zero())).angle_mod();
 		detbots.push_back(std::make_tuple(pattern, pos, ori));
 	}
@@ -178,7 +176,7 @@ void VisionThread::transmit_bots(SSL_WrapperPacket packet){
 	//TODO: make this for each camera
 	if(cam_count == 0){
 		dongle.send_camera_packet(detbots, ball_pos, t_capture);
-		cam_count = 0;
+		cam_count = 4;
 	}else{
 		cam_count --;
 	}

@@ -215,12 +215,9 @@ void MRFBackend::tick(){
 
         // Do post-AI stuff (pushing data to the radios and updating predictors).
         for (std::size_t i = 0; i < friendly_team().size(); ++i) {
-				//TODO: uncomment this
-                //test to see if this fixes halt spamming over radio
-                friendly_team().get_backend_robot(i)->tick(false,false);
-                //friendly_team().get_backend_robot(i)->tick(
-                                //playtype() == AI::Common::PlayType::HALT,
-                                //playtype() == AI::Common::PlayType::STOP);
+                friendly_team().get_backend_robot(i)->tick(
+                                playtype() == AI::Common::PlayType::HALT,
+                                playtype() == AI::Common::PlayType::STOP);
                 friendly_team().get_backend_robot(i)->update_predictor(monotonic_time_);
         }
 

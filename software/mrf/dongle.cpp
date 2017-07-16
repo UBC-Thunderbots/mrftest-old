@@ -343,28 +343,27 @@ void MRFDongle::send_camera_packet(std::vector<std::tuple<uint8_t, Point, Angle>
 {
 	int8_t camera_packet[55] = {0};
 	int8_t mask_vec = 0; // Assume all robots don't have valid position at the start
-	int8_t flag_vec = 0; // Assume n
 	uint8_t numbots = static_cast<uint8_t>(detbots.size());
-	uint8_t ball_maxRange = 100;
 
 	// Initialize pointer to start at location of storing ball data. First 2 bytes are for mask and flag vector
-	int8_t *rptr = &camera_packet[2];
+	int8_t *rptr = &camera_packet[1];
 
-	if(ball.len() < ball_maxRange) // Some sort of check to see if we have valid ball positions
-	{
-		flag_vec |= 0x04;
-		
-		int16_t ballX = static_cast<int16_t>(ball.x * 1000.0);
-		int16_t ballY = static_cast<int16_t>(ball.y * 1000.0);
+	int16_t ballX = static_cast<int16_t>(ball.x * 1000.0);
+	int16_t ballY = static_cast<int16_t>(ball.y * 1000.0);
 
-		*rptr++ = static_cast<int8_t>(ballX); // Add Ball x position
-		*rptr++ = static_cast<int8_t>(ballX >> 8);
-		//rptr += 2; // Increment Pointer by 2 bytes
+	*rptr++ = static_cast<int8_t>(ballX); // Add Ball x position
+	*rptr++ = static_cast<int8_t>(ballX >> 8);
 
-		*rptr++ = static_cast<int8_t>(ballY); // Add Ball Y position
-		*rptr++ = static_cast<int8_t>(ballY >> 8);
-		//rptr += 2; // Increment Pointer by 2 bytes
-	}
+	*rptr++ = static_cast<int8_t>(ballY); // Add Ball Y position
+	*rptr++ = static_cast<int8_t>(ballY >> 8);
+	struct {
+        bool operator()(std::tuple<uint8_t, Point, Angle> a, std::tuple<uint8_t, Point, Angle> b) const
+        {   
+            return std::get<0>(a) < std::get<0>(b);
+        }   
+    } customLess;
+
+	std::sort(detbots.begin(), detbots.end(), customLess);
 
 	// For the number of robot for which data was passed in, assign robot ids to mask vector and position/angle data to camera packet
 	for(std::size_t i = 0; i < numbots; i++)
@@ -386,7 +385,6 @@ void MRFDongle::send_camera_packet(std::vector<std::tuple<uint8_t, Point, Angle>
 		//*rptr = ((int16_t)(std::get<1>(detbots[i])).x) + ((int16_t)((std::get<1>(detbots[i])).y) << 16) + ((int16_t)((std::get<2>(detbots[i])).to_radians() * 1000) << 32);
 		//rptr += 6;
 	}
-
 	// Write out the timestamp
 	for(std::size_t i = 0; i < 8; i++)
 	{
@@ -395,18 +393,7 @@ void MRFDongle::send_camera_packet(std::vector<std::tuple<uint8_t, Point, Angle>
 
 	// Mask and Flag Vectors should be fully initialized by now. Assign them to the packet
 	camera_packet[0] = mask_vec;
-	camera_packet[1] = flag_vec;
 
-	// Calculate total length of camera packet
-	//int8_t length;
-	//length = rptr - camera_packet;
-
-	// Submit camera packet for transfer over USB to the dongle firmware
-/*	
-	camera_transfer.reset(new USB::BulkOutTransfer(device, 1, camera_packet, 55, 55, 0));
-	camera_transfer->signal_done.connect(sigc::mem_fun(this, &MRFDongle::handle_camera_transfer_done));
-	camera_transfer->submit();
-*/
 	std::lock_guard<std::mutex> lock(cam_mtx);
 
 	if (camera_transfers.size() >= 16){

@@ -131,7 +131,7 @@ void dribbler_tick(log_record_t *record) {
 			}
 			delta_voltage = applied_voltage - back_emf;
 			float current = delta_voltage / (PHASE_RESISTANCE + SWITCH_RESISTANCE + 1);
-			printf("Current PWM = %d AppliedV = %f CurrentPumped = %f\r\n", dribbler_pwm, (double)applied_voltage, (double)current);
+			//printf("Current PWM = %d AppliedV = %f CurrentPumped = %f\r\n", dribbler_pwm, (double)applied_voltage, (double)current);
 			float power = current * current * (PHASE_RESISTANCE+2);
 			float energy = power / DRIBBLER_TICK_HZ;
 			motor_set(4U, MOTOR_MODE_FORWARD, dribbler_pwm);

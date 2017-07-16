@@ -46,7 +46,8 @@ static void move_start(const primitive_params_t *params)
 	destination[0] = ((float)(params->params[0])/1000.0f);
 	destination[1] = ((float)(params->params[1])/1000.0f);
 	destination[2] = ((float)(params->params[2])/100.0f);
-	
+
+	printf("x dest= %f", destination[0]);	
 #warning magic constant should use tick time constant here
 	counts = (int)(params->params[3]/5.0f);
 	counts_passed = 0;

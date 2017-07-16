@@ -1164,7 +1164,8 @@ void normal_init(void) {
 	STACK_ALLOCATE(rdtx_task_stack, 4096);
 	STACK_ALLOCATE(rdrx_task_stack, 4096);
 	drive_task_handle = xTaskCreateStatic(&drive_task, "norm_drive", sizeof(drive_task_stack) / sizeof(*drive_task_stack), 0, 7, drive_task_stack, &drive_task_storage);
-	camera_task_handle = xTaskCreateStatic(&camera_task, "norm_camera", sizeof(camera_task_stack) / sizeof(*camera_task_stack), 0, 7, camera_task_stack, &camera_task_storage);
+	//TODO: check if this is the right priority level for camera task
+	camera_task_handle = xTaskCreateStatic(&camera_task, "norm_camera", sizeof(camera_task_stack) / sizeof(*camera_task_stack), 0, 4, camera_task_stack, &camera_task_storage);
 	//reliable_task_handle = xTaskCreateStatic(&reliable_task, "norm_reliable", sizeof(reliable_task_stack) / sizeof(*reliable_task_stack), 0, 6, reliable_task_stack, &reliable_task_storage);
 	unreliable_task_handle = xTaskCreateStatic(&unreliable_task, "norm_unreliable", sizeof(unreliable_task_stack) / sizeof(*unreliable_task_stack), 0, 6, unreliable_task_stack, &unreliable_task_storage);
 	mdr_task_handle = xTaskCreateStatic(&mdr_task, "norm_mdr", sizeof(mdr_task_stack) / sizeof(*mdr_task_stack), 0, 5, mdr_task_stack, &mdr_task_storage);
