@@ -170,6 +170,7 @@ void handle_drive_packet(uint8_t * dma_buffer){
 
 	// Check if feedback should be sent.
 	if (robot_data[0] & 0x80) {
+		printf("feedback requested");
 		feedback_pend_normal();
 	}
 

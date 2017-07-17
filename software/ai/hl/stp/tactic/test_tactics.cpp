@@ -60,7 +60,7 @@ namespace {
 
 	void MoveTestOrientation::execute(caller_t& ca) {
         original_pos = player().position();
-		AI::HL::STP::Action::move_slp(ca, world, player(), dest);
+		AI::HL::STP::Action::move_rrt(ca, world, player(), dest);
 		AI::HL::STP::Action::move_slp(ca, world, player(), original_pos);
 	}
 }

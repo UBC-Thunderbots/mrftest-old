@@ -436,6 +436,7 @@ bool MRFDongle::submit_drive_transfer() {
 				// robot indices prefixed.
 				length = 0;
 				for (std::size_t i = 0; i != dirty_indices_count; ++i) {
+					std::cout << "encoding drive packet for bot: " << dirty_indices[i] << std::endl;
 					drive_packet[length++] = static_cast<uint8_t>(dirty_indices[i]);
 					robots[dirty_indices[i]]->encode_drive_packet(&drive_packet[length]);
 					length += 8;

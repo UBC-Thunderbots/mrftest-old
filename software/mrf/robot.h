@@ -28,27 +28,27 @@ class MRFRobot final : public Drive::Robot {
 		const Drive::Dongle &dongle() const override;
 		void set_charger_state(ChargerState state) override;
 
-		void move_slow(bool slow, FinalVelocities vf = STOP) override;
-		void move_coast(FinalVelocities vf = STOP) override;
-		void move_brake(FinalVelocities vf = STOP) override;
-		void move_move(Point dest, FinalVelocities vf = STOP) override;
+		void move_slow(bool slow, Drive::FinalVelocity fv = Drive::FinalVelocity::FV_STOP) override;
+		void move_coast(Drive::FinalVelocity fv = Drive::FinalVelocity::FV_STOP) override;
+		void move_brake(Drive::FinalVelocity fv = Drive::FinalVelocity::FV_STOP) override;
+		void move_move(Point dest, Drive::FinalVelocity vf = Drive::FinalVelocity::FV_STOP) override;
 		void move_move(Point dest, Angle orientation, 
-      FinalVelocities vf = STOP) override;
+			Drive::FinalVelocity fv = Drive::FinalVelocity::FV_STOP) override;
 		void move_move(Point dest, double time_delta, 
-      FinalVelocities vf = STOP) override;
+			Drive::FinalVelocity fv = Drive::FinalVelocity::FV_STOP) override;
 		void move_move(Point dest, Angle orientation, double time_delta,
-      FinalVelocities vf = STOP) override;
+      		Drive::FinalVelocity vf = Drive::FinalVelocity::FV_STOP) override;
 		void move_dribble(Point dest, Angle orientation, double desired_rpm, 
-      bool small_kick_allowed, FinalVelocities vf = STOP) override;
+		bool small_kick_allowed, Drive::FinalVelocity fv = Drive::FinalVelocity::FV_STOP) override;
 		void move_shoot(Point dest, double power, bool chip, 
-      FinalVelocities vf = STOP) override;
+			Drive::FinalVelocity fv = Drive::FinalVelocity::FV_STOP) override;
 		void move_shoot(Point dest, Angle orientation, double power, bool chip,
-      FinalVelocities vf = STOP) override;
+			Drive::FinalVelocity fv = Drive::FinalVelocity::FV_STOP) override;
 		void move_catch(Angle angle_diff, double displacement, double speed,
-      FinalVelocities vf = STOP) override;
+			Drive::FinalVelocity fv = Drive::FinalVelocity::FV_STOP) override;
 		void move_pivot(Point centre, Angle swing, Angle orientation,
-      FinalVelocities vf = STOP) override;
-		void move_spin(Point dest, Angle speed, FinalVelocities vf = STOP) override;
+			Drive::FinalVelocity fv = Drive::FinalVelocity::FV_STOP) override;
+		void move_spin(Point dest, Angle speed, Drive::FinalVelocity vf = Drive::FinalVelocity::FV_STOP) override;
 
 		void direct_wheels(const int (&wheels)[4]) override;
 		void direct_velocity(Point vel, Angle avel) override;
@@ -73,6 +73,7 @@ class MRFRobot final : public Drive::Robot {
 		ChargerState charger_state;
 		bool slow;
 		double params[4];
+		Drive::FinalVelocity final_vel;
 		uint8_t extra;
 		bool drive_dirty;
 		Glib::Timer request_build_ids_timer;
