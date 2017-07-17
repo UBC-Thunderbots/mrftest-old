@@ -147,7 +147,7 @@ bool BBPositivePlan(BBProfile *b) {
 	//if it is below the maximum we have our solution
 	//so bail
 	if (vm < b->MaxV && vm > -b->MaxV) {
-		return false;
+		return true;
 	}
 
 	//if we hit here then we are in the velocity limited case
