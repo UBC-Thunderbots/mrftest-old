@@ -28,19 +28,27 @@ class MRFRobot final : public Drive::Robot {
 		const Drive::Dongle &dongle() const override;
 		void set_charger_state(ChargerState state) override;
 
-		void move_slow(bool slow) override;
-		void move_coast() override;
-		void move_brake() override;
-		void move_move(Point dest) override;
-		void move_move(Point dest, Angle orientation) override;
-		void move_move(Point dest, double time_delta) override;
-		void move_move(Point dest, Angle orientation, double time_delta) override;
-		void move_dribble(Point dest, Angle orientation, double desired_rpm, bool small_kick_allowed) override;
-		void move_shoot(Point dest, double power, bool chip) override;
-		void move_shoot(Point dest, Angle orientation, double power, bool chip) override;
-		void move_catch(Angle angle_diff, double displacement, double speed) override;
-		void move_pivot(Point centre, Angle swing, Angle orientation) override;
-		void move_spin(Point dest, Angle speed) override;
+		void move_slow(bool slow, FinalVelocities vf = STOP) override;
+		void move_coast(FinalVelocities vf = STOP) override;
+		void move_brake(FinalVelocities vf = STOP) override;
+		void move_move(Point dest, FinalVelocities vf = STOP) override;
+		void move_move(Point dest, Angle orientation, 
+      FinalVelocities vf = STOP) override;
+		void move_move(Point dest, double time_delta, 
+      FinalVelocities vf = STOP) override;
+		void move_move(Point dest, Angle orientation, double time_delta,
+      FinalVelocities vf = STOP) override;
+		void move_dribble(Point dest, Angle orientation, double desired_rpm, 
+      bool small_kick_allowed, FinalVelocities vf = STOP) override;
+		void move_shoot(Point dest, double power, bool chip, 
+      FinalVelocities vf = STOP) override;
+		void move_shoot(Point dest, Angle orientation, double power, bool chip,
+      FinalVelocities vf = STOP) override;
+		void move_catch(Angle angle_diff, double displacement, double speed,
+      FinalVelocities vf = STOP) override;
+		void move_pivot(Point centre, Angle swing, Angle orientation,
+      FinalVelocities vf = STOP) override;
+		void move_spin(Point dest, Angle speed, FinalVelocities vf = STOP) override;
 
 		void direct_wheels(const int (&wheels)[4]) override;
 		void direct_velocity(Point vel, Angle avel) override;

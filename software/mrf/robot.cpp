@@ -172,62 +172,70 @@ void MRFRobot::move_slow(bool slow) {
 	dirty_drive();
 }
 
-void MRFRobot::move_coast() {
+void MRFRobot::move_coast(FinalVelocities vf) {
 	assert(!direct_control);
 	primitive = Drive::Primitive::STOP;
 	params[0] = 0.0;
 	params[1] = 0.0;
 	params[2] = 0.0;
 	params[3] = 0.0;
+  params[4] = 0.0;
 	extra = 0;
 	dirty_drive();
 }
 
-void MRFRobot::move_brake() {
+void MRFRobot::move_brake(FinalVelocities vf) {
 	assert(!direct_control);
 	primitive = Drive::Primitive::STOP;
 	params[0] = 0.0;
 	params[1] = 0.0;
 	params[2] = 0.0;
 	params[3] = 0.0;
+  params[4] = 0.0;
 	extra = 1;
 	dirty_drive();
 }
 
-void MRFRobot::move_move(Point dest, double time_delta) {
+void MRFRobot::move_move(Point dest, double time_delta, FinalVelocities vf) {
 	assert(!direct_control);
 	primitive = Drive::Primitive::MOVE;
 	params[0] = dest.x * 1000.0;
 	params[1] = dest.y * 1000.0;
 	params[2] = 0.0;
 	params[3] = time_delta * 1000.0;
+  params[4] = vf; 
 	extra = 0;
 	dirty_drive();
 }
 
-void MRFRobot::move_move(Point dest, Angle orientation, double time_delta) {
+void MRFRobot::move_move(Point dest, Angle orientation, double time_delta, 
+  FinalVelocities vf) {
 	assert(!direct_control);
 	primitive = Drive::Primitive::MOVE;
 	params[0] = dest.x * 1000.0;
 	params[1] = dest.y * 1000.0;
 	params[2] = orientation.angle_mod().to_radians() * 100.0;
 	params[3] = time_delta * 1000.0;
+  params[4] = vf;
 	extra = 1;
 	dirty_drive();
 }
 
-void MRFRobot::move_dribble(Point dest, Angle orientation, double desired_rpm, bool small_kick_allowed) {
+void MRFRobot::move_dribble(Point dest, Angle orientation, double desired_rpm, 
+  bool small_kick_allowed, FinalVelocities vf) {
 	assert(!direct_control);
 	primitive = Drive::Primitive::DRIBBLE;
 	params[0] = dest.x * 1000.0;
 	params[1] = dest.y * 1000.0;
 	params[2] = orientation.angle_mod().to_radians() * 100.0;
 	params[3] = desired_rpm;
+  params[4] = vf;
 	extra = small_kick_allowed;
 	dirty_drive();
 }
 
-void MRFRobot::move_shoot(Point dest, double power, bool chip) {
+void MRFRobot::move_shoot(Point dest, double power, bool chip,
+  FinalVelocities vf) {
 	assert(!direct_control);
 	primitive = Drive::Primitive::SHOOT;
 	params[0] = dest.x * 1000.0;
@@ -235,11 +243,13 @@ void MRFRobot::move_shoot(Point dest, double power, bool chip) {
 	params[2] = 0.0;
 	uint16_t chick_power = static_cast<uint16_t>(chicker_power_to_pulse_width(power,chip));
 	params[3] = chick_power;
+  params[4] = vf;
 	extra = chip;
 	dirty_drive();
 }
 
-void MRFRobot::move_shoot(Point dest, Angle orientation, double power, bool chip) {
+void MRFRobot::move_shoot(Point dest, Angle orientation, double power, 
+  bool chip, FinalVelocities vf) {
 	assert(!direct_control);
 	primitive = Drive::Primitive::SHOOT;
 	params[0] = dest.x * 1000.0;
@@ -247,39 +257,45 @@ void MRFRobot::move_shoot(Point dest, Angle orientation, double power, bool chip
 	params[2] = orientation.angle_mod().to_radians() * 100.0;
 	uint16_t chick_power = static_cast<uint16_t>(chicker_power_to_pulse_width(power,chip));
 	params[3] = chick_power;
+  params[4] = vf;
 	extra = static_cast<uint8_t>(2 | chip);
 	dirty_drive();
 }
 
-void MRFRobot::move_catch(Angle angle_diff, double displacement, double speed) {
+void MRFRobot::move_catch(Angle angle_diff, double displacement, double speed,
+  FinalVelocities vf) {
 	assert(!direct_control);
 	primitive = Drive::Primitive::CATCH;
 	params[0] = angle_diff.angle_mod().to_radians() * 100.0;
 	params[1] = displacement * 1000.0;
 	params[2] = speed * 1000.0;
 	params[3] = 0.0;
+  params[4] = vf;
 	extra = 0;
 	dirty_drive();
 }
 
-void MRFRobot::move_pivot(Point centre, Angle swing, Angle orientation) {
+void MRFRobot::move_pivot(Point centre, Angle swing, Angle orientation,
+  FinalVelocities vf) {
 	assert(!direct_control);
 	primitive = Drive::Primitive::PIVOT;
 	params[0] = centre.x * 1000.0;
 	params[1] = centre.y * 1000.0;
 	params[2] = swing.angle_mod().to_radians() * 100.0;
 	params[3] = orientation.angle_mod().to_radians() * 100.0;
+  params[4] = vf;
 	extra = 0;
 	dirty_drive();
 }
 
-void MRFRobot::move_spin(Point dest, Angle speed) {
+void MRFRobot::move_spin(Point dest, Angle speed, FinalVelocities vf) {
 	assert(!direct_control);
 	primitive = Drive::Primitive::SPIN;
 	params[0] = dest.x * 1000.0;
 	params[1] = dest.y * 1000.0;
 	params[2] = speed.to_radians() * 100.0;
 	params[3] = 0.0;
+  params[4] = vf;
 	extra = 0;
 	dirty_drive();
 }
@@ -291,6 +307,7 @@ void MRFRobot::direct_wheels(const int (&wheels)[4]) {
 	params[1] = wheels[1];
 	params[2] = wheels[2];
 	params[3] = wheels[3];
+  params[4] = 0.0f;
 	dirty_drive();
 }
 
@@ -301,6 +318,7 @@ void MRFRobot::direct_velocity(Point vel, Angle avel) {
 	params[1] = vel.y * 1000.0;
 	params[2] = avel.to_radians() * 100.0;
 	params[3] = 0.0;
+  params[4] = 0.0f
 	dirty_drive();
 }
 
@@ -390,7 +408,7 @@ void MRFRobot::encode_drive_packet(void *out) {
 	uint16_t words[4];
 
 	// Encode the parameter words.
-	for(std::size_t i = 0; i != sizeof(params) / sizeof(*params); ++i) {
+	for(int i = 0; i != 4; ++i) {
 		double value = params[i];
 		switch (std::fpclassify(value)) {
 			case FP_NAN:
@@ -440,6 +458,9 @@ void MRFRobot::encode_drive_packet(void *out) {
 
 	words[2] = static_cast<uint16_t>(words[2] | static_cast<uint16_t>((extra_encoded & 0xF) << 12));
 	words[3] = static_cast<uint16_t>(words[3] | static_cast<uint16_t>((extra_encoded >> 4) << 12));
+
+  // Encode the final velocity parameter.
+  words[1] = static_cast<uint16_t>(words[1] | (static_cast<uint16_t>(params[4]) & 0x3) << 12);
 
 	// Convert the words to bytes.
 	uint8_t *wptr = static_cast<uint8_t *>(out);

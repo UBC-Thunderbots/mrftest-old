@@ -29,7 +29,7 @@ namespace AI {
 					Angle field_angle_2() const;
 
 					Drive::Primitive prim;
-					std::array<double, 4> params;
+					std::array<double, 5> params;
 					uint8_t extra;
 			};
 
