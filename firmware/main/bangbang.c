@@ -70,7 +70,7 @@ void PrepareBBTrajectoryMaxV(BBProfile *b, float d, float vi, float MaxA, float 
  * that the accelerations are already fixed.
  * Call PlanBBTrajectory instead.
  */
-void BBPositivePlan(BBProfile *b) {
+bool BBPositivePlan(BBProfile *b) {
 	//first we will assume we are not in the coast condition
 	//and hence the time spent in region two is zero
 	b->t2=0.0f;
@@ -99,7 +99,7 @@ void BBPositivePlan(BBProfile *b) {
 	float discrm = B*B - 4.0f*A*C;
 	if (discrm < 0.0f) {
 		printf("Error: Failed discriminant test.`\n");
-		return; //cannot acheive so give it a fail time;
+		return false; //cannot acheive so give it a fail time;
 	}
 
 	//two possible solutons to the quadraic equations 
@@ -147,7 +147,7 @@ void BBPositivePlan(BBProfile *b) {
 	//if it is below the maximum we have our solution
 	//so bail
 	if (vm < b->MaxV && vm > -b->MaxV) {
-		return;
+		return false;
 	}
 
 	//if we hit here then we are in the velocity limited case
@@ -183,7 +183,7 @@ void BBPositivePlan(BBProfile *b) {
 	//compute t2 (this shouldn't be negative
 	//but again if it is there is a need for error logging
 	b->t2 = drem / b->Vmid;
-	return;
+	return true;
 }
 
 
@@ -230,7 +230,14 @@ void PlanBBTrajectory(BBProfile *b) {
 	//we do all this so that we can assume a1 is posive
 	b->a1 = b->MaxA;
 	b->a3 = -b->MaxA;
-	BBPositivePlan(b);
+	bool validPlan = BBPositivePlan(b);
+
+	// check if we were able to compute a valid plan
+	// if not, try again with a final velociy of zero
+	if(!validPlan){
+		b->Vfinal = 0;
+		BBPositivePlan(b);
+	}
 	//undo the flip if it was applied
 	if(flip) {
 		b->Distance *= -1.0f;
