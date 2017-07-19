@@ -124,10 +124,43 @@ void AI::HL::STP::Action::move_slp(caller_t& ca, World world, Player player, Poi
 
 void AI::HL::STP::Action::move_slp(caller_t& ca, World world, Player player, Point dest, Angle orientation, bool should_wait) {
 	std::vector<Point> plan;
+	const double MAX_SPEED = 2.0;
+	const double SMALL_DIST = 1.0e-4;
+
 	while((player.position() - dest).len() > 0.05) {
 		plan = Evaluation::SLP::straight_line_plan(world, player, dest);
 		player.display_path(plan);
-		player.move_move(plan[0], orientation, 0);
+		double final_velocity = 2;
+
+		if(plan.size() > 1)
+		{
+			// Calculate end velocity based on next point, using function 2cos(x^2)
+			Point p1 = plan[0] - player.position();
+			Point p2 = plan[1] - plan[0];
+
+			//if the length one or both of the vectors are close to zero, assume they are collinear
+			if(p1.len() < SMALL_DIST || p2.len() < SMALL_DIST)
+			{
+				final_velocity = MAX_SPEED;
+			}
+			
+			//normalize
+			p1 = p1.norm();
+			p2 = p2.norm();
+
+			// if both unit vectors are close to parallel, assume they are collinear
+			if(p1.cross(p2) < SMALL_DIST)
+			{
+				final_velocity = MAX_SPEED;
+			}
+			else // use formula
+			{
+				double angle = std::acos((p1.dot(p2))); //should be [0,pi)
+				final_velocity = std::max(0.0, MAX_SPEED * std::cos(angle * angle));
+			}
+		}
+
+		player.move_move(plan[0], orientation, final_velocity);
 		yield(ca);
 	}
 }
