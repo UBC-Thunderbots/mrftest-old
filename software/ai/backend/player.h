@@ -66,8 +66,8 @@ namespace AI {
 				virtual void move_brake() = 0;
 				virtual void move_move(Point dest) = 0;
 				virtual void move_move(Point dest, Angle orientation) = 0;
-				virtual void move_move(Point dest, double time_delta) = 0;
-				virtual void move_move(Point dest, Angle orientation, double time_delta) = 0; 
+				virtual void move_move(Point dest, double end_speed) = 0;
+				virtual void move_move(Point dest, Angle orientation, double end_speed) = 0; 
 				virtual void move_dribble(Point dest, Angle orientation, double desired_rpm, bool small_kick_allowed) = 0;
 				virtual void move_shoot(Point dest, double power, bool chip) = 0;
 				virtual void move_shoot(Point dest, Angle orientation, double power, bool chip) = 0;

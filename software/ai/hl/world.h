@@ -208,10 +208,10 @@ namespace AI {
 					 * \param[in] dest the position to move to, as a distance forward
 					 * and left of the robot’s current position, relative to the
 					 * robot’s current orientation
-					 * \param[in] time_delta how many seconds in the future the robot
-					 * should arrive at its destination
+					 * \param[in] end_speed the speed (not velocity) that the robot 
+					 * should attempt to be moving at when it reaches the destination		
 					 */
-					void move_move(Point dest, double time_delta);
+					void move_move(Point dest, double end_speed);
 
 					/**
 					 * \brief Moves the robot to a target position and orientation.
@@ -221,10 +221,10 @@ namespace AI {
 					 * robot’s current orientation
 					 * \param[in] orientation how far left to rotate the robot to reach
 					 * its desired orientation
-					 * \param[in] time_delta how many seconds in the future the robot
-					 * should arrive at its destination
+                     * \param[in] end_speed the speed (not velocity) that the robot 
+                     * should attempt to be moving at when it reaches the destination
 					 */
-					void move_move(Point dest, Angle orientation, double time_delta);
+					void move_move(Point dest, Angle orientation, double end_speed);
 
 					/**
 					 * \brief Moves the robot while carrying the ball.
@@ -577,12 +577,12 @@ inline void AI::HL::W::Player::move_move(Point dest, Angle orientation){
 	AI::Common::Player::impl->move_move(dest, orientation);
 }
 
-inline void AI::HL::W::Player::move_move(Point dest, double time_delta){
-	AI::Common::Player::impl->move_move(dest, time_delta);
+inline void AI::HL::W::Player::move_move(Point dest, double end_speed){
+	AI::Common::Player::impl->move_move(dest, end_speed);
 }
 
-inline void AI::HL::W::Player::move_move(Point dest, Angle orientation, double time_delta){
-	AI::Common::Player::impl->move_move(dest, orientation, time_delta);
+inline void AI::HL::W::Player::move_move(Point dest, Angle orientation, double end_speed){
+	AI::Common::Player::impl->move_move(dest, orientation, end_speed);
 }
 
 inline void AI::HL::W::Player::move_dribble(Point dest, Angle orientation, double desired_rpm, bool small_kick_allowed){

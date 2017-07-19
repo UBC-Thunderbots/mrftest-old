@@ -18,11 +18,11 @@ namespace AI {
 					inline Move(AI::Common::Player player, Point dest, Angle ori)
 						: Move(player, dest, ori, 0.0) { }
 
-					inline Move(AI::Common::Player player, Point dest, double time_delta)
-						: Primitive(player, Drive::Primitive::MOVE, dest.x, dest.y, 0, time_delta, 0) { }
+					inline Move(AI::Common::Player player, Point dest, double end_speed)
+						: Primitive(player, Drive::Primitive::MOVE, dest.x, dest.y, 0, end_speed, 0) { }
 
-					inline Move(AI::Common::Player player, Point dest, Angle orientation, double time_delta)
-						: Primitive(player, Drive::Primitive::MOVE, dest.x, dest.y, orientation.to_radians(), time_delta, 1) { }
+					inline Move(AI::Common::Player player, Point dest, Angle orientation, double end_speed)
+						: Primitive(player, Drive::Primitive::MOVE, dest.x, dest.y, orientation.to_radians(), end_speed, 1) { }
 			};
 
 			class Dribble : public Primitive {

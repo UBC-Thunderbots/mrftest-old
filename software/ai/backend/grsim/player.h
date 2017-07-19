@@ -23,8 +23,8 @@ namespace GRSim { class Player final : public AI::BE::Player {
 					void move_brake() override;
 					void move_move(Point dest) override;
 					void move_move(Point dest, Angle orientation) override;
-					void move_move(Point dest, double time_delta) override;
-					void move_move(Point dest, Angle orientation, double time_delta) override;
+					void move_move(Point dest, double end_speed) override;
+					void move_move(Point dest, Angle orientation, double end_speed) override;
 					void move_dribble(Point dest, Angle orientation, double desired_rpm, bool small_kick_allowed) override;
 					void move_shoot(Point dest, double power, bool chip) override;
 					void move_shoot(Point dest, Angle orientation, double power, bool chip) override;
@@ -45,7 +45,7 @@ namespace GRSim { class Player final : public AI::BE::Player {
 					Point _move_dest;
 					Angle _move_ori;
 					Angle _pivot_swing;
-					double _move_time_delta;
+					double _move_end_speed;
 					double _shoot_power;
 					double _catch_displacement;
 					double _catch_speed;
@@ -79,29 +79,29 @@ inline void AI::BE::GRSim::Player::move_brake() {
 inline void AI::BE::GRSim::Player::move_move(Point dest) {
 	_prim = Drive::Primitive::MOVE;
 	_prim_extra = 0;
-	_move_time_delta = 0;
+	_move_end_speed = 0;
 	_move_dest = dest;
 }
 
 inline void AI::BE::GRSim::Player::move_move(Point dest, Angle orientation) {
 	_prim = Drive::Primitive::MOVE;
 	_prim_extra = 1;
-	_move_time_delta = 0;
+	_move_end_speed = 0;
 	_move_dest = dest;
 	_move_ori = orientation;
 }
 
-inline void AI::BE::GRSim::Player::move_move(Point dest, double time_delta) {
+inline void AI::BE::GRSim::Player::move_move(Point dest, double end_speed) {
 	_prim = Drive::Primitive::MOVE;
 	_prim_extra = 0;
-	_move_time_delta = time_delta;
+	_move_end_speed = end_speed;
 	_move_dest = dest;
 }
 
-inline void AI::BE::GRSim::Player::move_move(Point dest, Angle orientation, double time_delta) {
+inline void AI::BE::GRSim::Player::move_move(Point dest, Angle orientation, double end_speed) {
 	_prim = Drive::Primitive::MOVE;
 	_prim_extra = 1;
-	_move_time_delta = time_delta;
+	_move_end_speed = end_speed;
 	_move_dest = dest;
 	_move_ori = orientation;
 }

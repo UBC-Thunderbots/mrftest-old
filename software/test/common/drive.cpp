@@ -49,16 +49,16 @@ namespace {
 		scale[0] = scale[1] = scale[2] = scale[3] = 0.1;
 	}
 
-	void on_execute_move_point(Drive::Robot &bot, const double sliders[4], bool exact_time) {
-		if (exact_time) {
+	void on_execute_move_point(Drive::Robot &bot, const double sliders[4], bool exact_speed) {
+		if (exact_speed) {
 			bot.move_move({sliders[0], sliders[1]}, sliders[2]);
 		} else {
 			bot.move_move({sliders[0], sliders[1]});
 		}
 	}
 
-	void on_execute_move_point_angle(Drive::Robot &bot, const double sliders[4], bool exact_time) {
-		if (exact_time) {
+	void on_execute_move_point_angle(Drive::Robot &bot, const double sliders[4], bool exact_speed) {
+		if (exact_speed) {
 			bot.move_move({sliders[0], sliders[1]}, Angle::of_degrees(sliders[2]), sliders[3]);
 		} else {
 			bot.move_move({sliders[0], sliders[1]}, Angle::of_degrees(sliders[2]));
@@ -187,7 +187,7 @@ namespace {
 				{ nullptr, 0, 0, 0, 0, 0, 0 },
 			},
 			false,
-			u8"Specific Arrival Time",
+			u8"Speed to end at",
 			&on_execute_move_point,
 			nullptr
 		},
@@ -200,7 +200,7 @@ namespace {
 				{ u8"t (s)", 0.0, 0.0, 10.0, 0.001, 0.1, 3 },
 			},
 			false,
-			u8"Specific Arrival Time",
+			u8"Speed to end at",
 			&on_execute_move_point_angle,
 			nullptr
 		},

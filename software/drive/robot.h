@@ -12,6 +12,7 @@
 namespace Drive {
 	class Dongle;
 
+	
 	/**
 	 * \brief The movement primitive codes.
 	 */
@@ -96,29 +97,6 @@ namespace Drive {
 		DIRECT_VELOCITY,
 	};
 
-      /**
-       * \brief The possible final velocities after a primitive is
-       * complete. 
-       */
-      enum class FinalVelocity {
-        /**
-         * \brief Robot will be stationary after primitive execution.
-         */
-        FV_STOP = 0,
-        /**
-         * \brief Robot will move at 1/3*VMAX after primitive execution. 
-         */
-        FV_SLOW = 1,
-        /**
-         * \brief Robot will move at 2/3*VMAX after primitive execution.
-         */
-        FV_MEDIUM = 2,
-        /**
-         * \brief Robot will move at VMAX after primitive execution.
-         */
-        FV_FAST = 3
-      };
-
 	/**
 	 * \brief A generic driveable robot.
 	 */
@@ -143,8 +121,6 @@ namespace Drive {
 				 */
 				CHARGE,
 			};
-
-
 
 			/**
 			 * \brief The pattern index of the robot.
@@ -337,17 +313,17 @@ namespace Drive {
 			 *
 			 * \param[in] slow \c true to move slowly, or \c false to move fast
 			 */
-			virtual void move_slow(FinalVelocity fv = FinalVelocity::FV_STOP, bool slow = true) = 0;
+			virtual void move_slow(bool slow = true) = 0;
 
 			/**
 			 * \brief Coasts the robot’s wheels.
 			 */
-			virtual void move_coast(FinalVelocity fv = FinalVelocity::FV_STOP) = 0;
+			virtual void move_coast() = 0;
 
 			/**
 			 * \brief Brakes the robot’s wheels.
 			 */
-			virtual void move_brake(FinalVelocity fv = FinalVelocity::FV_STOP) = 0;
+			virtual void move_brake() = 0;
 
 			/**
 			 * \brief Moves the robot to a target position.
@@ -359,7 +335,7 @@ namespace Drive {
 			 * and left of the robot’s current position, relative to the
 			 * robot’s current orientation
 			 */
-			virtual void move_move(Point dest, FinalVelocity fv = FinalVelocity::FV_STOP) = 0;
+			virtual void move_move(Point dest) = 0;
 
 			/**
 			 * \brief Moves the robot to a target position and orientation.
@@ -370,8 +346,7 @@ namespace Drive {
 			 * \param[in] orientation how far left to rotate the robot to reach
 			 * its desired orientation
 			 */
-			virtual void move_move(Point dest, Angle orientation, 
-        FinalVelocity fv = FinalVelocity::FV_STOP) = 0;
+			virtual void move_move(Point dest, Angle orientation) = 0;
 
 			/**
 			 * \brief Moves the robot to a target position.
@@ -382,11 +357,10 @@ namespace Drive {
 			 * \param[in] dest the position to move to, as a distance forward
 			 * and left of the robot’s current position, relative to the
 			 * robot’s current orientation
-			 * \param[in] time_delta how many seconds in the future the robot
-			 * should arrive at its destination
+             * \param[in] end_speed the speed (not velocity) that the robot 
+             * should attempt to be moving at when it reaches the destination
 			 */
-			virtual void move_move(Point dest, double time_delta,
-        FinalVelocity fv = FinalVelocity::FV_STOP) = 0;
+			virtual void move_move(Point dest, double time_delta) = 0;
 
 			/**
 			 * \brief Moves the robot to a target position and orientation.
@@ -396,11 +370,10 @@ namespace Drive {
 			 * robot’s current orientation
 			 * \param[in] orientation how far left to rotate the robot to reach
 			 * its desired orientation
-			 * \param[in] time_delta how many seconds in the future the robot
-			 * should arrive at its destination
+             * \param[in] end_speed the speed (not velocity) that the robot 
+             * should attempt to be moving at when it reaches the destination
 			 */
-			virtual void move_move(Point dest, Angle orientation, double time_delta,
-        FinalVelocity fv = FinalVelocity::FV_STOP) = 0;
+			virtual void move_move(Point dest, Angle orientation, double time_delta) = 0;
 
 			/**
 			 * \brief Moves the robot while carrying the ball.
@@ -413,9 +386,7 @@ namespace Drive {
 			 * \param[in] small_kick_allowed whether or not the robot is
 			 * allowed to kick the ball ahead of itself while moving
 			 */
-			virtual void move_dribble(Point dest, Angle orientation, 
-        double desired_rpm, bool small_kick_allowed, 
-        FinalVelocity fv = FinalVelocity::FV_STOP) = 0;
+			virtual void move_dribble(Point dest, Angle orientation, double desired_rpm, bool small_kick_allowed) = 0;
 
 			/**
 			 * \brief Kicks the ball.
@@ -430,8 +401,7 @@ namespace Drive {
 			 * (for chipping) to kick the ball
 			 * \param[in] chip \c true to chip the ball or \c false to kick it
 			 */
-			virtual void move_shoot(Point dest, double power, bool chip,
-        FinalVelocity fv = FinalVelocity::FV_STOP) = 0;
+			virtual void move_shoot(Point dest, double power, bool chip) = 0;
 
 			/**
 			 * \brief Kicks the ball.
@@ -446,8 +416,7 @@ namespace Drive {
 			 * (for chipping) to kick the ball
 			 * \param[in] chip \c true to chip the ball or \c false to kick it
 			 */
-			virtual void move_shoot(Point dest, Angle orientation, double power, 
-        bool chip, FinalVelocity fv = FinalVelocity::FV_STOP) = 0;
+			virtual void move_shoot(Point dest, Angle orientation, double power, bool chip) = 0;
 
 			/**
 			 * \brief Catches a moving ball.
@@ -464,8 +433,7 @@ namespace Drive {
 			 * negative for backward), where “forward” is defined relative to
 			 * the robot’s orientation <em>after the requested rotation</em>
 			 */
-			virtual void move_catch(Angle angle_diff, double displacement, 
-        double speed, FinalVelocity fv = FinalVelocity::FV_STOP) = 0;
+			virtual void move_catch(Angle angle_diff, double displacement, double speed) = 0;
 
 			/**
 			 * \brief Rotates around a point on the field (e.g. the ball) while
@@ -483,8 +451,7 @@ namespace Drive {
 			 * \param[in] orientation how far left the robot should rotate to
 			 * reach the desired final orientation
 			 */
-			virtual void move_pivot(Point centre, Angle swing, Angle orientation,
-        FinalVelocity fv = FinalVelocity::FV_STOP) = 0;
+			virtual void move_pivot(Point centre, Angle swing, Angle orientation) = 0;
 
 			/**
 			 * \brief Spins around rapidly while moving.
@@ -494,8 +461,7 @@ namespace Drive {
 			 * robot’s current orientation
 			 * \param[in] speed the speed to spin at, in units per second
 			 */
-			virtual void move_spin(Point dest, Angle speed,
-        FinalVelocity fv = FinalVelocity::FV_STOP) = 0;
+			virtual void move_spin(Point dest, Angle speed) = 0;
 
 			/**
 			 * \}
