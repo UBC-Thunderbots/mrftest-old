@@ -11,7 +11,7 @@ typedef struct {
 	/**
 	 * \brief The four primary data parameters.
 	 */
-	int16_t params[5];
+	int16_t params[4];
 
 	/**
 	 * \brief Whether the robot has been ordered to drive slowly.

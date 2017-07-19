@@ -74,13 +74,13 @@ static void dribble_tick(log_record_t *logajectory) {
 	float accel[3];
 
 	BBProfile Xprofile;
-	PrepareBBTrajectory(&Xprofile, destination[0]-pos[0], vel[0], max_accel[0]);
+	PrepareBBTrajectory(&Xprofile, destination[0]-pos[0], vel[0], 0, max_accel[0]);
 	PlanBBTrajectory(&Xprofile);
 	accel[0] = BBComputeAvgAccel(&Xprofile, DRIBBLE_TIME_HORIZON);
 	float timeX = GetBBTime(&Xprofile);
 
 	BBProfile Yprofile;
-	PrepareBBTrajectory(&Yprofile, destination[1]-pos[1], vel[1], max_accel[1]);
+	PrepareBBTrajectory(&Yprofile, destination[1]-pos[1], vel[1], 0, max_accel[1]);
 	PlanBBTrajectory(&Yprofile);
 	accel[1] = BBComputeAvgAccel(&Yprofile, DRIBBLE_TIME_HORIZON);
 	float timeY = GetBBTime(&Yprofile);

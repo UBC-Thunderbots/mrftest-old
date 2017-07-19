@@ -17,6 +17,7 @@
 //static primitive_params_t shoot_param;
 
 static float destination[3];
+static float direction[2];
 
 //static float compute_accel(float d_target, float d_cur, float v_cur, float v_max, float a_max);
 
@@ -67,6 +68,9 @@ static void shoot_start(const primitive_params_t *params) {
 	destination[1] = ((float)(params->params[1])/1000.0f);
 	destination[2] = ((float)(params->params[2])/100.0f);
 	
+	direction[0] = cos(destination[2]);
+	direction[1] = sin(destination[2]);
+
 	chicker_auto_arm((params->extra & 1) ? CHICKER_CHIP : CHICKER_KICK, params->params[3]);
 	if (!(params->extra & 1)) {
 		dribbler_set_speed(8000);
@@ -102,24 +106,31 @@ static void shoot_tick(log_record_t *log) {
 	float vel[3] = {current_states.vx, current_states.vy, current_states.avel};
 	float pos[3] = {current_states.x, current_states.y, current_states.angle};
 	float max_accel[3] = {MAX_X_A, MAX_Y_A, MAX_T_A};
-
 	float accel[3];
 
-	BBProfile Xprofile;
-	PrepareBBTrajectory(&Xprofile, destination[0]-pos[0], vel[0], max_accel[0]);
-	PlanBBTrajectory(&Xprofile);
-	accel[0] = BBComputeAvgAccel(&Xprofile, SHOOT_TIME_HORIZON);
-	float timeX = GetBBTime(&Xprofile);
+	float delta[2]  = {destination[0] - pos[0], destination[1] - pos[1]};
 
-	BBProfile Yprofile;
-	PrepareBBTrajectory(&Yprofile, destination[1]-pos[1], vel[1], max_accel[1]);
-	PlanBBTrajectory(&Yprofile);
-	accel[1] = BBComputeAvgAccel(&Yprofile, SHOOT_TIME_HORIZON);
-	float timeY = GetBBTime(&Yprofile);
+	float delta_major = delta[0]*direction[0] + delta[1]*direction[1]; //dot product
+	float delta_minor = direction[0]*delta[1] - direction[1]*delta[0]; //cross product
+
+	BBProfile majorProfile;
+	//TODO: determine proper magic number for final velocity
+	//TODO: reduce control strength along major axis
+	PrepareBBTrajectory(&majorProfile, delta_major, vel[0]*direction[0] + vel[1]*direction[1], 0.7, max_accel[0]);
+	PlanBBTrajectory(&majorProfile);
+	accel[0] = BBComputeAvgAccel(&majorProfile, SHOOT_TIME_HORIZON);
+	float timeMajor = GetBBTime(&majorProfile);
+
+	BBProfile minorProfile;
+	PrepareBBTrajectory(&minorProfile, delta_minor, direction[0]*vel[1] - direction[1]*vel[0], 0, max_accel[0]);
+	PlanBBTrajectory(&minorProfile);
+	accel[0] = BBComputeAvgAccel(&minorProfile, SHOOT_TIME_HORIZON);
+	float timeMinor = GetBBTime(&majorProfile);
+
 
 	float deltaD = destination[2] - pos[2];
-	float timeTarget = (timeY > timeX)?timeY:timeX;
-	if (timeX < SHOOT_TIME_HORIZON && timeY < SHOOT_TIME_HORIZON) {
+	float timeTarget = (timeMajor > timeMinor)?timeMajor:timeMinor;
+	if (timeMajor < SHOOT_TIME_HORIZON && timeMinor < SHOOT_TIME_HORIZON) {
 		timeTarget = SHOOT_TIME_HORIZON;	
 	}
 	
@@ -131,14 +142,14 @@ static void shoot_tick(log_record_t *log) {
 		log->tick.primitive_data[0] = accel[0];
 		log->tick.primitive_data[1] = accel[1];
 		log->tick.primitive_data[2] = accel[2];
-		log->tick.primitive_data[3] = timeX;
-		log->tick.primitive_data[4] = timeY;
+		log->tick.primitive_data[3] = timeMajor;
+		log->tick.primitive_data[4] = timeMinor;
 		log->tick.primitive_data[5] = timeTarget;
 		log->tick.primitive_data[6] = deltaD;
 		log->tick.primitive_data[7] = targetVel;
 	}
 
-	rotate(accel, -current_states.angle);
+	rotate(accel, destination[2] - current_states.angle);
 	apply_accel(accel, accel[2]);
 
 	/*dr_data_t current_states;

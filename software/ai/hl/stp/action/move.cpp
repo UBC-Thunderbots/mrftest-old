@@ -81,7 +81,7 @@ void AI::HL::STP::Action::move_rrt(caller_t& ca, World world, Player player, Poi
 		count = 0;
 		for(unsigned int i = 0; i < plan.size(); i++) {
 			player.display_path(std::vector<Point>(plan.begin() + i, plan.end()));
-			player.move_move(plan[i], orientation, 0);
+			player.move_move(plan[i], orientation, 1.0);
 
 			Action::yield(ca);
 			while((player.position() - plan[i]).len() > Robot::MAX_RADIUS) {

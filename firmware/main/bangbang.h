@@ -58,8 +58,8 @@ typedef struct {
 
 
 //wrappers to fill out the Profile struct with the input information
-void PrepareBBTrajectoryMaxV(BBProfile *b, float d, float vi, float MaxA, float MaxV);
-void PrepareBBTrajectory(BBProfile *b, float d, float vi, float MaxA);
+void PrepareBBTrajectoryMaxV(BBProfile *b, float d, float vi, float vf, float MaxA, float MaxV);
+void PrepareBBTrajectory(BBProfile *b, float d, float vi, float vf, float MaxA);
 
 //meat and potatoes, computes the relavent details of the trajectory
 void PlanBBTrajectory(BBProfile *b);

@@ -164,12 +164,12 @@ static void catch_tick(log_record_t *log) {
   position_f[1] = project_y_axis(position, angle_final);
   velocity_f[1] = project_y_axis(velocity, angle_final);
 
-  PrepareBBTrajectory(&y_trajectory, y_final-position_f[1], velocity_f[1], CATCH_MAX_Y_A);
+  PrepareBBTrajectory(&y_trajectory, y_final-position_f[1], velocity_f[1], 0, CATCH_MAX_Y_A);
   PlanBBTrajectory(&y_trajectory);
   accel_f[1] = BBComputeAccel(&y_trajectory, TIME_HORIZON);
 
   // Calculate angular acceleration in order to reach final required angle.
-  PrepareBBTrajectory(&t_trajectory, angle_final-position[2], velocity[2], CATCH_MAX_T_A);
+  PrepareBBTrajectory(&t_trajectory, angle_final-position[2], velocity[2], 0, CATCH_MAX_T_A);
   PlanBBTrajectory(&t_trajectory);
   accel_f[2] = BBComputeAccel(&t_trajectory, TIME_HORIZON);
   

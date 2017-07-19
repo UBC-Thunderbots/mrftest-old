@@ -104,8 +104,8 @@ static void spin_tick(log_record_t *log) {
 		log->tick.primitive_data[5] = velocities[2];
 	}
 
-	PrepareBBTrajectory(&x_trajectory, x_dest-coords[0], velocities[0], a_max[0]);
-	PrepareBBTrajectory(&y_trajectory, y_dest-coords[1], velocities[1], a_max[1]);
+	PrepareBBTrajectory(&x_trajectory, x_dest-coords[0], velocities[0], 0, a_max[0]);
+	PrepareBBTrajectory(&y_trajectory, y_dest-coords[1], velocities[1], 0, a_max[1]);
 
 	PlanBBTrajectory(&x_trajectory);
 	PlanBBTrajectory(&y_trajectory);

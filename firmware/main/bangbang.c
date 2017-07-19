@@ -37,9 +37,10 @@ void stepTime(float* dist, float* vel, float time, float accel) {
  * \param[in] maximum acceleration
  * 
  */
-void PrepareBBTrajectory(BBProfile *b, float d, float vi, float MaxA) {
+void PrepareBBTrajectory(BBProfile *b, float d, float vi, float vf, float MaxA) {
 	b->Distance = d;
 	b->Vinitial = vi;
+	b->Vfinal = vf;
 	b->MaxA = MaxA;
 	b->MaxV = INFINITY; //no maxV therefore exceed the speed of light TO INFINITY AND BEYOND>>>>>>>>>>
 }
@@ -58,9 +59,10 @@ void PrepareBBTrajectory(BBProfile *b, float d, float vi, float MaxA) {
  * \param[in] maximum velocity
  * 
  */
-void PrepareBBTrajectoryMaxV(BBProfile *b, float d, float vi, float MaxA, float MaxV) {
+void PrepareBBTrajectoryMaxV(BBProfile *b, float d, float vi, float vf, float MaxA, float MaxV) {
 	b->Distance = d;
 	b->Vinitial = vi;
+	b->Vfinal = vf;
 	b->MaxA = MaxA;
 	b->MaxV = MaxV;
 }

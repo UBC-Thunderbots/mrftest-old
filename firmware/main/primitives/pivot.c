@@ -147,12 +147,12 @@ static void pivot_tick(log_record_t *log) {
 	} else if ( radial_acc_ <= -6.0f ){
 		radial_acc_ = -6.0f;
 	}
-	PrepareBBTrajectory(&theta, angle - pos[1], vel[1], radial_acc_);
+	PrepareBBTrajectory(&theta, angle - pos[1], vel[1], 0, radial_acc_);
 	PlanBBTrajectory(&theta);
 	Pacc[1] = BBComputeAvgAccel(&theta, HORIZON);
 	float Ttime = GetBBTime(&theta);
 	BBProfile radius;
-	PrepareBBTrajectory(&radius, rad - pos[0], vel[0], RADIAL_ACCEL_MAX);
+	PrepareBBTrajectory(&radius, rad - pos[0], vel[0], 0, RADIAL_ACCEL_MAX);
 	PlanBBTrajectory(&radius);
 	Pacc[0] = BBComputeAvgAccel(&radius, HORIZON);
 	float Rtime = GetBBTime(&radius);
@@ -168,7 +168,7 @@ static void pivot_tick(log_record_t *log) {
 		log->tick.primitive_data[7] = acc[1];
 	}
 	BBProfile Rotation;
-	PrepareBBTrajectory(&Rotation,addRot-pos[2],vel[2],MAX_T_A);
+	PrepareBBTrajectory(&Rotation,addRot-pos[2],vel[2], 0,MAX_T_A);
 	PlanBBTrajectory(&Rotation);
 	float As = BBComputeAvgAccel(&Rotation, HORIZON);
 	if (log) {

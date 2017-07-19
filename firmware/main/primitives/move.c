@@ -10,10 +10,9 @@
 #define TIME_HORIZON 0.05f //s
 
 //Parameters
-static float destination[3], final_velocities[2];
+static float destination[3], final_velocity[2];
 static int counts, counts_passed;
 
-extern float SCALAR_VF[4];
 
 /**
  * \brief Initializes the move primitive.
@@ -39,11 +38,10 @@ static void move_start(const primitive_params_t *params)
 	//Parameters: 	destination_x [mm]
 	//				destination_y [mm]
 	//				destination_ang [centi-rad]
-	//				time [ms]
-  //        scalar vf [enum, 0-3]
+	//				end_speed [millimeter/s]
   
-  float scalar_speed;
-  float init_position[2];
+	float scalar_speed;
+	float init_position[2];
 	dr_data_t current_states;
 
 	printf ("move_start\r\n");
@@ -51,18 +49,21 @@ static void move_start(const primitive_params_t *params)
 	destination[0] = ((float)(params->params[0])/1000.0f);
 	destination[1] = ((float)(params->params[1])/1000.0f);
 	destination[2] = ((float)(params->params[2])/100.0f);
-
-	printf("x dest= %f", destination[0]);	
+	scalar_speed = ((float)(params->params[3])/1000.0f);
+ 
+	
+	printf("input speed= %f", scalar_speed);	
 #warning magic constant should use tick time constant here
 	counts = (int)(params->params[3]/5.0f);
 	counts_passed = 0;
 
-  scalar_speed = SCALAR_VF[params->params[4]];
 	dr_get(&current_states);
-  init_position[0] = current_states.x;
-  init_position[1] = current_states.y;
+	init_position[0] = current_states.x;
+	init_position[1] = current_states.y;
    
-  decompose_speed(scalar_speed, final_velocities, init_position, destination); 	
+	//decomposes speed into final velocity vector (modifies final_velocity param)
+	decompose_speed(scalar_speed, final_velocity, init_position, destination); 	
+	printf("final xVel= %f", final_velocity[0]);	
 }
 
 /**
@@ -91,18 +92,21 @@ static void move_tick(log_record_t *log) {
 	dr_get(&current_states);
 
 	float vel[3] = {current_states.vx, current_states.vy, current_states.avel};
-	rotate(vel, -current_states.angle);
+	rotate(vel, -current_states.angle); //put current vel into local coords
 
 	float relative_destination[3];
 
 	relative_destination[0] = destination[0] - current_states.x;
 	relative_destination[1] = destination[1] - current_states.y;
-	rotate(relative_destination, -current_states.angle);
-  rotate(final_velocities, -current_states.angle);
+	rotate(relative_destination, -current_states.angle); //put relative dest into local coords
+
+	float relative_final_velocity[2] = {final_velocity[0], final_velocity[1]}; // copy by value not reference 
+	rotate(final_velocity, -current_states.angle); // put relative final velocity into local coords
 
 	float dest_angle = destination[2];
 	float cur_angle = current_states.angle;
 
+	// Pick whether to go clockwise or counterclockwise (based on smallest angle)
 	if(dest_angle >= cur_angle ){                                                                                                        
 	  float dest_sub = dest_angle - 2*M_PI;                                                                                        
 	  if((dest_sub - cur_angle)*(dest_sub - cur_angle) <= (dest_angle - cur_angle)*(dest_angle - cur_angle)){                             
@@ -123,13 +127,16 @@ static void move_tick(log_record_t *log) {
 	float accel[3];
 
 	BBProfile Xprofile;
-	PrepareBBTrajectory(&Xprofile, relative_destination[0], vel[0], max_accel[0]);
+	//PrepareBBTrajectory(&Xprofile, relative_destination[0], vel[0], relative_final_velocity[0], max_accel[0]);
+	PrepareBBTrajectory(&Xprofile, relative_destination[0], vel[0], 0, max_accel[0]);
 	PlanBBTrajectory(&Xprofile);
 	accel[0] = BBComputeAvgAccel(&Xprofile, TIME_HORIZON);
+	printf("local x accel= %f", accel[0]);	
 	float timeX = GetBBTime(&Xprofile);
 
 	BBProfile Yprofile;
-	PrepareBBTrajectory(&Yprofile, relative_destination[1], vel[1], max_accel[1]);
+	PrepareBBTrajectory(&Yprofile, relative_destination[1], vel[1], 0, max_accel[1]);
+	//PrepareBBTrajectory(&Yprofile, relative_destination[1], vel[1], relative_final_velocity[1], max_accel[1]);
 	PlanBBTrajectory(&Yprofile);
 	accel[1] = BBComputeAvgAccel(&Yprofile, TIME_HORIZON);
 	float timeY = GetBBTime(&Yprofile);
@@ -155,8 +162,10 @@ static void move_tick(log_record_t *log) {
 		log->tick.primitive_data[7] = targetVel;
 	}
 
-	//rotate(accel, -angle);//-current_states.angle);
-	apply_accel(accel, accel[2]);
+	printf("xAccel= %f\n", accel[0]);	
+	printf("yAccel= %f\n", accel[1]);	
+	printf("thetaAccel= %f\n", accel[2]);	
+	apply_accel(accel, accel[2]); // accel is already in local coords
 }
 
 /**
