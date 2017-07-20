@@ -19,7 +19,7 @@ static const struct __attribute__((packed)) {
 		usb_interface_descriptor_t normal_intf;
 			usb_endpoint_descriptor_t drive_data_ep;
 			usb_endpoint_descriptor_t camera_ep;
-			usb_endpoint_descriptor_t unreliable_ep;
+			usb_endpoint_descriptor_t message_ep;
 			usb_endpoint_descriptor_t mdr_ep;
 			usb_endpoint_descriptor_t rx_ep;
 			usb_endpoint_descriptor_t estop_ep;
@@ -94,7 +94,7 @@ static const struct __attribute__((packed)) {
 		.bInterval = 5U,
 	},
 
-	.unreliable_ep = {
+	.message_ep = {
 		.bLength = sizeof(usb_endpoint_descriptor_t),
 		.bDescriptorType = USB_DTYPE_ENDPOINT,
 		.bEndpointAddress = 0x03U,

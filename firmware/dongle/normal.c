@@ -76,7 +76,7 @@ enum rdrx_event_t {
  */
 typedef struct {
 	/**
-	 * \brief The message ID, used for outbound reliable packets to report delivery status.
+	 * \brief The message ID, used for outbound reliable message packets to report delivery status.
 	 */
 	uint8_t message_id;
 
@@ -203,14 +203,9 @@ static TaskHandle_t drive_task_handle;
 static TaskHandle_t camera_task_handle;
 
 /**
- * \brief The handle of the reliable message transmission task.
+ * \brief The handle of the message transmission task.
  */
-//static TaskHandle_t reliable_task_handle;
-
-/**
- * \brief The handle of the unreliable message transmission task.
- */
-static TaskHandle_t unreliable_task_handle;
+static TaskHandle_t message_task_handle;
 
 /**
  * \brief The handle of the message delivery report task.
@@ -662,60 +657,9 @@ static void camera_task(void *UNUSED(param)) {
 }
 
 /**
- * \brief Receives reliable message packets from OUT endpoint 2 and queues them for transmission.
+ * \brief Receives message packets from OUT endpoint 3 and queues them for transmission.
  */
-/*static void reliable_task(void *UNUSED(param)) {
-	for (;;) {
-		// Wait to be instructed to start doing work.
-		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-
-		// Run.
-		packet_t *buf = 0;
-		for (;;) {
-			if (!buf) {
-				xQueueReceive(free_queue, &buf, portMAX_DELAY);
-			}
-			size_t length;
-			if (uep_read(0x02U, buf->data, sizeof(buf->data), &length)) {
-				if (length >= 3U && ((buf->data[0U] & 0x0FU) < 8U)) {
-					buf->message_id = buf->data[1U];
-					buf->reliable = true;
-					buf->tries = buf->data[2U];
-					buf->data_offset = 3U;
-					buf->length = length - 3U;
-					xQueueSend(transmit_queue, &buf, portMAX_DELAY);
-					buf = 0;
-				} else {
-					// Halt endpoint due to application being dumb.
-					uep_halt(0x02U);
-				}
-			} else if (errno == EPIPE) {
-				// Halted.
-				if (!uep_halt_wait(0x02U)) {
-					// Shutting down.
-					break;
-				}
-			} else if (errno == ECONNRESET) {
-				// Shutting down.
-				break;
-			} else { // EOVERFLOW
-				// Halt endpoint due to application being dumb.
-				uep_halt(0x02U);
-			}
-		}
-
-		// Free packet if we are holding onto one.
-		xQueueSend(free_queue, &buf, portMAX_DELAY);
-
-		// Done.
-		xSemaphoreGive(enabled_mode_change_sem);
-	}
-}
-*/
-/**
- * \brief Receives unreliable message packets from OUT endpoint 3 and queues them for transmission.
- */
-static void unreliable_task(void *UNUSED(param)) {
+static void message_task(void *UNUSED(param)) {
 	for (;;) {
 		// Wait to be instructed to start doing work.
 		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
@@ -728,7 +672,18 @@ static void unreliable_task(void *UNUSED(param)) {
 			}
 			size_t length;
 			if (uep_read(0x03U, buf->data, sizeof(buf->data), &length)) {
-				if (length >= 2U && buf->data[0U] < 8U) {
+        // Check if it is a reliable packet.
+        if (length >= 3U && ((buf->data[0U] & 0x0FU) < 8U)) {
+					buf->message_id = buf->data[1U];
+					buf->reliable = true;
+					buf->tries = buf->data[2U];
+					buf->data_offset = 3U;
+					buf->length = length - 3U;
+					xQueueSend(transmit_queue, &buf, portMAX_DELAY);
+					buf = 0;
+        }
+        // Check if it is an unreliable packet.
+				else if (length >= 2U && buf->data[0U] < 8U) {
 					buf->message_id = 0U;
 					buf->reliable = false;
 					buf->tries = buf->data[1U];
@@ -736,7 +691,8 @@ static void unreliable_task(void *UNUSED(param)) {
 					buf->length = length - 2U;
 					xQueueSend(transmit_queue, &buf, portMAX_DELAY);
 					buf = 0;
-				} else {
+				} 
+        else {
 					// Halt endpoint due to application being dumb.
 					uep_halt(0x03U);
 				}
@@ -1153,12 +1109,10 @@ void normal_init(void) {
 	}
 
 	// Start tasks.
-	static StaticTask_t camera_task_storage, drive_task_storage, unreliable_task_storage, mdr_task_storage, usbrx_task_storage, dongle_status_task_storage, rdtx_task_storage, rdrx_task_storage;
-	//static StaticTask_t reliable_task_storage;
+	static StaticTask_t camera_task_storage, drive_task_storage, message_task_storage, mdr_task_storage, usbrx_task_storage, dongle_status_task_storage, rdtx_task_storage, rdrx_task_storage;
 	STACK_ALLOCATE(drive_task_stack, 4096);
 	STACK_ALLOCATE(camera_task_stack, 4096);
-	//STACK_ALLOCATE(reliable_task_stack, 4096);
-	STACK_ALLOCATE(unreliable_task_stack, 4096);
+	STACK_ALLOCATE(message_task_stack, 4096);
 	STACK_ALLOCATE(mdr_task_stack, 4096);
 	STACK_ALLOCATE(usbrx_task_stack, 4096);
 	STACK_ALLOCATE(dongle_status_task_stack, 4096);
@@ -1167,8 +1121,7 @@ void normal_init(void) {
 	drive_task_handle = xTaskCreateStatic(&drive_task, "norm_drive", sizeof(drive_task_stack) / sizeof(*drive_task_stack), 0, 7, drive_task_stack, &drive_task_storage);
 	//TODO: check if this is the right priority level for camera task
 	camera_task_handle = xTaskCreateStatic(&camera_task, "norm_camera", sizeof(camera_task_stack) / sizeof(*camera_task_stack), 0, 4, camera_task_stack, &camera_task_storage);
-	//reliable_task_handle = xTaskCreateStatic(&reliable_task, "norm_reliable", sizeof(reliable_task_stack) / sizeof(*reliable_task_stack), 0, 6, reliable_task_stack, &reliable_task_storage);
-	unreliable_task_handle = xTaskCreateStatic(&unreliable_task, "norm_unreliable", sizeof(unreliable_task_stack) / sizeof(*unreliable_task_stack), 0, 6, unreliable_task_stack, &unreliable_task_storage);
+	message_task_handle = xTaskCreateStatic(&message_task, "norm_message", sizeof(message_task_stack) / sizeof(*message_task_stack), 0, 6, message_task_stack, &message_task_storage);
 	mdr_task_handle = xTaskCreateStatic(&mdr_task, "norm_mdr", sizeof(mdr_task_stack) / sizeof(*mdr_task_stack), 0, 5, mdr_task_stack, &mdr_task_storage);
 	usbrx_task_handle = xTaskCreateStatic(&usbrx_task, "norm_usbrx", sizeof(usbrx_task_stack) / sizeof(*usbrx_task_stack), 0, 6, usbrx_task_stack, &usbrx_task_storage);
 	dongle_status_task_handle = xTaskCreateStatic(&dongle_status_task, "norm_dstatus", sizeof(dongle_status_task_stack) / sizeof(*dongle_status_task_stack), 0, 5, dongle_status_task_stack, &dongle_status_task_storage);
@@ -1209,8 +1162,7 @@ void normal_on_enter(void) {
 	// Notify tasks to start doing work.
 	xTaskNotifyGive(drive_task_handle);
 	xTaskNotifyGive(camera_task_handle);
-//	xTaskNotifyGive(reliable_task_handle);
-	xTaskNotifyGive(unreliable_task_handle);
+	xTaskNotifyGive(message_task_handle);
 	xTaskNotifyGive(mdr_task_handle);
 	xTaskNotifyGive(usbrx_task_handle);
 	xTaskNotifyGive(dongle_status_task_handle);
