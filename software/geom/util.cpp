@@ -804,3 +804,13 @@ bool is_clockwise(Vector2 v1, Vector2 v2) {
 	return false;
 }
 
+std::pair<Point, Point> get_circle_tangent_points(const Point &start, const Circle &circle, double buffer) {
+	double radiusAngle = std::acos(circle.radius / (start - circle.origin).len());
+	Point p1 = circle.origin + (start - circle.origin).rotate(Angle::of_radians(radiusAngle)).norm(circle.radius + buffer);
+	Point p2 = circle.origin + (start - circle.origin).rotate(-Angle::of_radians(radiusAngle)).norm(circle.radius + buffer);
+	return std::make_pair(p1, p2);
+}
+
+bool point_is_to_right_of_line(const Geom::Seg &line, const Point &point) {
+	return (line.end.x - line.start.x) * (point.y - line.start.y) - (line.end.y - line.start.y) * (point.x - line.start.x) < 0.0;
+}

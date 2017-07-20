@@ -458,3 +458,12 @@ bool point_in_front_vector( Point offset, Point dir, Point p );
  */
 #warning this should work but hasn't been properly tested
 bool is_clockwise(Point v1, Point v2);
+
+/**
+ * Returns the circle's tangent points.
+ *
+ * Returns the points on the circle that form tangent lines with the start point
+ */
+std::pair<Point, Point> get_circle_tangent_points(const Point &start, const Geom::Circle &circle, double buffer = 0.0);
+
+bool point_is_to_right_of_line(const Geom::Seg &line, const Point &point);

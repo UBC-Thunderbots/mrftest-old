@@ -91,7 +91,7 @@ class Point final {
 		constexpr Point perp() const __attribute__((warn_unused_result));
 
 		/**
-		 * \brief Rotates this Point by an angle
+		 * \brief Rotates this Point counterclockwise by an angle
 		 *
 		 * \param[in] rot the angle to rotate the vector
 		 *

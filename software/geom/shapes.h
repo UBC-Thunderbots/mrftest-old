@@ -2,6 +2,7 @@
 
 #include "geom/point.h"
 #include "geom/rect.h"
+#include <functional>
 
 namespace Geom {
 	class Line final {
@@ -87,6 +88,13 @@ namespace Geom {
 		 */
 		inline explicit constexpr Circle() : radius(0) { }
 
-		inline explicit Circle(const Vector2& origin, double r) : origin(origin), radius(r) { }
+		# warning can this be made an unsigned double? so negative values are caught at compile time?
+		inline explicit constexpr Circle(const Vector2& origin, double r) : origin(origin), radius(r) { }
+
+		# warning these shapes could use more operators and functions (eg area), and hashes
+
+		inline constexpr bool operator==(const Circle &p) {
+			return this->origin == p.origin && this->radius == p.radius;
+		}
 	};
 }
