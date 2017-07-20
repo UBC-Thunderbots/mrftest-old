@@ -46,7 +46,7 @@ namespace {
 		buffer[1] = message_id;
 		buffer[2] = static_cast<uint8_t>(tries & 0xFF);
 		std::memcpy(buffer + 3, data, length);
-		std::unique_ptr<USB::BulkOutTransfer> ptr(new USB::BulkOutTransfer(device, 2, buffer, sizeof(buffer), 64, 0));
+		std::unique_ptr<USB::BulkOutTransfer> ptr(new USB::BulkOutTransfer(device, 3, buffer, sizeof(buffer), 64, 0));
 		return ptr;
 	}
 }
