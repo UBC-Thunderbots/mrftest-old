@@ -140,6 +140,7 @@ bool BBPositivePlan(BBProfile *b) {
 			//again perhaps some form of error logging
 			b->t1 = INFINITY;
 			b->t3 = INFINITY;
+			printf("t1a: %f\r\nt1b: %f\r\nt3a: %f\r\nt3b: %f\r\n",t1a,t1b,t3a,t3b);
 		}
 	}
 
@@ -203,21 +204,21 @@ void PlanBBTrajectory(BBProfile *b) {
 	//distance you are trying to travel is negative or if at your current speed you will
 	//overshoot your destination even at maximum decelleration. If both cases are 
 	//true then the flips cancel out.
-	
+
 	//are we going leftwards
 	bool Dflip = b->Distance < 0.0f;
 
 	//are the target distance and current velocity in the same direction
 	bool SameSign = !((b->Vinitial<0.0f)^(b->Distance < 0.0f));
-	
+
 	/* This checks if we would overshoot if Distance and Vi had the same sign.
-   * Overshoot happens when (vf^2-vi^2)/2a > d. Since we have checked for 
-   * the same sign condition above, we can take the absolute value of both
-   * sides of the equation to cover all cases in one calculation.
-   */
+	 * Overshoot happens when (vf^2-vi^2)/2a > d. Since we have checked for 
+	 * the same sign condition above, we can take the absolute value of both
+	 * sides of the equation to cover all cases in one calculation.
+	 */
 	bool Overshoot = 
-    ((b->Vfinal*b->Vfinal)-(b->Vinitial*b->Vinitial))/(2.0f*b->MaxA)
-    > fabsf(b->Distance);
+		((b->Vfinal*b->Vfinal)-(b->Vinitial*b->Vinitial))/(2.0f*b->MaxA)
+		> fabsf(b->Distance);
 
 	//will we overshoot
 	bool Oflip =  SameSign && Overshoot;
@@ -227,7 +228,7 @@ void PlanBBTrajectory(BBProfile *b) {
 	if (flip) {
 		b->Distance *= -1.0f;
 		b->Vinitial *= -1.0f;
-    b->Vfinal *= -1.0f;
+		b->Vfinal *= -1.0f;
 	}
 	//we do all this so that we can assume a1 is posive
 	b->a1 = b->MaxA;
@@ -244,7 +245,7 @@ void PlanBBTrajectory(BBProfile *b) {
 	if(flip) {
 		b->Distance *= -1.0f;
 		b->Vinitial *= -1.0f;
-    b->Vfinal *= -1.0f;
+		b->Vfinal *= -1.0f;
 		b->a1 *= -1.0f;
 		b->a3 *= -1.0f;
 		b->Vmid *= -1.0f;
