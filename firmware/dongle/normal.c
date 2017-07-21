@@ -952,6 +952,7 @@ static void rdrx_task(void *UNUSED(param)) {
 				// Check outstanding interrupts.
 				uint8_t intstat = mrf_read_short(MRF_REG_SHORT_INTSTAT);
 				if (intstat & (1U << 3U)) {
+				led_blink(LED_TX);
 					// RXIF = 1; packet received.
 					mrf_write_short(MRF_REG_SHORT_BBREG1, 0x04U); // RXDECINV = 1; invert receiver symbol sign to prevent further packet reception
 
@@ -1111,8 +1112,8 @@ void normal_init(void) {
 	STACK_ALLOCATE(rdrx_task_stack, 4096);
 	drive_task_handle = xTaskCreateStatic(&drive_task, "norm_drive", sizeof(drive_task_stack) / sizeof(*drive_task_stack), 0, 7, drive_task_stack, &drive_task_storage);
 	//TODO: check if this is the right priority level for camera task
-	camera_task_handle = xTaskCreateStatic(&camera_task, "norm_camera", sizeof(camera_task_stack) / sizeof(*camera_task_stack), 0, 7, camera_task_stack, &camera_task_storage);
-	message_task_handle = xTaskCreateStatic(&message_task, "norm_message", sizeof(message_task_stack) / sizeof(*message_task_stack), 0, 7, message_task_stack, &message_task_storage);
+	camera_task_handle = xTaskCreateStatic(&camera_task, "norm_camera", sizeof(camera_task_stack) / sizeof(*camera_task_stack), 0, 5, camera_task_stack, &camera_task_storage);
+	message_task_handle = xTaskCreateStatic(&message_task, "norm_message", sizeof(message_task_stack) / sizeof(*message_task_stack), 0, 6, message_task_stack, &message_task_storage);
 	mdr_task_handle = xTaskCreateStatic(&mdr_task, "norm_mdr", sizeof(mdr_task_stack) / sizeof(*mdr_task_stack), 0, 5, mdr_task_stack, &mdr_task_storage);
 	usbrx_task_handle = xTaskCreateStatic(&usbrx_task, "norm_usbrx", sizeof(usbrx_task_stack) / sizeof(*usbrx_task_stack), 0, 6, usbrx_task_stack, &usbrx_task_storage);
 	dongle_status_task_handle = xTaskCreateStatic(&dongle_status_task, "norm_dstatus", sizeof(dongle_status_task_stack) / sizeof(*dongle_status_task_stack), 0, 5, dongle_status_task_stack, &dongle_status_task_storage);

@@ -127,16 +127,16 @@ static void move_tick(log_record_t *log) {
 	float accel[3];
 
 	BBProfile Xprofile;
-	//PrepareBBTrajectory(&Xprofile, relative_destination[0], vel[0], relative_final_velocity[0], max_accel[0]);
-	PrepareBBTrajectory(&Xprofile, relative_destination[0], vel[0], 0, max_accel[0]);
+	PrepareBBTrajectoryMaxV(&Xprofile, relative_destination[0], vel[0], relative_final_velocity[0], max_accel[0], 3.0);
+	//PrepareBBTrajectoryMaxV(&Xprofile, relative_destination[0], vel[0], 0, max_accel[0]);
 	PlanBBTrajectory(&Xprofile);
 	accel[0] = BBComputeAvgAccel(&Xprofile, TIME_HORIZON);
 	printf("local x accel= %f", accel[0]);	
 	float timeX = GetBBTime(&Xprofile);
 
 	BBProfile Yprofile;
-	PrepareBBTrajectory(&Yprofile, relative_destination[1], vel[1], 0, max_accel[1]);
-	//PrepareBBTrajectory(&Yprofile, relative_destination[1], vel[1], relative_final_velocity[1], max_accel[1]);
+	//PrepareBBTrajectoryMaxV(&Yprofile, relative_destination[1], vel[1], 0, max_accel[1]);
+	PrepareBBTrajectoryMaxV(&Yprofile, relative_destination[1], vel[1], relative_final_velocity[1], max_accel[1], 3.0);
 	PlanBBTrajectory(&Yprofile);
 	accel[1] = BBComputeAvgAccel(&Yprofile, TIME_HORIZON);
 	float timeY = GetBBTime(&Yprofile);
