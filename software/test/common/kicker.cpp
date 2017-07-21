@@ -106,7 +106,7 @@ void KickerPanel::on_autokick_changed() {
 			robot.direct_chicker_auto(pulse_width.get_value(), is_active);
 		}		
 	} else {
-		robot.direct_chicker_auto(false, 0);
+		robot.direct_chicker_auto(0, false);
 	}
 }
 
