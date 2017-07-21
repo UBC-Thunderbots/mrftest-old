@@ -86,6 +86,7 @@ void VisionThread::vision_loop(int multicast_interface, std::string port){
  		
 		packets_mutex.lock();
 		if(vision_packets.size() > 16){
+			std::cout << "warning- throwing out vision packet- queue has 16 existing packets" << std::endl;
 			vision_packets.pop(); // Too many packets, get rid of the oldest
 		}
 		vision_packets.push(packet);

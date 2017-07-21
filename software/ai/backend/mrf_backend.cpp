@@ -136,11 +136,12 @@ void FriendlyTeam::update(const std::vector<const google::protobuf::RepeatedPtrF
 			const AI::BE::Physical::Player::Ptr &bot = i.ptr();
 			assert(bot->pattern() < NUM_PATTERNS);
 			if (!seen_this_frame[bot->pattern()]) {
+				std::cout << "didn't see bot: "<< bot->pattern() << std::endl;
 				++vision_failures[bot->pattern()];
 			} else {
 				vision_failures[bot->pattern()] = 0;
 			}
-			seen_this_frame[bot->pattern()] = false;
+			//seen_this_frame[bot->pattern()] = false;
 			if (vision_failures[bot->pattern()] >= Vision::MAX_VISION_FAILURES) {
 				i.destroy();
 				membership_changed = true;
@@ -180,7 +181,7 @@ void MRFBackend::tick(){
 	vision_thread.vis_inf.setBallPos(ball_.position());
 	vision_thread.vis_inf.setDataValid(true);
 	
-        while(true){
+	while(true){
 		vision_thread.packets_mutex.lock();
 		if(vision_thread.vision_packets.empty()){
 			vision_thread.packets_mutex.unlock();
@@ -191,41 +192,40 @@ void MRFBackend::tick(){
 			vision_thread.packets_mutex.unlock();
 			this->handle_vision_packet(packet);
 		}
-        }
+	}
 
-// If the field geometry is not yet valid, do nothing.
-        if (!field_.valid()) {
-                return;
-        }
+		// If the field geometry is not yet valid, do nothing.
+	if (!field_.valid()) {
+			return;
+	}
 
-        // Do pre-AI stuff (locking predictors).
-        monotonic_time_ = std::chrono::steady_clock::now();
-        ball_.lock_time(monotonic_time_);
-        friendly_team().lock_time(monotonic_time_);
-        enemy_team().lock_time(monotonic_time_);
-        for (std::size_t i = 0; i < friendly_team().size(); ++i) {
-                friendly_team().get_backend_robot(i)->pre_tick();
-        }
-        for (std::size_t i = 0; i < enemy_team().size(); ++i) {
-                enemy_team().get_backend_robot(i)->pre_tick();
-        }
+	// Do pre-AI stuff (locking predictors).
+	monotonic_time_ = std::chrono::steady_clock::now();
+	ball_.lock_time(monotonic_time_);
+	friendly_team().lock_time(monotonic_time_);
+	enemy_team().lock_time(monotonic_time_);
+	for (std::size_t i = 0; i < friendly_team().size(); ++i) {
+			friendly_team().get_backend_robot(i)->pre_tick();
+	}
+	for (std::size_t i = 0; i < enemy_team().size(); ++i) {
+			enemy_team().get_backend_robot(i)->pre_tick();
+	}
 
-        // Run the AI.
-        signal_tick().emit();
+	// Run the AI.
+	signal_tick().emit();
 
-        // Do post-AI stuff (pushing data to the radios and updating predictors).
-        for (std::size_t i = 0; i < friendly_team().size(); ++i) {
-                friendly_team().get_backend_robot(i)->tick(
-                                playtype() == AI::Common::PlayType::HALT,
-                                playtype() == AI::Common::PlayType::STOP);
-                friendly_team().get_backend_robot(i)->update_predictor(monotonic_time_);
-        }
+		// Do post-AI stuff (pushing data to the radios and updating predictors).
+	for (std::size_t i = 0; i < friendly_team().size(); ++i) {
+		friendly_team().get_backend_robot(i)->tick(
+							playtype() == AI::Common::PlayType::HALT,
+							playtype() == AI::Common::PlayType::STOP);
+		friendly_team().get_backend_robot(i)->update_predictor(monotonic_time_);
+	}
 
-        // Notify anyone interested in the finish of a tick.
-        AI::Timestamp after;
-        after = std::chrono::steady_clock::now();
-        signal_post_tick().emit(after - monotonic_time_);
-
+	// Notify anyone interested in the finish of a tick.
+	AI::Timestamp after;
+	after = std::chrono::steady_clock::now();
+	signal_post_tick().emit(after - monotonic_time_);
 }
 
 BackendFactory &MRFBackend::factory() const {

@@ -224,7 +224,6 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 
 	// Movement of the ball may, potentially, result in a play type change.
 	update_playtype();
-
 	return;
 }
 

@@ -14,6 +14,7 @@
 #include <utility>
 #include <glibmm/main.h>
 #include <sigc++/functors/mem_fun.h>
+#include <iostream>
 
 namespace {
 	/**
@@ -448,6 +449,7 @@ void MRFRobot::encode_drive_packet(void *out) {
 }
 
 void MRFRobot::handle_message(const void *data, std::size_t len, uint8_t lqi, uint8_t rssi) {
+	std::cout << "Got msg from bot: "<<index<< std::endl;
 	link_quality = lqi / 255.0;
 	{
 		bool found = false;
