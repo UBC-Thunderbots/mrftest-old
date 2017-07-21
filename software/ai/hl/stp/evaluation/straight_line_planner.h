@@ -43,7 +43,7 @@ namespace AI {
                 	 */
                 	std::pair<Point, Point> getGroupTangentPoints(const Point &start, const std::vector<Geom::Circle> &obstacles, double buffer = 0.0);
 
-                	double getPathScore(const std::vector<Point> &path);
+                	double getPathScore(const Point &start, const std::vector<Point> &path);
                 }
             }
         }

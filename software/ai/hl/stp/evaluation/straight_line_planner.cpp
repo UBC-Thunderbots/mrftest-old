@@ -58,7 +58,6 @@ std::vector<Point> Evaluation::SLP::straight_line_plan_helper(const Point &start
 		// The perp() function returns points facing counterclockwise
 		for(Circle ob : obstacleGroup) {
 			Point perpPoint = ob.origin + (target - start).perp().norm(ob.radius + NEW_POINT_BUFFER);
-			# warning make dist point to line a function
 			double dist = Geom::dist(Line(start, target), perpPoint);
 
 			if(!point_is_to_right_of_line(Seg(start, target), perpPoint) &&
@@ -108,8 +107,8 @@ std::vector<Point> Evaluation::SLP::straight_line_plan_helper(const Point &start
 	}else if(mode == SLP::MODE_BOTH) {
 		std::vector<Circle> obstacleGroup = SLP::getGroupOfObstacles(firstCollision, obstacles);
 		Point leftPointStart = SLP::getGroupTangentPoints(start, obstacleGroup, NEW_POINT_BUFFER).first;
-		Point rightPointStart = SLP::getGroupTangentPoints(start, obstacleGroup, NEW_POINT_BUFFER).second;
 		Point leftPointTarget = SLP::getGroupTangentPoints(target, obstacleGroup, NEW_POINT_BUFFER).second;
+		Point rightPointStart = SLP::getGroupTangentPoints(start, obstacleGroup, NEW_POINT_BUFFER).second;
 		Point rightPointTarget = SLP::getGroupTangentPoints(target, obstacleGroup, NEW_POINT_BUFFER).first;
 
 		std::vector<Point> leftPath1 = SLP::straight_line_plan_helper(start, leftPointStart, obstacles, SLP::MODE_CLOSEST_SIDE, maxDepth - 1);
@@ -144,14 +143,7 @@ std::vector<Point> Evaluation::SLP::straight_line_plan_helper(const Point &start
 				rightPath1.insert(rightPath1.end(), rightPath2.begin(), rightPath2.end());
 				rightPath1.insert(rightPath1.end(), rightPath3.begin(), rightPath3.end());
 
-				// When evaluating the best path, the start point MUST be included
-				// since otherwise path length calculations are not correct
-				std::vector<Point> rightPathEval = std::vector<Point> {start};
-				rightPathEval.insert(rightPathEval.end(), rightPath1.begin(), rightPath1.end());
-				std::vector<Point> leftPathEval = std::vector<Point> {start};
-				leftPathEval.insert(leftPathEval.end(), leftPath1.begin(), leftPath2.end());
-
-				if(SLP::getPathScore(leftPathEval) > SLP::getPathScore(rightPathEval)) {
+				if(SLP::getPathScore(start, leftPath1) > SLP::getPathScore(start, rightPath1)) {
 					return leftPath1;
 				}else {
 					return rightPath1;
@@ -194,7 +186,6 @@ Circle Evaluation::SLP::getFirstCollision(const Point &start, const Point &end, 
 std::vector<Circle> Evaluation::SLP::getGroupOfObstacles(const Circle &obstacle, const std::vector<Circle> &obstacles) {
 	std::vector<Circle> touchingObstacles = {obstacle};
 	std::vector<Circle> obstaclesToAdd;
-
 	# warning this can definitely be optimized. Check for empty list of obstacles, maybe use std::set and loop on obstaclesToAdd instead of whole list again
 	while(true) {
 		obstaclesToAdd.clear();
@@ -247,19 +238,20 @@ std::pair<Point, Point> Evaluation::SLP::getGroupTangentPoints(const Point &star
 	if(is_clockwise(start - obstacle1.origin, tangent1 - obstacle1.origin)) {
 		return std::make_pair(tangent1, tangent2);
 	}else {
-		return std::make_pair(tangent2, tangent2);
+		return std::make_pair(tangent2, tangent1);
 	}
 }
 
-double Evaluation::SLP::getPathScore(const std::vector<Point> &path) {
+double Evaluation::SLP::getPathScore(const Point &start, const std::vector<Point> &path) {
+	if(path.empty()) {
+		return 0.0;
+	}
+
 	int numSegments = static_cast<int>(path.size());
-	double pathLength = 0.0;
+	double pathLength = (path[0] - start).len();
 	for(unsigned int i = 0; i < path.size() - 1; i++) {
 		pathLength += (path[i] - path[i+1]).len();
 	}
 
-	return 100 / numSegments / pathLength;
+	return 100 / (pathLength + numSegments + 1);
 }
-
-
-
