@@ -161,10 +161,7 @@ static void move_tick(log_record_t *log) {
 		log->tick.primitive_data[6] = deltaD;
 		log->tick.primitive_data[7] = targetVel;
 	}
-
-	printf("xAccel= %f\n", accel[0]);	
-	printf("yAccel= %f\n", accel[1]);	
-	printf("thetaAccel= %f\n", accel[2]);	
+	printf("local x accel= %f", accel[0]);	
 	apply_accel(accel, accel[2]); // accel is already in local coords
 }
 

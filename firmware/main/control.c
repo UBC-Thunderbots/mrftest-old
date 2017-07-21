@@ -96,7 +96,6 @@ void apply_accel(float linear_accel[2], float angular_accel) {
 		linear_accel[1] *= scaling;
 		angular_accel *= scaling;
 	}
-
 	static float prev_linear_accel0=0;
 	static float prev_linear_accel1=0;
 	static float prev_angular_accel=0;
@@ -124,6 +123,8 @@ void apply_accel(float linear_accel[2], float angular_accel) {
 	robot_force[2] = angular_accel*ROBOT_RADIUS*ROBOT_MASS[2];
 	float wheel_force[4];
 	speed3_to_speed4(robot_force, wheel_force); //Convert to wheel coordinate syste
+	printf("wheel 0 force: %f", wheel_force[0]);
+	printf("wheel 1 force: %f", wheel_force[1]);
 	apply_wheel_force(wheel_force); //set force
 }
 

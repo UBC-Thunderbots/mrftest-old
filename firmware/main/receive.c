@@ -161,7 +161,6 @@ uint8_t receive_last_serial(void) {
 	return __atomic_load_n(&last_serial, __ATOMIC_RELAXED);
 }
 void handle_drive_packet(uint8_t * dma_buffer){
-	printf("Got a drive packet");
 	// Grab emergency stop status from the end of the frame.
 	bool estop_run = !!dma_buffer[MESSAGE_PAYLOAD_ADDR + NUM_ROBOTS * RECEIVE_DRIVE_BYTES_PER_ROBOT];
 
@@ -170,7 +169,6 @@ void handle_drive_packet(uint8_t * dma_buffer){
 
 	// Check if feedback should be sent.
 	if (robot_data[0] & 0x80) {
-		printf("feedback requested");
 		feedback_pend_normal();
 	}
 
@@ -228,14 +226,10 @@ void handle_drive_packet(uint8_t * dma_buffer){
 		}
 		pparams.params[i] = value;
 	}
-  // Store the final scalar speed bits as the
-  // 5th primitive parameter.
-  pparams.params[4] = (0x3 & (words[1] >> 12));
 	primitive = words[0] >> 12;
 	pparams.extra = (words[2] >> 12) | ((words[3] >> 12) << 4);
 	pparams.slow = !!(pparams.extra & 0x80);
 	pparams.extra &= 0x7F;
-	//printf("prim number = %i", primitive);
 	if ((serial != last_serial /* Non-atomic because we are only writer */) || !estop_run || primitive_is_direct(primitive)) {
 		// Apply the movement primitive.
 		primitive_start(primitive, &pparams);
@@ -290,7 +284,6 @@ void handle_camera_packet(uint8_t * dma_buffer, uint8_t buffer_position){
 				robot_angle |= (dma_buffer[buffer_position++] << 8);
 				dr_set_robot_frame(robot_x, robot_y, robot_angle);
 	
-  				printf("x pos = %i", robot_x);
 			}else {
 				buffer_position += 6;
 			}

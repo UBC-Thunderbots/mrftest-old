@@ -17,6 +17,7 @@
 #include <assert.h>
 #include <semphr.h>
 #include <stdint.h>
+#include <stdio.h>
 
 /**
  * \brief The available movement primitives.

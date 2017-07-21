@@ -438,7 +438,7 @@ static void send_drive_packet(const void *packet, const uint8_t *serials) {
 	mrf_write_short(MRF_REG_SHORT_TXNCON, 0b00000001U);
 
 	// Blink the transmit light.
-	led_blink(LED_TX);
+	//led_blink(LED_TX);
 }
 
 /**
@@ -494,7 +494,6 @@ static void drive_task(void *UNUSED(param)) {
 		for (;;) {
 			// Start the endpoint if possible.
 			if (!ep_running) {
-				// TODO: check that setting the usb endpoint to 0x04U is ok
 				if (uep_async_read_start(0x01U, usb_buffer, NUM_ROBOTS * DRIVE_BYTES_PER_ROBOT, &handle_drive_endpoint_done)) {
 					ep_running = true;
 				} else {
@@ -642,15 +641,6 @@ static void camera_task(void *UNUSED(param)) {
 			xSemaphoreTake(transmit_complete_sem, portMAX_DELAY);
 			xSemaphoreGive(transmit_mutex);
 		}
-
-		// Turn off timer 6.
-		{
-			TIM_basic_CR1_t tmp = { 0 };
-			TIM6.CR1 = tmp; // Disable counter
-		}
-		portDISABLE_HW_INTERRUPT(NVIC_IRQ_TIM6_DAC);
-		rcc_disable(APB1, TIM6);
-
 		// Done.
 		xSemaphoreGive(enabled_mode_change_sem);
 	}
@@ -789,6 +779,7 @@ static void usbrx_task(void *UNUSED(param)) {
 		// Run.
 		bool shutting_down = false;
 		while (!shutting_down) {
+			//led_blink(LED_TX);
 			packet_t *packet;
 			xQueueReceive(receive_queue, &packet, portMAX_DELAY);
 			if (packet) {
@@ -836,7 +827,7 @@ static void dongle_status_task(void *UNUSED(param)) {
 			bool second_dongle = now - second_dongle_last_local < SECOND_DONGLE_TIMEOUT;
 			//TODO: change these back
 			bool transmit_queue_full = (uxQueueSpacesAvailable(transmit_queue) != NUM_PACKETS + 1);
-			bool receive_queue_full = (uxQueueSpacesAvailable(free_queue) != NUM_PACKETS);
+			bool receive_queue_full = (uxQueueSpacesAvailable(free_queue) == 0 );
 			uint8_t state = estop_read() | (__atomic_exchange_n(&rx_fcs_error, false, __ATOMIC_RELAXED) ? 0x04U : 0x00U) | (second_dongle ? 0x08U : 0x00U);
       state |= ((transmit_queue_full ? 0x10U : 0x00U) | (receive_queue_full ? 0x20U : 0x00U));
 			bool ok;
@@ -957,6 +948,7 @@ static void rdrx_task(void *UNUSED(param)) {
 		while (!(pending_events & RDRX_EVENT_STOP)) {
 			// Process interrupts until the interrupt pin goes low.
 			while (mrf_get_interrupt()) {
+				led_blink(LED_TX);
 				// Check outstanding interrupts.
 				uint8_t intstat = mrf_read_short(MRF_REG_SHORT_INTSTAT);
 				if (intstat & (1U << 3U)) {
@@ -1005,8 +997,7 @@ static void rdrx_task(void *UNUSED(param)) {
 								uint16_t source_address = source_address_lsb | (source_address_msb << 8U);
 								if (source_address < 8U && sequence_number != seqnum[source_address]) {
 									// Blink the receive light.
-									//Todo: uncomment this
-									//led_blink(LED_RX);
+									led_blink(LED_RX);
 
 									// Update sequence number.
 									seqnum[source_address] = sequence_number;
@@ -1079,7 +1070,7 @@ static void rdrx_task(void *UNUSED(param)) {
 			xTaskNotifyWait(0, UINT32_MAX, &new_events, portMAX_DELAY);
 			pending_events |= new_events;
 		}
-		pending_events &= ~RDRX_EVENT_STOP;
+			pending_events &= ~RDRX_EVENT_STOP;
 
 		// Done.
 		xSemaphoreGive(enabled_mode_change_sem);
@@ -1120,8 +1111,8 @@ void normal_init(void) {
 	STACK_ALLOCATE(rdrx_task_stack, 4096);
 	drive_task_handle = xTaskCreateStatic(&drive_task, "norm_drive", sizeof(drive_task_stack) / sizeof(*drive_task_stack), 0, 7, drive_task_stack, &drive_task_storage);
 	//TODO: check if this is the right priority level for camera task
-	camera_task_handle = xTaskCreateStatic(&camera_task, "norm_camera", sizeof(camera_task_stack) / sizeof(*camera_task_stack), 0, 4, camera_task_stack, &camera_task_storage);
-	message_task_handle = xTaskCreateStatic(&message_task, "norm_message", sizeof(message_task_stack) / sizeof(*message_task_stack), 0, 6, message_task_stack, &message_task_storage);
+	camera_task_handle = xTaskCreateStatic(&camera_task, "norm_camera", sizeof(camera_task_stack) / sizeof(*camera_task_stack), 0, 7, camera_task_stack, &camera_task_storage);
+	message_task_handle = xTaskCreateStatic(&message_task, "norm_message", sizeof(message_task_stack) / sizeof(*message_task_stack), 0, 7, message_task_stack, &message_task_storage);
 	mdr_task_handle = xTaskCreateStatic(&mdr_task, "norm_mdr", sizeof(mdr_task_stack) / sizeof(*mdr_task_stack), 0, 5, mdr_task_stack, &mdr_task_storage);
 	usbrx_task_handle = xTaskCreateStatic(&usbrx_task, "norm_usbrx", sizeof(usbrx_task_stack) / sizeof(*usbrx_task_stack), 0, 6, usbrx_task_stack, &usbrx_task_storage);
 	dongle_status_task_handle = xTaskCreateStatic(&dongle_status_task, "norm_dstatus", sizeof(dongle_status_task_stack) / sizeof(*dongle_status_task_stack), 0, 5, dongle_status_task_stack, &dongle_status_task_storage);
@@ -1161,6 +1152,7 @@ void normal_on_enter(void) {
 
 	// Notify tasks to start doing work.
 	xTaskNotifyGive(drive_task_handle);
+	//TODO: delete this
 	xTaskNotifyGive(camera_task_handle);
 	xTaskNotifyGive(message_task_handle);
 	xTaskNotifyGive(mdr_task_handle);

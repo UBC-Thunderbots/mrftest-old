@@ -54,6 +54,8 @@
 #include <semphr.h>
 #include <stdio.h>
 #include <task.h>
+#include "leds.h"
+#include "pins.h"
 
 /**
  * \brief How long to wait for a received packet before resetting the radio.
@@ -469,6 +471,12 @@ mrf_tx_result_t mrf_transmit(const void *frame) {
 	} else {
 		return MRF_TX_NO_ACK;
 	}
+
+	// Blink the status light
+	TickType_t last_wake_time = xTaskGetTickCount();
+	gpio_set(PIN_LED_STATUS);
+	vTaskDelayUntil(&last_wake_time, 1000U);
+	gpio_reset(PIN_LED_STATUS);
 }
 
 /**

@@ -200,7 +200,6 @@ static void feedback_task(void *UNUSED(param)) {
 			nullary_frame[11U] = breakbeam_interrupted() ? 0x04U : 0x05U;
 			// No need to check for failure.
 			// If the frame is not delivered, the next feedback packet will give the host fully up-to-date information.
-			printf("sending status report");
 			mrf_transmit(nullary_frame);
 		}
 		if (pending_events & EVENT_SEND_AUTOKICK) {
@@ -213,7 +212,6 @@ static void feedback_task(void *UNUSED(param)) {
 			nullary_frame[9U] = u16;
 			nullary_frame[10U] = u16 >> 8U;
 			nullary_frame[11U] = 0x01U;
-			printf("sending status report");
 			if (mrf_transmit(nullary_frame) != MRF_TX_OK) {
 				// Delivery failed.
 				// This message absolutely must go through.
@@ -252,7 +250,6 @@ void feedback_shutdown(void) {
  * The feedback task will send feedback as soon as possible after this function is called.
  */
 void feedback_pend_normal(void) {
-	printf("status report requested");
 	xTaskNotify(feedback_task_handle, EVENT_SEND_NORMAL, eSetBits);
 }
 
