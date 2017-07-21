@@ -663,7 +663,7 @@ static void message_task(void *UNUSED(param)) {
 			size_t length;
 			if (uep_read(0x03U, buf->data, sizeof(buf->data), &length)) {
         // Check if it is a reliable packet.
-        if (length >= 3U && ((buf->data[0U] & 0x0FU) < 8U)) {
+        if (length >= 3U && (buf->data[0U] & 0xF0U) && ((buf->data[0U] & 0x0FU) < 8U)) {
 					buf->message_id = buf->data[1U];
 					buf->reliable = true;
 					buf->tries = buf->data[2U];
