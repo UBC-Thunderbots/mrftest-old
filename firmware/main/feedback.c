@@ -183,6 +183,12 @@ static void feedback_task(void *UNUSED(param)) {
 				// We no longer need to send a has-ball update, because the
 				// information it would convey is in the feedback packet.
 				pending_events &= ~EVENT_SEND_HAS_BALL;
+
+				// If a build ID was sent, we don’t need to send it any more in
+				// future.
+				if(do_build_ids) {
+					__atomic_store_n(&build_ids_pending, false, __ATOMIC_RELAXED);
+				}
 			}
 
 			// Clean up errors if this report was delivered intact.
