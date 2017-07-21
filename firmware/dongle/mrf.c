@@ -148,9 +148,6 @@ void mrf_disable_interrupt(void) {
 }
 
 static void execute_transfer(size_t length) {
-	// Lock the bus.
-	xSemaphoreTake(bus_mutex, portMAX_DELAY);
-
 	// Assert chip select.
 	gpio_reset(PIN_MRF_CS);
 	sleep_50ns();
@@ -250,37 +247,62 @@ static void execute_transfer(size_t length) {
 	// Deassert CS.
 	sleep_50ns();
 	gpio_set(PIN_MRF_CS);
+}
+
+uint8_t mrf_read_short(mrf_reg_short_t reg) {
+	// Lock the bus.
+	xSemaphoreTake(bus_mutex, portMAX_DELAY);
+
+	txbuf[0U] = reg << 1U;
+	txbuf[1U] = 0U;
+	execute_transfer(2U);
+	uint8_t ret = rxbuf[1U];
+
+	// Unlock the bus.
+	xSemaphoreGive(bus_mutex);
+
+	return ret;
+}
+
+void mrf_write_short(mrf_reg_short_t reg, uint8_t value) {
+	// Lock the bus.
+	xSemaphoreTake(bus_mutex, portMAX_DELAY);
+
+	txbuf[0U] = (reg << 1U) | 0x01U;
+	txbuf[1U] = value;
+	execute_transfer(2U);
 
 	// Unlock the bus.
 	xSemaphoreGive(bus_mutex);
 }
 
-uint8_t mrf_read_short(mrf_reg_short_t reg) {
-	txbuf[0U] = reg << 1U;
-	txbuf[1U] = 0U;
-	execute_transfer(2U);
-	return rxbuf[1U];
-}
-
-void mrf_write_short(mrf_reg_short_t reg, uint8_t value) {
-	txbuf[0U] = (reg << 1U) | 0x01U;
-	txbuf[1U] = value;
-	execute_transfer(2U);
-}
-
 uint8_t mrf_read_long(mrf_reg_long_t reg) {
+	// Lock the bus.
+	xSemaphoreTake(bus_mutex, portMAX_DELAY);
+
 	txbuf[0U] = (reg >> 3U) | 0x80U;
 	txbuf[1U] = reg << 5U;
 	txbuf[2U] = 0U;
 	execute_transfer(3U);
-	return rxbuf[2U];
+	uint8_t ret = rxbuf[2U];
+
+	// Unlock the bus.
+	xSemaphoreGive(bus_mutex);
+
+	return ret;
 }
 
 void mrf_write_long(mrf_reg_long_t reg, uint8_t value) {
+	// Lock the bus.
+	xSemaphoreTake(bus_mutex, portMAX_DELAY);
+
 	txbuf[0U] = (reg >> 3U) | 0x80U;
 	txbuf[1U] = (reg << 5U) | 0x10U;
 	txbuf[2U] = value;
 	execute_transfer(3U);
+
+	// Unlock the bus.
+	xSemaphoreGive(bus_mutex);
 }
 
 void mrf_common_init(void) {
