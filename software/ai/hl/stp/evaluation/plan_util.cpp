@@ -104,6 +104,7 @@ namespace {
 		return player.MAX_RADIUS + buffer;
 	}
 
+	// TODO: does this even need the player param? just use robot max ardius?
 	double Plan::goal_post(Player player) {
 		return Ball::RADIUS + player.MAX_RADIUS + GOAL_POST_BUFFER;
 	}
@@ -310,6 +311,22 @@ namespace {
 			violation = std::max(violation, bounds.dist_to_boundary(dst));
 		}
 		return violation;
+	}
+
+	double Plan::get_ball_avoid_dist(Player player) {
+		AI::Flags::MoveFlags flags = player.flags();
+		double dist = 0.0;
+		if ((flags & MoveFlags::AVOID_BALL_STOP) != MoveFlags::NONE) {
+			dist = std::max(Plan::ball_stop(player), dist);
+		}
+		if ((flags & MoveFlags::AVOID_BALL_TINY) != MoveFlags::NONE) {
+			dist = std::max(Plan::ball_tiny(player), dist);
+		}
+		if ((flags & MoveFlags::AVOID_BALL_MEDIUM) != MoveFlags::NONE) {
+			dist = std::max(Plan::ball_regular(player), dist);
+		}
+
+		return dist;
 	}
 namespace {
 	struct Violation final {

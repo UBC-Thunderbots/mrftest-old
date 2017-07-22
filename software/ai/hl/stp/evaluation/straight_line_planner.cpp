@@ -5,6 +5,7 @@
 #include "geom/util.h"
 #include "util/dprint.h"
 #include "util/param.h"
+#include <assert.h>
 
 using namespace AI::HL::STP;
 namespace Plan = AI::HL::STP::Evaluation::Plan;
@@ -12,7 +13,7 @@ namespace SLP = AI::HL::STP::Evaluation::SLP;
 using namespace Geom;
 
 namespace {
-	const constexpr double NEW_POINT_BUFFER = 0.01;
+	const constexpr double NEW_POINT_BUFFER = 0.02;
 	const constexpr Point NULL_POINT = Point(-999.9, -999.9);
 	const constexpr Circle NULL_CIRCLE = Circle(NULL_POINT, 0);
 }
@@ -32,6 +33,42 @@ std::vector<Point> Evaluation::SLP::straight_line_plan(World world, Player playe
 			obstacles.push_back(Circle(i.position(), Plan::friendly(player) + Robot::MAX_RADIUS + NEW_POINT_BUFFER));
 		}
 	}
+
+	// Goal posts
+	double goalPostAvoidDist = Plan::goal_post(player);
+	obstacles.push_back(Circle(world.field().enemy_goal_boundary().first, goalPostAvoidDist));
+	obstacles.push_back(Circle(world.field().enemy_goal_boundary().second, goalPostAvoidDist));
+	obstacles.push_back(Circle(world.field().friendly_goal_boundary().first, goalPostAvoidDist));
+	obstacles.push_back(Circle(world.field().friendly_goal_boundary().first, goalPostAvoidDist));
+
+	// TODO: project this forward in ball's direction???
+	// The ball
+	double ballAvoidDist = Plan::get_ball_avoid_dist(player);
+	obstacles.push_back(Circle(world.ball().position(), ballAvoidDist));
+
+	// friendly defense
+	double friendlyDefenseAvoidDist = Plan::friendly_defense(world, player);
+	int numFriendlyDefenseObstacles = 5; // MUST BE GREATER THAN 1
+	double friendlyDeltaDist = world.field().defense_area_stretch() / numFriendlyDefenseObstacles - 1;
+	for(int i = 0; i < numFriendlyDefenseObstacles; i++) {
+		Point p = Point(-world.field().length() / 2, -world.field().defense_area_stretch() / 2 + i * friendlyDeltaDist);
+		obstacles.push_back(Circle(p, friendlyDefenseAvoidDist));
+	}
+
+	// enemy defense
+	double enemyDefenseAvoidDist = Plan::friendly_kick(world, player);
+	int numEnemyDefenseObstacles = 5; // MUST BE GREATER THAN 1
+	double enemyDeltaDist = world.field().defense_area_stretch() / numEnemyDefenseObstacles - 1;
+	for(int i = 0; i < numEnemyDefenseObstacles; i++) {
+		Point p = Point(world.field().length() / 2, -world.field().defense_area_stretch() / 2 + i * enemyDeltaDist);
+		obstacles.push_back(Circle(p, enemyDefenseAvoidDist));
+	}
+
+	// goal trespass
+	// need play area bounds
+	// need total area bounds
+	// need own half
+	// need penaly friendy and enemy
 
 	std::vector<Point> path = straight_line_plan_helper(player.position(), target, obstacles, SLP::MODE_BOTH, 30);
 	if(path.empty()) {
@@ -234,6 +271,9 @@ std::pair<Point, Point> Evaluation::SLP::getGroupTangentPoints(const Point &star
 			}
 		}
 	}
+
+	assert(tangent1 != NULL_POINT);
+	assert(tangent2 != NULL_POINT);
 
 	if(is_clockwise(start - obstacle1.origin, tangent1 - obstacle1.origin)) {
 		return std::make_pair(tangent1, tangent2);

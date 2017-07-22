@@ -69,6 +69,8 @@ namespace AI {
 
 					double get_penalty_enemy_trespass(Point cur, Point dst, World world, Player player);
 
+					double get_ball_avoid_dist(Player player);
+
                     /**
                      * The absolute maximum value that a primitive parameter can take.
                      */
