@@ -116,13 +116,13 @@ static void shoot_tick(log_record_t *log) {
 	BBProfile majorProfile;
 	//TODO: determine proper magic number for final velocity
 	//TODO: reduce control strength along major axis
-	PrepareBBTrajectory(&majorProfile, delta_major, vel[0]*direction[0] + vel[1]*direction[1], 0.7, max_accel[0]);
+	PrepareBBTrajectoryMaxV(&majorProfile, delta_major, vel[0]*direction[0] + vel[1]*direction[1], 0, max_accel[0], MAX_X_V);
 	PlanBBTrajectory(&majorProfile);
 	accel[0] = BBComputeAvgAccel(&majorProfile, SHOOT_TIME_HORIZON);
 	float timeMajor = GetBBTime(&majorProfile);
 
 	BBProfile minorProfile;
-	PrepareBBTrajectory(&minorProfile, delta_minor, direction[0]*vel[1] - direction[1]*vel[0], 0, max_accel[0]);
+	PrepareBBTrajectoryMaxV(&minorProfile, delta_minor, direction[0]*vel[1] - direction[1]*vel[0], 0, max_accel[0], MAX_Y_V);
 	PlanBBTrajectory(&minorProfile);
 	accel[0] = BBComputeAvgAccel(&minorProfile, SHOOT_TIME_HORIZON);
 	float timeMinor = GetBBTime(&majorProfile);
