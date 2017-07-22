@@ -13,7 +13,7 @@ namespace SLP = AI::HL::STP::Evaluation::SLP;
 using namespace Geom;
 
 namespace {
-	const constexpr double NEW_POINT_BUFFER = 0.02;
+	const constexpr double NEW_POINT_BUFFER = 0.04;
 	const constexpr Point NULL_POINT = Point(-999.9, -999.9);
 	const constexpr Circle NULL_CIRCLE = Circle(NULL_POINT, 0);
 }
@@ -25,12 +25,22 @@ std::vector<Point> Evaluation::SLP::straight_line_plan(World world, Player playe
 	 * This means that the CENTER POINT of the planning robot cannot go within the obstacles radius
 	 */
 	for(auto i : world.enemy_team()) {
-		obstacles.push_back(Circle(i.position(), Plan::enemy(world, player) + Robot::MAX_RADIUS + NEW_POINT_BUFFER));
+		// taking the velocity divided by AI ticks per second
+		double scaledVel = i.velocity().len() / 15;
+		for(double d = 0.0; d <= scaledVel; d+= 0.02) {
+			Point enemy = i.position() + i.velocity().norm(d);
+			obstacles.push_back(Circle(enemy, Plan::enemy(world, player) + Robot::MAX_RADIUS + NEW_POINT_BUFFER));
+		}
 	}
 
 	for(auto i : world.friendly_team()) {
 		if(i.position() != player.position()) {
-			obstacles.push_back(Circle(i.position(), Plan::friendly(player) + Robot::MAX_RADIUS + NEW_POINT_BUFFER));
+			// taking the velocity divided by AI ticks per second
+			double scaledVel = i.velocity().len() / 15;
+			for(double d = 0.0; d <= scaledVel; d+= 0.02) {
+				Point friendly = i.position() + i.velocity().norm(d);
+				obstacles.push_back(Circle(friendly, Plan::friendly(player) + Robot::MAX_RADIUS + NEW_POINT_BUFFER));
+			}
 		}
 	}
 
