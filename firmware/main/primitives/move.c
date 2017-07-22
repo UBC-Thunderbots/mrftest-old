@@ -141,7 +141,7 @@ static void move_tick(log_record_t *log) {
 	//accel[1] = BBComputeAvgAccel(&Yprofile, TIME_HORIZON);
 	//float timeY = GetBBTime(&Yprofile);
 
-	#define MAX_R_V 3.0
+	#define MAX_R_V 2.0
 	const float relative_tick_start[2] = {0.0f, 0.0f};
 	BBProfile r_profile;
 	float radial_dist = 
