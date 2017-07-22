@@ -203,6 +203,7 @@ void dr_do_maneuver(){
     move_params.params[0] = dests[maneuver_stage][0];                                                                                         
     move_params.params[1] = dests[maneuver_stage][1];                                                                                        
     move_params.params[2] = dests[maneuver_stage][2];
+    move_params.params[3] = 0.0;
     primitive_start(1, &move_params);
   }
 }

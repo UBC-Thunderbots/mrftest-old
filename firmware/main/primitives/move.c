@@ -144,13 +144,18 @@ static void move_tick(log_record_t *log) {
 	#define MAX_R_V 3.0
 	const float relative_tick_start[2] = {0.0f, 0.0f};
 	BBProfile r_profile;
-	float radial_relative_destination = 
+	float radial_dist = 
 		sqrtf(relative_destination[0]*relative_destination[0] + 
 		relative_destination[1]*relative_destination[1]);
-	float radial_vel = sqrtf(vel[0]*vel[0] + vel[1]*vel[1]);
-	PrepareBBTrajectoryMaxV(&r_profile, radial_relative_destination, radial_vel,
+	float radial_vel = (vel[0]*relative_destination[0] + vel[1]*relative_destination[1])/radial_dist;
+	PrepareBBTrajectoryMaxV(&r_profile, radial_dist, radial_vel,
 		0, MAX_R_A, MAX_R_V); 
 	PlanBBTrajectory(&r_profile);
+
+	printf("\n\nt1= %f", r_profile.t1);	
+	printf("t2= %f", r_profile.t2);	
+	printf("t3= %f", r_profile.t3);	
+
 	float radial_accel = BBComputeAvgAccel(&r_profile, TIME_HORIZON);
 	float time_r = GetBBTime(&r_profile);
 
@@ -178,7 +183,9 @@ static void move_tick(log_record_t *log) {
 		log->tick.primitive_data[6] = deltaD;
 		log->tick.primitive_data[7] = targetVel;
 	}
-	printf("local x accel= %f", accel[0]);	
+	printf("x accel= %f", accel[0]);	
+	printf("y accel= %f", accel[1]);	
+	printf("theta accel= %f", accel[2]);	
 	apply_accel(accel, accel[2]); // accel is already in local coords
 }
 
