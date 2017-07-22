@@ -1,6 +1,7 @@
 #include <algorithm>
 
 #include "ai/hl/stp/tactic/test_tactics.h"
+#include "ai/hl/stp/action/shoot.h"
 #include "util/dprint.h"
 #include "ai/hl/util.h"
 
@@ -63,6 +64,29 @@ namespace {
 		AI::HL::STP::Action::move_rrt(ca, world, player(), dest);
 		AI::HL::STP::Action::move_slp(ca, world, player(), original_pos);
 	}
+
+    class ShootTest final : public Tactic {
+		public:
+			explicit ShootTest(World world) : Tactic(world) {
+			}
+
+		private:
+			Player select(const std::set<Player> &players) const override;
+			void execute(caller_t& caller) override;
+
+			Glib::ustring description() const override {
+				return u8"move test";
+			}
+	};
+
+	Player ShootTest::select(const std::set<Player> &players) const {
+		Player p = *(players.begin());
+		return p;
+	}
+
+	void ShootTest::execute(caller_t& ca) {
+        AI::HL::STP::Action::shoot_goal(ca, world, player(), false);
+	}
 }
 
 
@@ -72,4 +96,8 @@ Tactic::Ptr AI::HL::STP::Tactic::move_test(World world, Point dest) {
 
 Tactic::Ptr AI::HL::STP::Tactic::move_test_orientation(World world, Point dest) {
 	return Tactic::Ptr(new MoveTestOrientation(world, dest));
+}
+
+Tactic::Ptr AI::HL::STP::Tactic::shoot_test(World world) {
+	return Tactic::Ptr(new ShootTest(world));
 }
