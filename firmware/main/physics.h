@@ -122,5 +122,6 @@ void mm_sub(int nrows, int ncols, const float a[nrows][ncols], const float b[nro
 
 void mm_inv(int n, float a[n][n]);
 
-void decompose_speed(float speed,float* vf,float* init_pos,float* final_pos);
+void decompose_radial(const float speed, float* vf, const float* init_pos, 
+	const float* final_pos);
 #endif

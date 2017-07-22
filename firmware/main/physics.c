@@ -486,7 +486,8 @@ float get_maximal_accel_scaling(const float linear_accel[2], float angular_accel
  *
  */
 
-void decompose_speed(float speed,float* vf,float* init_pos,float* final_pos)
+void decompose_radial(const float speed, float* vf, const float* init_pos,
+	const float* final_pos)
 {
 	float angle = atan2f(final_pos[1] - init_pos[1], final_pos[0] - init_pos[0]);
 
