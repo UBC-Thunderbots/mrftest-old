@@ -141,20 +141,18 @@ static void move_tick(log_record_t *log) {
 	//accel[1] = BBComputeAvgAccel(&Yprofile, TIME_HORIZON);
 	//float timeY = GetBBTime(&Yprofile);
 
-  #define MAX_R_A MAX_X_A
-  #define MAX_R_V 3.0
+	#define MAX_R_V 3.0
 	const float relative_tick_start[2] = {0.0f, 0.0f};
-  BBProfile r_profile;
-  float radial_relative_destination = 
-    sqrtf(relative_destination[0]*relative_destination[0] + 
-    relative_destination[1]*relative_destination[1]);
-  float radial_vel = 
-    sqrtf(vel[0]*vel[0] + vel[1]*vel[1]);
-  PrepareBBTrajectoryMaxV(&r_profile, radial_relative_destination, radial_vel,
-    0, MAX_R_A, MAX_R_V); 
-  PlanBBTrajectory(&r_profile);
-  float radial_accel = BBComputeAvgAccel(&r_profile, TIME_HORIZON);
-  float time_r = GetBBTime(&r_profile);
+	BBProfile r_profile;
+	float radial_relative_destination = 
+		sqrtf(relative_destination[0]*relative_destination[0] + 
+		relative_destination[1]*relative_destination[1]);
+	float radial_vel = sqrtf(vel[0]*vel[0] + vel[1]*vel[1]);
+	PrepareBBTrajectoryMaxV(&r_profile, radial_relative_destination, radial_vel,
+		0, MAX_R_A, MAX_R_V); 
+	PlanBBTrajectory(&r_profile);
+	float radial_accel = BBComputeAvgAccel(&r_profile, TIME_HORIZON);
+	float time_r = GetBBTime(&r_profile);
 
 	decompose_radial(radial_accel, accel, relative_tick_start, 
 		relative_destination); 	
@@ -164,7 +162,7 @@ static void move_tick(log_record_t *log) {
 	//if (timeX < TIME_HORIZON && timeY < TIME_HORIZON) {
 	//	timeTarget = TIME_HORIZON;	
 	//}
-  float timeTarget = (time_r > TIME_HORIZON) ? time_r : TIME_HORIZON;
+	float timeTarget = (time_r > TIME_HORIZON) ? time_r : TIME_HORIZON;
 	
 	float targetVel = deltaD/timeTarget; 
 	accel[2] = (targetVel - vel[2])/TIME_HORIZON;
