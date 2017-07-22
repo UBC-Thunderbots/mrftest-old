@@ -12,12 +12,12 @@
 // these are set to decouple the 3 axis from each other
 // the idea is to clamp the maximum velocity and acceleration
 // so that the axes would never have to compete for resources
-#define SHOOT_TIME_HORIZON 0.05f //s
+#define TIME_HORIZON 0.05f //s
 
 //static primitive_params_t shoot_param;
 
-static float destination[3];
-static float direction[2];
+static float destination[3], final_velocity[2];
+static int counts, counts_passed;
 
 //static float compute_accel(float d_target, float d_cur, float v_cur, float v_max, float a_max);
 
@@ -61,16 +61,30 @@ static void shoot_init(void) {
  *
  */
 static void shoot_start(const primitive_params_t *params) {
-	//printf("====entering shoot start=====\r\n");
 
+	float scalar_speed;
+	float init_position[2];
+	dr_data_t current_states;
+
+	printf("move shoot start\r\n");
 	// Convert into m/s and rad/s because physics is in m and s
 	destination[0] = ((float)(params->params[0])/1000.0f);
 	destination[1] = ((float)(params->params[1])/1000.0f);
 	destination[2] = ((float)(params->params[2])/100.0f);
+	scalar_speed = ((float)(params->params[3])/1000.0f);
 	
-	direction[0] = cos(destination[2]);
-	direction[1] = sin(destination[2]);
 
+	counts = (int)(params->params[3]/5.0f);
+	counts_passed = 0;
+
+	dr_get(&current_states);
+	init_position[0] = current_states.x;
+	init_position[1] = current_states.y;
+
+	// decomposes the speed into final velocity vector (modifies final_velocity param)
+	decompose_radial(scalar_speed, final_velocity, init_position, destination);
+
+	// arm the chicker
 	chicker_auto_arm((params->extra & 1) ? CHICKER_CHIP : CHICKER_KICK, params->params[3]);
 	if (!(params->extra & 1)) {
 		dribbler_set_speed(8000);
@@ -104,111 +118,81 @@ static void shoot_tick(log_record_t *log) {
 	dr_get(&current_states);
 
 	float vel[3] = {current_states.vx, current_states.vy, current_states.avel};
-	float pos[3] = {current_states.x, current_states.y, current_states.angle};
-	float max_accel[3] = {MAX_X_A, MAX_Y_A, MAX_T_A};
+	rotate(vel, -current_states.angle); //put current vel into local coords
+
+	float relative_destination[3];
+
+	relative_destination[0] = destination[0] - current_states.x;
+	relative_destination[1] = destination[1] - current_states.y;
+	rotate(relative_destination, -current_states.angle); //put relative dest into local coords
+
+	float relative_final_velocity[2] = {final_velocity[0], final_velocity[1]}; // copy by value not reference 
+	rotate(final_velocity, -current_states.angle); // put relative final velocity into local coords
+
+	float dest_angle = destination[2];
+	float cur_angle = current_states.angle;
+
+	// Pick whether to go clockwise or counterclockwise (based on smallest angle)
+	if(dest_angle >= cur_angle ){                                                                                                        
+		float dest_sub = dest_angle - 2*M_PI;                                                                                        
+		if((dest_sub - cur_angle)*(dest_sub - cur_angle) <= (dest_angle - cur_angle)*(dest_angle - cur_angle)){                             
+			relative_destination[2] = dest_sub - cur_angle;                                                              
+		}else{                                                                                                                 
+			relative_destination[2] = dest_angle - cur_angle;                                                                                 
+		}                                                                                                                      
+	}else{                                                                                                                       
+		float dest_plus = dest_angle + 2*M_PI;                                                                                       
+		if((dest_plus - cur_angle)*(dest_plus - cur_angle) <= (dest_angle - cur_angle)*(dest_angle - cur_angle)){                           
+			relative_destination[2] = dest_plus - cur_angle;                                                              
+		}else{                                                                                                                 
+			relative_destination[2] = dest_angle - cur_angle;                                                                                 
+		}                                                                                                                      
+	}                                                                                                                       
+
 	float accel[3];
 
-	float delta[2]  = {destination[0] - pos[0], destination[1] - pos[1]};
+	const float relative_tick_start[2] = {0.0f, 0.0f};
+	BBProfile r_profile;
+	float radial_dist = 
+		sqrtf(relative_destination[0]*relative_destination[0] + 
+		relative_destination[1]*relative_destination[1]);
+	float radial_vel = (vel[0]*relative_destination[0] + vel[1]*relative_destination[1])/radial_dist;
+	PrepareBBTrajectoryMaxV(&r_profile, radial_dist, radial_vel,
+		0, MAX_R_A, MAX_R_V); 
+	PlanBBTrajectory(&r_profile);
 
-	float delta_major = delta[0]*direction[0] + delta[1]*direction[1]; //dot product
-	float delta_minor = direction[0]*delta[1] - direction[1]*delta[0]; //cross product
+	printf("\n\nt1= %f", r_profile.t1);	
+	printf("t2= %f", r_profile.t2);	
+	printf("t3= %f", r_profile.t3);	
 
-	BBProfile majorProfile;
-	//TODO: determine proper magic number for final velocity
-	//TODO: reduce control strength along major axis
-	PrepareBBTrajectoryMaxV(&majorProfile, delta_major, vel[0]*direction[0] + vel[1]*direction[1], 0, max_accel[0], MAX_X_V);
-	PlanBBTrajectory(&majorProfile);
-	accel[0] = BBComputeAvgAccel(&majorProfile, SHOOT_TIME_HORIZON);
-	float timeMajor = GetBBTime(&majorProfile);
+	float radial_accel = BBComputeAvgAccel(&r_profile, TIME_HORIZON);
+	float time_r = GetBBTime(&r_profile);
 
-	BBProfile minorProfile;
-	PrepareBBTrajectoryMaxV(&minorProfile, delta_minor, direction[0]*vel[1] - direction[1]*vel[0], 0, max_accel[0], MAX_Y_V);
-	PlanBBTrajectory(&minorProfile);
-	accel[0] = BBComputeAvgAccel(&minorProfile, SHOOT_TIME_HORIZON);
-	float timeMinor = GetBBTime(&majorProfile);
+	decompose_radial(radial_accel, accel, relative_tick_start, 
+		relative_destination); 	
 
-
-	float deltaD = destination[2] - pos[2];
-	float timeTarget = (timeMajor > timeMinor)?timeMajor:timeMinor;
-	if (timeMajor < SHOOT_TIME_HORIZON && timeMinor < SHOOT_TIME_HORIZON) {
-		timeTarget = SHOOT_TIME_HORIZON;	
-	}
+	float deltaD = relative_destination[2];
+	float timeTarget = (time_r > TIME_HORIZON) ? time_r : TIME_HORIZON;
 	
 	float targetVel = deltaD/timeTarget; 
-	accel[2] = (targetVel - vel[2])/ SHOOT_TIME_HORIZON;
+	accel[2] = (targetVel - vel[2])/TIME_HORIZON;
 	Clamp(&accel[2], MAX_T_A);
 
 	if (log) {
-		log->tick.primitive_data[0] = accel[0];
-		log->tick.primitive_data[1] = accel[1];
-		log->tick.primitive_data[2] = accel[2];
-		log->tick.primitive_data[3] = timeMajor;
-		log->tick.primitive_data[4] = timeMinor;
+		log->tick.primitive_data[0] = destination[0];//accel[0];
+		log->tick.primitive_data[1] = destination[1];//accel[1];
+		log->tick.primitive_data[2] = destination[2];//accel[2];
+		log->tick.primitive_data[3] = time_r;//timeX;
+		log->tick.primitive_data[4] = radial_accel;//timeY;
 		log->tick.primitive_data[5] = timeTarget;
 		log->tick.primitive_data[6] = deltaD;
 		log->tick.primitive_data[7] = targetVel;
 	}
+	printf("x accel= %f", accel[0]);	
+	printf("y accel= %f", accel[1]);	
+	printf("theta accel= %f", accel[2]);	
+	apply_accel(accel, accel[2]); // accel is already in local coords
 
-	rotate(accel, destination[2] - current_states.angle);
-	apply_accel(accel, accel[2]);
-
-	/*dr_data_t current_states;
-	dr_get(&current_states);
-
-	float vel[3] = {current_states.vx, current_states.vy, current_states.avel};
-	float pos[3] = {current_states.x, current_states.y, current_states.angle};
-	float max_accel[3] = {MAX_X_A, MAX_Y_A, MAX_T_A};
-
-	float accel[3];
-
-	uint8_t i;
-
-	for (i = 0; i < 3; i++)
-	{
-		BBProfile profile;
-		PrepareBBTrajectory(&profile, destination[i]-pos[i], vel[i], max_accel[i]);
-		PlanBBTrajectory(&profile);
-		float jerk = 0;
-		accel[i] = BBComputeAccel(&profile, 0.5);
-	}
-	
-	rotate(accel, -current_states.angle);
-	apply_accel(accel, accel[2]);*/
-
-	/*dr_data_t data;
-	float vel_diff[3];
-	float acc_target[3];
-
-	static unsigned int frame = 0;
-	
-	// need to evaluate velocity threshold for each of the axis
-
-	//leds_link_set(1);	
-
-	// step 1. grab position, velocity measurement
-	dr_get(&data);
-
-	if(frame == 0){
-		//printf("=== dr === %f, %f, %f, %f, %f, %f  \r\n", data.x, data.y, data.angle, data.vx, data.vy, data.avel);
-	}
-
-
-	acc_target[0] = compute_accel_track_pos_1D(shoot_param.params[0]/1000.0f, data.x, data.vx, SHOOT_MAX_X_V, SHOOT_MAX_X_A);
-	acc_target[1] = compute_accel_track_pos_1D(shoot_param.params[1]/1000.0f, data.y, data.vy, SHOOT_MAX_Y_V, SHOOT_MAX_Y_A);
-	acc_target[2] = compute_accel_track_pos_1D(shoot_param.params[2]/100.0f, data.angle, data.avel, SHOOT_MAX_T_V, SHOOT_MAX_T_A);
-
-	
-	if(frame == 0){
-		//printf("=== acc_target === %f, %f, %f\r\n", acc_target[0], acc_target[1], acc_target[2]);
-	}
-
-	apply_accel(acc_target, acc_target[2]);
-	
-	// step n. logging stuff todo
-	
-
-	frame++;
-	frame = frame%99;*/
 }
 
 /**
@@ -221,72 +205,4 @@ const primitive_t SHOOT_PRIMITIVE = {
 	.end = &shoot_end,
 	.tick = &shoot_tick,
 };
-/*
-// assuming units are the same except by order of time
-static float compute_accel(float d_target, float d_cur, float v_cur, float v_max, float a_max){
-	// step 2. diff distination todo: check unit
-	//pos_diff[0] = ((float)shoot_param.params[0]/1000.0f)-data.x;
-	//pos_diff[1] = ((float)shoot_param.params[1]/1000.0f)-data.y;
-	//pos_diff[2] = ((float)shoot_param.params[2]/100.0f)-data.angle;
 
-	float d_diff, v_thresh_abs, v_target, v_diff, a_target;
-
-	float d_hysteresis = a_max*0.005f;
-	float v_hysteresis = a_max*0.05f;
-
-	static unsigned int frame = 0;
-	
-	frame++;
-	frame = frame%34;
-
-	d_diff = d_target-d_cur;
-
-	// step 3. get threshold velocity todo: check if we have sqrt routine, abs
-	// todo: check if the math function only takes double... isn't really inefficient?
-	v_thresh_abs = sqrtf(2*fabsf(d_diff)*a_max);
-
-
-	// step 3.1 remember the vel_thresh_abs has no directional dependence 
-	//	    this is the correction step
-	// step 3.2 clamp thresh to maximum velocity
-	// clamp and get the sign right
-	if(v_thresh_abs > v_max) {
-		if(d_diff > d_hysteresis ){ 
-			v_target = v_max;
-		} else if( d_diff < -d_hysteresis ){
-			v_target = -v_max;
-		} else {
-			v_target = 0.0f;
-		}
-	} else{// if(vel_thresh_abs[i] > 0.01f) {
-		if(d_diff > d_hysteresis ){
-			v_target = v_thresh_abs;
-		} else if( d_diff < -d_hysteresis ){
-			v_target = -v_thresh_abs;
-		} else {
-			v_target = 0.0f;
-		}
-	} 
-
-	// option 1: there is apparently a function to call to do velocity control
-	
-	// option 2: set max acceleration yourself
-	
-	v_diff = v_target-v_cur;
-
-	// this set accel to maximum or zero
-	if(v_diff > v_hysteresis ){	
-		a_target = a_max;
-	} else if(v_diff < -v_hysteresis ) {
-		a_target = -a_max;
-	} else {
-		a_target = 0.0f;
-	}
-
-	
-	if(frame == 0){
-		//printf("=== compute_accel === %f, %f, %f, %f\r\n", d_diff, v_thresh_abs, v_target, v_diff);
-	}
-
-	return a_target;
-}*/

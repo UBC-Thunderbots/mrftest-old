@@ -108,40 +108,23 @@ static void move_tick(log_record_t *log) {
 
 	// Pick whether to go clockwise or counterclockwise (based on smallest angle)
 	if(dest_angle >= cur_angle ){                                                                                                        
-	  float dest_sub = dest_angle - 2*M_PI;                                                                                        
-	  if((dest_sub - cur_angle)*(dest_sub - cur_angle) <= (dest_angle - cur_angle)*(dest_angle - cur_angle)){                             
-	    relative_destination[2] = dest_sub - cur_angle;                                                              
-	  }else{                                                                                                                 
-	    relative_destination[2] = dest_angle - cur_angle;                                                                                 
-	  }                                                                                                                      
+		float dest_sub = dest_angle - 2*M_PI;                                                                                        
+		if((dest_sub - cur_angle)*(dest_sub - cur_angle) <= (dest_angle - cur_angle)*(dest_angle - cur_angle)){                             
+			relative_destination[2] = dest_sub - cur_angle;                                                              
+		}else{                                                                                                                 
+			relative_destination[2] = dest_angle - cur_angle;                                                                                 
+		}                                                                                                                      
 	}else{                                                                                                                       
-	  float dest_plus = dest_angle + 2*M_PI;                                                                                       
-	  if((dest_plus - cur_angle)*(dest_plus - cur_angle) <= (dest_angle - cur_angle)*(dest_angle - cur_angle)){                           
-	    relative_destination[2] = dest_plus - cur_angle;                                                              
-	  }else{                                                                                                                 
-	    relative_destination[2] = dest_angle - cur_angle;                                                                                 
-	  }                                                                                                                      
+		float dest_plus = dest_angle + 2*M_PI;                                                                                       
+		if((dest_plus - cur_angle)*(dest_plus - cur_angle) <= (dest_angle - cur_angle)*(dest_angle - cur_angle)){                           
+			relative_destination[2] = dest_plus - cur_angle;                                                              
+		}else{                                                                                                                 
+			relative_destination[2] = dest_angle - cur_angle;                                                                                 
+		}                                                                                                                      
 	}                                                                                                                       
 
-	float max_accel[3] = {MAX_X_A, MAX_Y_A, MAX_T_A};
 	float accel[3];
 
-	//BBProfile Xprofile;
-	//PrepareBBTrajectoryMaxV(&Xprofile, relative_destination[0], vel[0], relative_final_velocity[0], max_accel[0], 3.0);
-	////PrepareBBTrajectoryMaxV(&Xprofile, relative_destination[0], vel[0], 0, max_accel[0]);
-	//PlanBBTrajectory(&Xprofile);
-	//accel[0] = BBComputeAvgAccel(&Xprofile, TIME_HORIZON);
-	//printf("local x accel= %f", accel[0]);	
-	//float timeX = GetBBTime(&Xprofile);
-
-	//BBProfile Yprofile;
-	////PrepareBBTrajectoryMaxV(&Yprofile, relative_destination[1], vel[1], 0, max_accel[1]);
-	//PrepareBBTrajectoryMaxV(&Yprofile, relative_destination[1], vel[1], relative_final_velocity[1], max_accel[1], 3.0);
-	//PlanBBTrajectory(&Yprofile);
-	//accel[1] = BBComputeAvgAccel(&Yprofile, TIME_HORIZON);
-	//float timeY = GetBBTime(&Yprofile);
-
-	#define MAX_R_V 2.0
 	const float relative_tick_start[2] = {0.0f, 0.0f};
 	BBProfile r_profile;
 	float radial_dist = 
@@ -163,10 +146,6 @@ static void move_tick(log_record_t *log) {
 		relative_destination); 	
 
 	float deltaD = relative_destination[2];
-	//float timeTarget = (timeY > timeX)?timeY:timeX;
-	//if (timeX < TIME_HORIZON && timeY < TIME_HORIZON) {
-	//	timeTarget = TIME_HORIZON;	
-	//}
 	float timeTarget = (time_r > TIME_HORIZON) ? time_r : TIME_HORIZON;
 	
 	float targetVel = deltaD/timeTarget; 

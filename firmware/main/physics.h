@@ -36,6 +36,11 @@
 #define GEAR_RATIO 0.5143f //define as speed multiplication from motor to wheel
 #define WHEEL_RADIUS 0.0254f
 
+// constants for radial bangbang controller
+#define MAX_R_V 2.0f
+#define MAX_R_A 3.0f
+
+
 #define MAX_X_V 2.0f //maximal linear velocity in the X direction
 #define MAX_Y_V 1.0f //maximum linear velocity in the Y direction
 #define MAX_T_V 0.1f //max robot rotation rate in radians per second
@@ -46,7 +51,6 @@ extern const float MAX_VEL[3];
 #define MAX_X_A 3.0f
 #define MAX_Y_A 3.0f
 #define MAX_T_A 30.0f
-#define MAX_R_A 3.0f
 
 //#define SLOW_MAX_X_A 1.2f
 //#define SLOW_MAX_Y_A 1.2f
