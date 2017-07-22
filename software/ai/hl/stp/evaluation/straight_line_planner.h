@@ -24,7 +24,7 @@ namespace AI {
                 	/**
                 	 * Returns an ordered list of points representing the path from start to target, while avoiding obstacles
                 	 */
-                	std::vector<Point> straight_line_plan_helper(const Point &start, const Point &target, const std::vector<Geom::Circle> &obstacles, PlanMode mode, int maxDepth);
+                	std::vector<Point> straight_line_plan_helper(Point start, Point target, const std::vector<Geom::Circle> &obstacles, PlanMode mode, int maxDepth);
 
                 	/**
                 	 * Returns the first point from obstacles that the line from start to end collides with

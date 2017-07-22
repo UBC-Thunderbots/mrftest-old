@@ -14,7 +14,7 @@ using namespace Geom;
 
 namespace {
 	const constexpr double NEW_POINT_BUFFER = 0.04;
-	const constexpr Point NULL_POINT = Point(-999.9, -999.9);
+	const constexpr Point NULL_POINT = Point(-9, -9);
 	const constexpr Circle NULL_CIRCLE = Circle(NULL_POINT, 0);
 }
 
@@ -87,9 +87,34 @@ std::vector<Point> Evaluation::SLP::straight_line_plan(World world, Player playe
 	return path;
 }
 
-std::vector<Point> Evaluation::SLP::straight_line_plan_helper(const Point &start, const Point &target, const std::vector<Geom::Circle> &obstacles, SLP::PlanMode mode, int maxDepth) {
+std::vector<Point> Evaluation::SLP::straight_line_plan_helper(Point start, Point target, const std::vector<Geom::Circle> &obstacles, SLP::PlanMode mode, int maxDepth) {
 	if(maxDepth < 0) {
 		return std::vector<Point>();
+	}
+
+	Point prepend = NULL_POINT;
+	Circle startCollision = SLP::getFirstCollision(start, start, obstacles);
+	if(startCollision == NULL_CIRCLE) {
+		// this is good. do nothing
+	}else {
+		prepend = startCollision.origin + (start - startCollision.origin).norm(startCollision.radius + NEW_POINT_BUFFER);
+	}
+
+	Circle targetCollision = SLP::getFirstCollision(target, target, obstacles);
+	if(targetCollision == NULL_CIRCLE) {
+		// this is good. do nothing
+	}else {
+		std::vector<Point> intersects = line_circle_intersect(targetCollision.origin, targetCollision.radius, start, target);
+		if(intersects.size() == 1) {
+			target = intersects[0];
+		}
+		if(intersects.size() == 2) {
+			if((intersects[0] - start).len() < (intersects[1] - start).len()) {
+				target = intersects[0];
+			}else {
+				target = intersects[1];
+			}
+		}
 	}
 
 	Circle firstCollision = SLP::getFirstCollision(start, target, obstacles);
