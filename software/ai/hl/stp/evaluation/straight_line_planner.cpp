@@ -18,6 +18,7 @@ namespace {
 	const constexpr Circle NULL_CIRCLE = Circle(NULL_POINT, 0);
 }
 
+// TODO: take waypoints as param
 std::vector<Point> Evaluation::SLP::straight_line_plan(World world, Player player, Point target, AI::Flags::MoveFlags added_flags) {
 	std::vector<Circle> obstacles;
 
@@ -80,41 +81,43 @@ std::vector<Point> Evaluation::SLP::straight_line_plan(World world, Player playe
 	// need own half
 	// need penaly friendy and enemy
 
-	std::vector<Point> path = straight_line_plan_helper(player.position(), target, obstacles, SLP::MODE_BOTH, 30);
+	Point prepend = NULL_POINT;
+	Circle startCollision = SLP::getCollision(player.position(), obstacles);
+	if(startCollision == NULL_CIRCLE) {
+		// this is good. do nothing
+	}else {
+		prepend = startCollision.origin + (player.position() - startCollision.origin).norm(startCollision.radius + NEW_POINT_BUFFER);
+	}
+
+	Circle targetCollision = SLP::getCollision(target, obstacles);
+	if(targetCollision == NULL_CIRCLE) {
+		// this is good. do nothing
+	}else {
+		target = targetCollision.origin + (target - targetCollision.origin).norm(targetCollision.radius + NEW_POINT_BUFFER);
+	}
+
+
+	std::vector<Point> path;
+	if(prepend == NULL_POINT) {
+		 path = straight_line_plan_helper(player.position(), target, obstacles, SLP::MODE_BOTH, 30);
+	}else {
+		path = straight_line_plan_helper(prepend, target, obstacles, SLP::MODE_BOTH, 30);
+	}
+
 	if(path.empty()) {
 		LOG_INFO(u8"failed to find a path with SLP!!!!!");
+	}
+
+	if(prepend != NULL_POINT) {
+		path.insert(path.begin(), prepend);
+		LOG_INFO("PREPENDING POINT");
 	}
 	return path;
 }
 
-std::vector<Point> Evaluation::SLP::straight_line_plan_helper(Point start, Point target, const std::vector<Geom::Circle> &obstacles, SLP::PlanMode mode, int maxDepth) {
+std::vector<Point> Evaluation::SLP::straight_line_plan_helper(const Point &start, const Point &target, const std::vector<Geom::Circle> &obstacles, SLP::PlanMode mode, int maxDepth) {
 	if(maxDepth < 0) {
 		return std::vector<Point>();
-	}
-
-	Point prepend = NULL_POINT;
-	Circle startCollision = SLP::getFirstCollision(start, start, obstacles);
-	if(startCollision == NULL_CIRCLE) {
-		// this is good. do nothing
-	}else {
-		prepend = startCollision.origin + (start - startCollision.origin).norm(startCollision.radius + NEW_POINT_BUFFER);
-	}
-
-	Circle targetCollision = SLP::getFirstCollision(target, target, obstacles);
-	if(targetCollision == NULL_CIRCLE) {
-		// this is good. do nothing
-	}else {
-		std::vector<Point> intersects = line_circle_intersect(targetCollision.origin, targetCollision.radius, start, target);
-		if(intersects.size() == 1) {
-			target = intersects[0];
-		}
-		if(intersects.size() == 2) {
-			if((intersects[0] - start).len() < (intersects[1] - start).len()) {
-				target = intersects[0];
-			}else {
-				target = intersects[1];
-			}
-		}
 	}
 
 	Circle firstCollision = SLP::getFirstCollision(start, target, obstacles);
@@ -123,7 +126,7 @@ std::vector<Point> Evaluation::SLP::straight_line_plan_helper(Point start, Point
 	}
 
 	if(mode == SLP::MODE_LEFT) {
-		std::vector<Circle> obstacleGroup = SLP::getGroupOfObstacles(firstCollision, obstacles);
+		std::vector<Circle> obstacleGroup = SLP::getGroupOfObstacles(firstCollision, obstacles, 1.5 * NEW_POINT_BUFFER);
 		Point leftPerpPoint = NULL_POINT;
 		double leftPerpPointDist = -1;
 
@@ -150,7 +153,7 @@ std::vector<Point> Evaluation::SLP::straight_line_plan_helper(Point start, Point
 			return planFirstPart;
 		}
 	}else if(mode == SLP::MODE_RIGHT) {
-		std::vector<Circle> obstacleGroup = SLP::getGroupOfObstacles(firstCollision, obstacles);
+		std::vector<Circle> obstacleGroup = SLP::getGroupOfObstacles(firstCollision, obstacles, 1.5 * NEW_POINT_BUFFER);
 		Point rightPerpPoint = NULL_POINT;
 		double rightPerpPointDist = -1;
 
@@ -177,7 +180,7 @@ std::vector<Point> Evaluation::SLP::straight_line_plan_helper(Point start, Point
 			return planFirstPart;
 		}
 	}else if(mode == SLP::MODE_BOTH) {
-		std::vector<Circle> obstacleGroup = SLP::getGroupOfObstacles(firstCollision, obstacles);
+		std::vector<Circle> obstacleGroup = SLP::getGroupOfObstacles(firstCollision, obstacles, 1.5 * NEW_POINT_BUFFER);
 		Point leftPointStart = SLP::getGroupTangentPoints(start, obstacleGroup, NEW_POINT_BUFFER).first;
 		Point leftPointTarget = SLP::getGroupTangentPoints(target, obstacleGroup, NEW_POINT_BUFFER).second;
 		Point rightPointStart = SLP::getGroupTangentPoints(start, obstacleGroup, NEW_POINT_BUFFER).second;
@@ -255,7 +258,22 @@ Circle Evaluation::SLP::getFirstCollision(const Point &start, const Point &end, 
 	return closestObstacle;
 }
 
-std::vector<Circle> Evaluation::SLP::getGroupOfObstacles(const Circle &obstacle, const std::vector<Circle> &obstacles) {
+Circle Evaluation::SLP::getCollision(const Point &point, const std::vector<Circle> &obstacles) {
+	// TODO: add check for empty obstacles
+	Circle closestObstacle = NULL_CIRCLE;
+
+	for(Circle c : obstacles) {
+		if(contains(c, point)) {
+			if(closestObstacle == NULL_CIRCLE || (c.origin - point).len() < (closestObstacle.origin - point).len()) {
+				closestObstacle = c;
+			}
+		}
+	}
+
+	return closestObstacle;
+}
+
+std::vector<Circle> Evaluation::SLP::getGroupOfObstacles(const Circle &obstacle, const std::vector<Circle> &obstacles, double buffer) {
 	std::vector<Circle> touchingObstacles = {obstacle};
 	std::vector<Circle> obstaclesToAdd;
 	# warning this can definitely be optimized. Check for empty list of obstacles, maybe use std::set and loop on obstaclesToAdd instead of whole list again
@@ -265,7 +283,7 @@ std::vector<Circle> Evaluation::SLP::getGroupOfObstacles(const Circle &obstacle,
 		for(Circle c : touchingObstacles) {
 			for(Circle ob : obstacles) {
 				# warning a wrapper function to check if an object is in a vector would be nice
-				if(Geom::intersects(c, ob) && std::find(touchingObstacles.begin(), touchingObstacles.end(), ob) == touchingObstacles.end()) {
+				if(Geom::intersects(Circle(c.origin, c.radius + buffer), ob) && std::find(touchingObstacles.begin(), touchingObstacles.end(), ob) == touchingObstacles.end()) {
 					obstaclesToAdd.push_back(ob);
 				}
 			}

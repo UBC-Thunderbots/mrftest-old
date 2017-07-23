@@ -24,19 +24,21 @@ namespace AI {
                 	/**
                 	 * Returns an ordered list of points representing the path from start to target, while avoiding obstacles
                 	 */
-                	std::vector<Point> straight_line_plan_helper(Point start, Point target, const std::vector<Geom::Circle> &obstacles, PlanMode mode, int maxDepth);
+                	std::vector<Point> straight_line_plan_helper(const Point &start, const Point &target, const std::vector<Geom::Circle> &obstacles, PlanMode mode, int maxDepth);
 
                 	/**
                 	 * Returns the first point from obstacles that the line from start to end collides with
                 	 */
                 	Geom::Circle getFirstCollision(const Point &start, const Point &end, const std::vector<Geom::Circle> &obstacles);
 
+                	Geom::Circle getCollision(const Point &point, const std::vector<Geom::Circle> &obstacles);
+
                 	/**
                 	 * Given a point and a list of obstacles, return a vector of points representing the group of obstacles
                 	 * around obstacle. Obstacles are considered to be a group if they are close enough together that a robot
                 	 * cannot pass between them
                 	 */
-                	std::vector<Geom::Circle> getGroupOfObstacles(const Geom::Circle &obstacle, const std::vector<Geom::Circle> &obstacles);
+                	std::vector<Geom::Circle> getGroupOfObstacles(const Geom::Circle &obstacle, const std::vector<Geom::Circle> &obstacles, double buffer = 0.0);
 
                 	/**
                 	 * Returns the Points in obstacles that form tangent lines with the start points.
