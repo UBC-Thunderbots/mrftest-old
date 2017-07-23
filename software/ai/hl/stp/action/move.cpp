@@ -127,7 +127,7 @@ void AI::HL::STP::Action::move_slp(caller_t& ca, World world, Player player, Poi
 	const double MAX_SPEED = 2.0;
 	const double SMALL_DIST = 1.0e-4;
 
-	while((player.position() - dest).len() > 0.05) {
+	do {
 		plan = Evaluation::SLP::straight_line_plan(world, player, dest);
 		player.display_path(plan);
 		double final_velocity = 2;
@@ -152,7 +152,7 @@ void AI::HL::STP::Action::move_slp(caller_t& ca, World world, Player player, Poi
 
 		player.move_move(plan[0], orientation, final_velocity);
 		yield(ca);
-	}
+	}while((player.position() - dest).len() > 0.05 && should_wait);
 }
 
 

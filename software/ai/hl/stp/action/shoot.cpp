@@ -41,6 +41,7 @@ void AI::HL::STP::Action::catch_and_shoot_target(caller_t& ca, World world, Play
 		catch_ball(ca, world, player, target);
 	}
 
+	LOG_INFO("DONE CATCH. SHOOTING NOW");
 	shoot_target(ca, world, player, target, velocity, chip, should_wait);
 }
 

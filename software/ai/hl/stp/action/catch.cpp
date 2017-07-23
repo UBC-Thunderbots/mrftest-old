@@ -40,29 +40,32 @@ void AI::HL::STP::Action::catch_ball(caller_t& ca, World world, Player player, P
 		target = target == Point(-99, -99) ? Evaluation::get_best_shot(world, player) : target;
 		target_line = world.ball().position() - target;
 
-		/* if(world.ball().velocity().lensq() < 1E-3) { */
+		if(world.ball().velocity().lensq() < 0.01) {
+			LOG_INFO("SITTING STILL");
 			// ball is either very slow or stopped. prediction algorithms don't work as well so
 			// just go behind the ball facing the target
-        catch_pos = world.ball().position() + target_line.norm(Robot::MAX_RADIUS * 2);
-        catch_orientation = (Evaluation::get_best_shot(world, player) - world.ball().position()).orientation();
-        /*
+			catch_pos = world.ball().position() + target_line.norm(Robot::MAX_RADIUS * 2);
+			catch_orientation = (Evaluation::get_best_shot(world, player) - world.ball().position()).orientation();
 		}else {
-			catch_pos = Evaluation::baller_catch_position(world, player);
+			LOG_INFO("MOVING BALL");
+//			catch_pos = Evaluation::baller_catch_position(world, player);
+			catch_pos = Evaluation::calc_fastest_grab_ball_dest(world, player);
 			catch_orientation = (world.ball().position() - catch_pos).orientation();
-			//catch_pos = Evaluation::calc_fastest_grab_ball_dest(world, player);
+
 
 			//from old catch_ball_quick
 			//catch_pos = Evaluation::quickest_intercept_position(world, player);
 		}
-        */
 
         LOGF_INFO(u8"catching to %1", catch_pos);
-        Action::move_rrt(ca, world, player, catch_pos, catch_orientation);
+        Action::move_slp(ca, world, player, catch_pos, catch_orientation, false);
+        LOG_INFO("DONE MOVE SLP");
 //		player.move_move(catch_pos, catch_orientation);
 		Action::yield(ca);
 	} while ((player.position() - catch_pos).lensq() > 0.08 * 0.08 || player.velocity().lensq() > 0.07 * 0.07 ||
 				player.orientation().angle_diff(catch_orientation).abs() > Angle::of_degrees(5));
 
+	LOG_INFO("DONE INITIAL APPROACH LOOP");
 	// how many ticks the player has had the ball for
 	int had_ball_for = 0;
 
@@ -71,5 +74,5 @@ void AI::HL::STP::Action::catch_ball(caller_t& ca, World world, Player player, P
 
     catch_pos = Evaluation::baller_catch_position(world, player);
     LOGF_INFO(u8"catching dribble to %1", catch_pos);
-    Action::dribble(ca, world, player, catch_pos, (world.ball().position() - player.position()).orientation());
+    Action::move_slp(ca, world, player, catch_pos, (world.ball().position() - player.position()).orientation());
 }
