@@ -13,31 +13,39 @@ namespace SLP = AI::HL::STP::Evaluation::SLP;
 using namespace Geom;
 
 namespace {
-	const constexpr double NEW_POINT_BUFFER = 0.04;
 	const constexpr Point NULL_POINT = Point(-9, -9);
 	const constexpr Circle NULL_CIRCLE = Circle(NULL_POINT, 0);
 }
 
+DoubleParam NEW_POINT_BUFFER(u8"How far from obstacles new points are generated", u8"AI/Navigator", 0.02, 0.0, 100.0);
+DoubleParam ROBOT_PROJECTION_FACTOR(u8"The fraction of robot velocity to project in front as an obstacle", u8"AI/Navigator", 0.1, 0.0, 10.0);
+
 // TODO: take waypoints as param
 std::vector<Point> Evaluation::SLP::straight_line_plan(World world, Player player, Point target, AI::Flags::MoveFlags added_flags) {
+	Point start = player.position();
 	std::vector<Circle> obstacles;
 
 	/* All obstacles include an additional robot max radius to account for the planning robot as well
 	 * This means that the CENTER POINT of the planning robot cannot go within the obstacles radius
 	 */
+
+	// TODO: point collision function should return distance in a pair
+
+	// Friendly robots
 	for(auto i : world.enemy_team()) {
 		// taking the velocity divided by AI ticks per second
-		double scaledVel = i.velocity().len() / 15;
+		double scaledVel = i.velocity().len() * ROBOT_PROJECTION_FACTOR;
 		for(double d = 0.0; d <= scaledVel; d+= 0.02) {
 			Point enemy = i.position() + i.velocity().norm(d);
 			obstacles.push_back(Circle(enemy, Plan::enemy(world, player) + Robot::MAX_RADIUS + NEW_POINT_BUFFER));
 		}
 	}
 
+	// Enemy robots
 	for(auto i : world.friendly_team()) {
-		if(i.position() != player.position()) {
+		if(i.position() != start) {
 			// taking the velocity divided by AI ticks per second
-			double scaledVel = i.velocity().len() / 15;
+			double scaledVel = i.velocity().len() * ROBOT_PROJECTION_FACTOR;
 			for(double d = 0.0; d <= scaledVel; d+= 0.02) {
 				Point friendly = i.position() + i.velocity().norm(d);
 				obstacles.push_back(Circle(friendly, Plan::friendly(player) + Robot::MAX_RADIUS + NEW_POINT_BUFFER));
@@ -57,7 +65,7 @@ std::vector<Point> Evaluation::SLP::straight_line_plan(World world, Player playe
 	double ballAvoidDist = Plan::get_ball_avoid_dist(player);
 	obstacles.push_back(Circle(world.ball().position(), ballAvoidDist));
 
-	// friendly defense
+	// friendly defense area
 	double friendlyDefenseAvoidDist = Plan::friendly_defense(world, player);
 	int numFriendlyDefenseObstacles = 5; // MUST BE GREATER THAN 1
 	double friendlyDeltaDist = world.field().defense_area_stretch() / numFriendlyDefenseObstacles - 1;
@@ -66,7 +74,7 @@ std::vector<Point> Evaluation::SLP::straight_line_plan(World world, Player playe
 		obstacles.push_back(Circle(p, friendlyDefenseAvoidDist));
 	}
 
-	// enemy defense
+	// enemy defense area
 	double enemyDefenseAvoidDist = Plan::friendly_kick(world, player);
 	int numEnemyDefenseObstacles = 5; // MUST BE GREATER THAN 1
 	double enemyDeltaDist = world.field().defense_area_stretch() / numEnemyDefenseObstacles - 1;
@@ -81,37 +89,72 @@ std::vector<Point> Evaluation::SLP::straight_line_plan(World world, Player playe
 	// need own half
 	// need penaly friendy and enemy
 
+	// This will adjust the path if the start or target point are in invalid locations (they violate the flags)
+	// In thie case, the first priority is for the player to leave the violation zone (in the case of start being invalid)
+	// and getting as close as possible without being invalid (if the case of the target being invalid)
 	Point prepend = NULL_POINT;
-	Circle startCollision = SLP::getCollision(player.position(), obstacles);
-	if(startCollision == NULL_CIRCLE) {
-		// this is good. do nothing
-	}else {
-		prepend = startCollision.origin + (player.position() - startCollision.origin).norm(startCollision.radius + NEW_POINT_BUFFER);
+	Circle startCollision = SLP::getCollision(start, obstacles);
+	if(startCollision != NULL_CIRCLE) {
+		std::vector<Circle> startCollisionGroup = SLP::getGroupOfObstacles(startCollision, obstacles, NEW_POINT_BUFFER);
+		std::vector<Point> possiblePoints;
+		double closestDist = 99999;
+		int numChecks = 60;
+		for(int i = 0; i < numChecks; i++) {
+			for(Circle c : startCollisionGroup) {
+				std::vector<Point> intersectPoints = line_circle_intersect(c.origin, c.radius + NEW_POINT_BUFFER, start, start + Point(1, 0).rotate(Angle::full() / numChecks * i));
+				possiblePoints.insert(possiblePoints.begin(), intersectPoints.begin(), intersectPoints.end());
+			}
+		}
+
+		// find the closest point that's valid that we can move to
+		for(Point p : possiblePoints) {
+			bool valid = SLP::getCollision(p, startCollisionGroup) == NULL_CIRCLE;
+			if(valid && (prepend == NULL_POINT || (p - start).lensq() < (prepend - start).lensq())) {
+				prepend = p;
+			}
+		}
+
+		prepend = startCollision.origin + (start - startCollision.origin).norm(startCollision.radius + NEW_POINT_BUFFER);
 	}
 
+	Point newTarget = NULL_POINT;
 	Circle targetCollision = SLP::getCollision(target, obstacles);
-	if(targetCollision == NULL_CIRCLE) {
-		// this is good. do nothing
-	}else {
-		target = targetCollision.origin + (target - targetCollision.origin).norm(targetCollision.radius + NEW_POINT_BUFFER);
-	}
+	if(targetCollision != NULL_CIRCLE) {
+		std::vector<Circle> targetCollisionGroup = SLP::getGroupOfObstacles(targetCollision, obstacles, NEW_POINT_BUFFER);
+		std::vector<Point> possiblePoints;
+		double closestDist = 99999;
+		int numChecks = 60;
+		for(int i = 0; i < numChecks; i++) {
+			for(Circle c : targetCollisionGroup) {
+				std::vector<Point> intersectPoints = line_circle_intersect(c.origin, c.radius + NEW_POINT_BUFFER, target, target + Point(1, 0).rotate(Angle::full() / numChecks * i));
+				possiblePoints.insert(possiblePoints.begin(), intersectPoints.begin(), intersectPoints.end());
+			}
+		}
 
+		// find the closest point that's valid that we can move to
+		for(Point p : possiblePoints) {
+			bool valid = SLP::getCollision(p, targetCollisionGroup) == NULL_CIRCLE;
+			if(valid && (newTarget == NULL_POINT || (p - target).lensq() < (newTarget - target).lensq())) {
+				newTarget = p;
+			}
+		}
+
+		newTarget = startCollision.origin + (start - startCollision.origin).norm(startCollision.radius + NEW_POINT_BUFFER);
+		target = newTarget;
+	}
 
 	std::vector<Point> path;
 	if(prepend == NULL_POINT) {
-		 path = straight_line_plan_helper(player.position(), target, obstacles, SLP::MODE_BOTH, 30);
+		 path = straight_line_plan_helper(start, target, obstacles, SLP::MODE_BOTH, 30);
 	}else {
 		path = straight_line_plan_helper(prepend, target, obstacles, SLP::MODE_BOTH, 30);
+		path.insert(path.begin(), prepend);
 	}
 
 	if(path.empty()) {
 		LOG_INFO(u8"failed to find a path with SLP!!!!!");
 	}
 
-	if(prepend != NULL_POINT) {
-		path.insert(path.begin(), prepend);
-		LOG_INFO("PREPENDING POINT");
-	}
 	return path;
 }
 

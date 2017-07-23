@@ -96,5 +96,9 @@ namespace Geom {
 		inline constexpr bool operator==(const Circle &p) {
 			return this->origin == p.origin && this->radius == p.radius;
 		}
+
+		inline constexpr bool operator!=(const Circle &p) {
+					return !(*this == p);
+				}
 	};
 }
