@@ -16,6 +16,8 @@ namespace AI {
 				Tactic::Ptr move_test_orientation(World world, Point dest);
 
 				Tactic::Ptr shoot_test(World world);
+
+				Tactic::Ptr catch_test(World world);
 			}
 		}
 	}

@@ -19,6 +19,7 @@ void AI::HL::STP::Action::catch_ball(caller_t& ca, World world, Player player, P
 	Point catch_pos; // prediction of where the robot should be behind the ball to catch it
 	Angle catch_orientation; // The orientation the catcher should have when catching
 
+    LOGF_INFO(u8"%1", "catchchin");
 	do {
 		// The angle between the target line, and the line from the robot to the ball
 		Angle orientation_diff = (player.position() - world.ball().position()).orientation().angle_diff(target_line.orientation());
@@ -39,11 +40,12 @@ void AI::HL::STP::Action::catch_ball(caller_t& ca, World world, Player player, P
 		target = target == Point(-99, -99) ? Evaluation::get_best_shot(world, player) : target;
 		target_line = world.ball().position() - target;
 
-		if(world.ball().velocity().lensq() < 1E-3) {
+		/* if(world.ball().velocity().lensq() < 1E-3) { */
 			// ball is either very slow or stopped. prediction algorithms don't work as well so
 			// just go behind the ball facing the target
-			catch_pos = world.ball().position() + target_line.norm(Robot::MAX_RADIUS * 2);
-			catch_orientation = (Evaluation::get_best_shot(world, player) - world.ball().position()).orientation();
+        catch_pos = world.ball().position() + target_line.norm(Robot::MAX_RADIUS * 2);
+        catch_orientation = (Evaluation::get_best_shot(world, player) - world.ball().position()).orientation();
+        /*
 		}else {
 			catch_pos = Evaluation::baller_catch_position(world, player);
 			catch_orientation = (world.ball().position() - catch_pos).orientation();
@@ -52,8 +54,9 @@ void AI::HL::STP::Action::catch_ball(caller_t& ca, World world, Player player, P
 			//from old catch_ball_quick
 			//catch_pos = Evaluation::quickest_intercept_position(world, player);
 		}
+        */
 
-        LOGF_INFO(u8"%1", catch_pos);
+        LOGF_INFO(u8"catching to %1", catch_pos);
         Action::move_rrt(ca, world, player, catch_pos, catch_orientation);
 //		player.move_move(catch_pos, catch_orientation);
 		Action::yield(ca);
@@ -67,5 +70,6 @@ void AI::HL::STP::Action::catch_ball(caller_t& ca, World world, Player player, P
 			| AI::Flags::MoveFlags::AVOID_ENEMY_DEFENSE | AI::Flags::MoveFlags::CAREFUL);
 
     catch_pos = Evaluation::baller_catch_position(world, player);
+    LOGF_INFO(u8"catching dribble to %1", catch_pos);
     Action::dribble(ca, world, player, catch_pos, (world.ball().position() - player.position()).orientation());
 }

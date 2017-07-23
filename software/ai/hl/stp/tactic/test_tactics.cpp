@@ -2,6 +2,7 @@
 
 #include "ai/hl/stp/tactic/test_tactics.h"
 #include "ai/hl/stp/action/shoot.h"
+#include "ai/hl/stp/action/catch.h"
 #include "util/dprint.h"
 #include "ai/hl/util.h"
 
@@ -61,7 +62,7 @@ namespace {
 
 	void MoveTestOrientation::execute(caller_t& ca) {
         original_pos = player().position();
-		AI::HL::STP::Action::move_rrt(ca, world, player(), dest);
+		AI::HL::STP::Action::move_slp(ca, world, player(), dest);
 		AI::HL::STP::Action::move_slp(ca, world, player(), original_pos);
 	}
 
@@ -75,7 +76,7 @@ namespace {
 			void execute(caller_t& caller) override;
 
 			Glib::ustring description() const override {
-				return u8"move test";
+				return u8"shoot test";
 			}
 	};
 
@@ -86,6 +87,29 @@ namespace {
 
 	void ShootTest::execute(caller_t& ca) {
         AI::HL::STP::Action::shoot_goal(ca, world, player(), false);
+	}
+
+    class CatchTest final : public Tactic {
+		public:
+			explicit CatchTest(World world) : Tactic(world) {
+			}
+
+		private:
+			Player select(const std::set<Player> &players) const override;
+			void execute(caller_t& caller) override;
+
+			Glib::ustring description() const override {
+				return u8"catch test";
+			}
+	};
+
+	Player CatchTest::select(const std::set<Player> &players) const {
+		Player p = *(players.begin());
+		return p;
+	}
+
+	void CatchTest::execute(caller_t& ca) {
+        AI::HL::STP::Action::catch_ball(ca, world, player(), world.field().enemy_goal());
 	}
 }
 
@@ -100,4 +124,9 @@ Tactic::Ptr AI::HL::STP::Tactic::move_test_orientation(World world, Point dest) 
 
 Tactic::Ptr AI::HL::STP::Tactic::shoot_test(World world) {
 	return Tactic::Ptr(new ShootTest(world));
+}
+
+Tactic::Ptr AI::HL::STP::Tactic::catch_test(World world) {
+    LOGF_INFO(u8"%1", "Catching");
+	return Tactic::Ptr(new CatchTest(world));
 }
