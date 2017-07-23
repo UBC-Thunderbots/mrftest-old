@@ -1,6 +1,8 @@
 #ifndef PHYSICS_H
 #define PHYSICS_H
 
+#include <math.h>
+
 #define M_PI 3.14159265f
 
 //This file contains all the physical constants of the robot
@@ -19,6 +21,7 @@
 #define TICK_TIME (1.0f / CONTROL_LOOP_HZ)
 #define ROBOT_POINT_MASS 2.48f
 #define DELTA_VOLTAGE_LIMIT 4.25f  //Voltage where wheel slips (acceleration cap)
+
 
 //all the interial components of the robot
 //This one is a little strange as it is the effective rotational mass
@@ -75,6 +78,7 @@ extern const float MAX_ACC[3];
 extern const float ROBOT_MASS[3];
 extern const float MAX_VEL[3];
 
+
 //transformation matricies to convert speeds in the
 //two different domains commonly used by the robot
 //speed4 which is the listing of wheel speeds 
@@ -84,6 +88,9 @@ void speed4_to_speed3(const float speed4[4], float speed3[3]);
 void speed3_to_speed4(const float speed3[3], float speed4[4]);
 
 float min_angle_delta(float,float);
+inline float norm2(float a1, float a2){
+	return(sqrtf(a1*a1 + a2*a2) );
+}
 
 //rotate a velocity vector through angle
 void rotate(float speed3[2], float angle);

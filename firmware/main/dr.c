@@ -185,7 +185,7 @@ void dr_set_ball_timestamp(uint64_t timestamp) {
 
 
 void dr_do_maneuver(){
-  int16_t dests[3][3] = {{700,-700,0},
+  int16_t dests[3][3] = {{700,-700,(int16_t)(M_PI*100)},
 			 {2000,1000,30},
 			 {0,0,(int16_t)(M_PI/2.0)}};
 

@@ -41,9 +41,13 @@ const float MAX_ACC[3] = {MAX_X_A, MAX_Y_A, MAX_T_A*ROBOT_RADIUS};
 //contention vector, where in forces will simply consume power.
 static const float contention_vector[4] = {-0.4621, 0.5353, -0.5353, 0.4621};
 
+
+
 // return the minimum angle from angle1 to angle2
 // test with angle2 increased or decreased by 2pi
 float min_angle_delta(float angle1, float angle2){
+	angle1 = fmod(angle1, 2*M_PI);
+	angle2 = fmod(angle2, 2*M_PI);
 	if(angle2 >= angle1 ){                                                                                                        
 		float ang_sub = angle2 - 2*M_PI;                                                                                        
 		if((ang_sub - angle1)*(ang_sub - angle1) <= (angle2 - angle1)*(angle2 - angle1)){                             

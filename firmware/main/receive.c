@@ -201,6 +201,10 @@ void handle_drive_packet(uint8_t * dma_buffer){
 			words[i] &= MASK[i];
 		}
 	}
+	/*else{
+		dr_do_maneuver();//TODO delete this
+		return;
+	}*/
 
 	// Take the drive mutex.
 	xSemaphoreTake(drive_mtx, portMAX_DELAY);
