@@ -14,12 +14,10 @@
 // so that the axes would never have to compete for resources
 #define TIME_HORIZON 0.05f //s
 
-//static primitive_params_t shoot_param;
-
 static float destination[3], final_velocity[2];
+// Only need two data points to form major axis vector.
+static float init_position[2]; 
 static int counts, counts_passed;
-
-//static float compute_accel(float d_target, float d_cur, float v_cur, float v_max, float a_max);
 
 /**
  * \brief Initializes the shoot primitive.
@@ -63,7 +61,6 @@ static void shoot_init(void) {
 static void shoot_start(const primitive_params_t *params) {
 
 	float scalar_speed;
-	float init_position[2];
 	dr_data_t current_states;
 
 	printf("move shoot start\r\n");
@@ -89,7 +86,6 @@ static void shoot_start(const primitive_params_t *params) {
 	if (!(params->extra & 1)) {
 		dribbler_set_speed(8000);
 	}
-	//printf("\r\n====leaving shoot start=====\r\n");
 	
 }
 
@@ -149,43 +145,112 @@ static void shoot_tick(log_record_t *log) {
 		}                                                                                                                      
 	}                                                                                                                       
 
+	#define ROBOT_MOUTH_WIDTH 0.06
+
 	float accel[3];
+	const float zero_vector[2] = {0.0f, 0.0f};
+	const float unit_x_vector[2] = {1.0f, 0.0f};
 
-	const float relative_tick_start[2] = {0.0f, 0.0f};
-	BBProfile r_profile;
-	float radial_dist = 
-		sqrtf(relative_destination[0]*relative_destination[0] + 
-		relative_destination[1]*relative_destination[1]);
-	float radial_vel = (vel[0]*relative_destination[0] + vel[1]*relative_destination[1])/radial_dist;
-	PrepareBBTrajectoryMaxV(&r_profile, radial_dist, radial_vel,
-		0, MAX_R_A, MAX_R_V); 
-	PlanBBTrajectory(&r_profile);
+	// Vectors for calculating if the robot has deviated from the straight line.
+	float v_major[2], v_trajectory[2];
+	float v_major_norm, v_trajectory_norm;
+	float deviation_distance;
+	float timeTarget, targetVel, deltaD;
 
-	printf("\n\nt1= %f", r_profile.t1);	
-	printf("t2= %f", r_profile.t2);	
-	printf("t3= %f", r_profile.t3);	
+	v_major[0] = destination[0] - init_position[0];
+	v_major[1] = destination[1] - init_position[1];
+	v_major_norm = sqrtf(v_major[0]*v_major[0] + v_major[1]*v_major[1]);
+	v_major[0] /= v_major_norm;
+	v_major[1] /= v_major_norm;
 
-	float radial_accel = BBComputeAvgAccel(&r_profile, TIME_HORIZON);
-	float time_r = GetBBTime(&r_profile);
+	v_trajectory[0] = current_states.x - init_position[0];
+	v_trajectory[1] = current_states.y - init_position[1];
+	v_trajectory_norm = sqrtf(v_trajectory[0]*v_trajectory[0] 
+		+ v_trajectory[1]*v_trajectory[1]);
+	v_trajectory[0] /= v_trajectory_norm;
+	v_trajectory[1] /= v_trajectory_norm;
 
-	decompose_radial(radial_accel, accel, relative_tick_start, 
-		relative_destination); 	
+	deviation_distance = (v_trajectory[0]*v_major[1] 
+		- v_trajectory[1]*v_major[0])*v_trajectory_norm; 
 
-	float deltaD = relative_destination[2];
-	float timeTarget = (time_r > TIME_HORIZON) ? time_r : TIME_HORIZON;
-	
-	float targetVel = deltaD/timeTarget; 
-	accel[2] = (targetVel - vel[2])/TIME_HORIZON;
-	Clamp(&accel[2], MAX_T_A);
+	if (deviation_distance > ROBOT_MOUTH_WIDTH/2) {
+		BBProfile correction_profile;
+		// Calculate the velocity along the minor axis through
+		// the cross product between the major axis and the current 
+		// velocity.
+		float correction_vel = vel[0]*v_major[1] - vel[1]*v_major[0];
+		PrepareBBTrajectoryMaxV(&correction_profile, deviation_distance, correction_vel,
+			0, MAX_R_A, MAX_R_V);
+		PlanBBTrajectory(&correction_profile);
+		float correction_accel = BBComputeAvgAccel(&correction_profile, TIME_HORIZON);
+		float	minor_accel[2];
+		float minor_time = GetBBTime(&correction_profile);
+
+		decompose_radial(correction_accel, minor_accel, zero_vector, unit_x_vector);
+		rotate(minor_accel, -current_states.angle);
+
+		BBProfile decel_profile;
+		float decel_dist = 0.0f;
+		// Calculate the velocity along the major axis through
+		// the dot product between the major axis and the current 
+		// velocity.
+		float decel_vel = vel[0]*v_major[0] + vel[1]*v_major[1];
+		PrepareBBTrajectoryMaxV(&decel_profile, decel_dist, decel_vel,
+			0, MAX_R_A, MAX_R_V);
+		PlanBBTrajectory(&decel_profile);
+		float decel_accel = BBComputeAvgAccel(&decel_profile, TIME_HORIZON);
+		float major_accel[2];
+		float major_time = GetBBTime(&decel_profile);
+
+		decompose_radial(decel_accel, major_accel, zero_vector, unit_x_vector);
+		rotate(major_accel, -current_states.angle);
+
+		accel[0] = minor_accel[0] + major_accel[0];
+		accel[1] = minor_accel[1] + major_accel[1];
+
+		deltaD = relative_destination[2];
+		timeTarget = (major_time > minor_time) ? major_time : minor_time;
+		timeTarget = (timeTarget > TIME_HORIZON) ? timeTarget : TIME_HORIZON;
+		targetVel = deltaD/timeTarget;
+		accel[2] = (targetVel - vel[2])/TIME_HORIZON;
+		Clamp(&accel[2], MAX_T_A);
+	}
+	else {
+		BBProfile r_profile;
+		float radial_dist = 
+			sqrtf(relative_destination[0]*relative_destination[0] + 
+			relative_destination[1]*relative_destination[1]);
+		float radial_vel = (vel[0]*relative_destination[0] + vel[1]*relative_destination[1])/radial_dist;
+		PrepareBBTrajectoryMaxV(&r_profile, radial_dist, radial_vel,
+			0, MAX_R_A, MAX_R_V); 
+		PlanBBTrajectory(&r_profile);
+
+		printf("\n\nt1= %f", r_profile.t1);	
+		printf("t2= %f", r_profile.t2);	
+		printf("t3= %f", r_profile.t3);	
+
+		float radial_accel = BBComputeAvgAccel(&r_profile, TIME_HORIZON);
+		float time_r = GetBBTime(&r_profile);
+
+		decompose_radial(radial_accel, accel, zero_vector, 
+			relative_destination); 	
+
+		deltaD = relative_destination[2];
+		timeTarget = (time_r > TIME_HORIZON) ? time_r : TIME_HORIZON;
+		
+		targetVel = deltaD/timeTarget; 
+		accel[2] = (targetVel - vel[2])/TIME_HORIZON;
+		Clamp(&accel[2], MAX_T_A);
+	}
 
 	if (log) {
 		log->tick.primitive_data[0] = destination[0];//accel[0];
 		log->tick.primitive_data[1] = destination[1];//accel[1];
 		log->tick.primitive_data[2] = destination[2];//accel[2];
-		log->tick.primitive_data[3] = time_r;//timeX;
-		log->tick.primitive_data[4] = radial_accel;//timeY;
-		log->tick.primitive_data[5] = timeTarget;
-		log->tick.primitive_data[6] = deltaD;
+		log->tick.primitive_data[3] = accel[0];//timeX;
+		log->tick.primitive_data[4] = accel[1];//timeY;
+		log->tick.primitive_data[5] = accel[2];
+		log->tick.primitive_data[6] = timeTarget;
 		log->tick.primitive_data[7] = targetVel;
 	}
 	printf("x accel= %f", accel[0]);	
