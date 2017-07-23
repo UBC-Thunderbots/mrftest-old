@@ -83,6 +83,8 @@ extern const float MAX_VEL[3];
 void speed4_to_speed3(const float speed4[4], float speed3[3]);
 void speed3_to_speed4(const float speed3[3], float speed4[4]);
 
+float min_angle_delta(float,float);
+
 //rotate a velocity vector through angle
 void rotate(float speed3[2], float angle);
 

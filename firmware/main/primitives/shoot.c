@@ -14,10 +14,8 @@
 // so that the axes would never have to compete for resources
 #define TIME_HORIZON 0.05f //s
 
-static float destination[3], final_velocity[2];
+static float destination[3], major_vec[2], minor_vec[2];
 // Only need two data points to form major axis vector.
-static float init_position[2]; 
-static int counts, counts_passed;
 
 /**
  * \brief Initializes the shoot primitive.
@@ -60,26 +58,18 @@ static void shoot_init(void) {
  */
 static void shoot_start(const primitive_params_t *params) {
 
-	float scalar_speed;
-	dr_data_t current_states;
 
-	printf("move shoot start\r\n");
 	// Convert into m/s and rad/s because physics is in m and s
 	destination[0] = ((float)(params->params[0])/1000.0f);
 	destination[1] = ((float)(params->params[1])/1000.0f);
 	destination[2] = ((float)(params->params[2])/100.0f);
-	scalar_speed = ((float)(params->params[3])/1000.0f);
 	
 
-	counts = (int)(params->params[3]/5.0f);
-	counts_passed = 0;
-
-	dr_get(&current_states);
-	init_position[0] = current_states.x;
-	init_position[1] = current_states.y;
-
-	// decomposes the speed into final velocity vector (modifies final_velocity param)
-	decompose_radial(scalar_speed, final_velocity, init_position, destination);
+	major_vec[0] = cosf(destination[2]); 
+	major_vec[1] = sinf(destination[2]);
+	minor_vec[0] = major_vec[0];
+	minor_vec[1] = major_vec[1];
+	rotate(minor_vec, M_PI/2);	
 
 	// arm the chicker
 	chicker_auto_arm((params->extra & 1) ? CHICKER_CHIP : CHICKER_KICK, params->params[3]);
@@ -114,22 +104,15 @@ static void shoot_tick(log_record_t *log) {
 	dr_get(&current_states);
 
 	float vel[3] = {current_states.vx, current_states.vy, current_states.avel};
-	rotate(vel, -current_states.angle); //put current vel into local coords
 
 	float relative_destination[3];
 
 	relative_destination[0] = destination[0] - current_states.x;
 	relative_destination[1] = destination[1] - current_states.y;
-	rotate(relative_destination, -current_states.angle); //put relative dest into local coords
 
-	float relative_final_velocity[2] = {final_velocity[0], final_velocity[1]}; // copy by value not reference 
-	rotate(final_velocity, -current_states.angle); // put relative final velocity into local coords
-
-	float dest_angle = destination[2];
-	float cur_angle = current_states.angle;
 
 	// Pick whether to go clockwise or counterclockwise (based on smallest angle)
-	if(dest_angle >= cur_angle ){                                                                                                        
+	/*if(dest_angle >= cur_angle ){                                                                                                       
 		float dest_sub = dest_angle - 2*M_PI;                                                                                        
 		if((dest_sub - cur_angle)*(dest_sub - cur_angle) <= (dest_angle - cur_angle)*(dest_angle - cur_angle)){                             
 			relative_destination[2] = dest_sub - cur_angle;                                                              
@@ -143,112 +126,36 @@ static void shoot_tick(log_record_t *log) {
 		}else{                                                                                                                 
 			relative_destination[2] = dest_angle - cur_angle;                                                                                 
 		}                                                                                                                      
-	}                                                                                                                       
+	} */                                                                                                                      
+	relative_destination[2] = min_angle_delta(current_states.angle, destination[2]);
+	//relative_destination[2] =  destination[2] - current_states.angle;
 
-	#define ROBOT_MOUTH_WIDTH 0.06
+	BBProfile major_profile;
+	BBProfile minor_profile;
+	
+	float major_disp = relative_destination[0]*major_vec[0] + relative_destination[1]*major_vec[1]; 
+	float minor_disp = minor_vec[0]*relative_destination[0] + minor_vec[1]*relative_destination[1];
+	
+	//TODO: tune further: experimental
+	float major_vel = major_vec[0]*vel[0] + major_vec[1]*vel[1];
+	PrepareBBTrajectoryMaxV(&major_profile, major_disp, major_vel, 0.2, 0.85, 0.85); 
+	PlanBBTrajectory(&major_profile);
+	float major_accel = BBComputeAvgAccel(&major_profile, TIME_HORIZON);
+	float time_major = GetBBTime(&major_profile);
 
-	float accel[3];
-	const float zero_vector[2] = {0.0f, 0.0f};
-	const float unit_x_vector[2] = {1.0f, 0.0f};
+	float minor_vel = minor_vec[0]*vel[0] + minor_vec[1]*vel[1];
+	PrepareBBTrajectoryMaxV(&minor_profile, minor_disp, minor_vel, 0, MAX_X_A, MAX_X_V); 
+	PlanBBTrajectory(&minor_profile);
+	float minor_accel = BBComputeAvgAccel(&minor_profile, TIME_HORIZON);
+	float time_minor = GetBBTime(&minor_profile);
 
-	// Vectors for calculating if the robot has deviated from the straight line.
-	float v_major[2], v_trajectory[2];
-	float v_major_norm, v_trajectory_norm;
-	float deviation_distance;
-	float timeTarget, targetVel, deltaD;
+	float timeTarget = (time_minor > TIME_HORIZON) ? time_minor : TIME_HORIZON;
+	
+	float accel[3] = {0};
 
-	v_major[0] = destination[0] - init_position[0];
-	v_major[1] = destination[1] - init_position[1];
-	v_major_norm = sqrtf(v_major[0]*v_major[0] + v_major[1]*v_major[1]);
-	v_major[0] /= v_major_norm;
-	v_major[1] /= v_major_norm;
-
-	v_trajectory[0] = current_states.x - init_position[0];
-	v_trajectory[1] = current_states.y - init_position[1];
-	v_trajectory_norm = sqrtf(v_trajectory[0]*v_trajectory[0] 
-		+ v_trajectory[1]*v_trajectory[1]);
-	v_trajectory[0] /= v_trajectory_norm;
-	v_trajectory[1] /= v_trajectory_norm;
-
-	deviation_distance = (v_trajectory[0]*v_major[1] 
-		- v_trajectory[1]*v_major[0])*v_trajectory_norm; 
-
-	printf("move_shoot: deviation dist: %f \r\n", deviation_distance);
-	printf("move_shoot: v_major: %f %f \r\n", v_major[0], v_major[1]);
-	printf("move_shoot: v_traj: %f %f \r\n", v_trajectory[0], v_trajectory[1]);
-	printf("move_shoot: current_states %f %f \r\n", current_states.x, current_states.y);
-	printf("move_shoot: init_pos %f %f \r\n", init_position[0], init_position[1]);
-
-
-	if (deviation_distance > ROBOT_MOUTH_WIDTH/2) {
-		BBProfile correction_profile;
-		// Calculate the velocity along the minor axis through
-		// the cross product between the major axis and the current 
-		// velocity.
-		float correction_vel = vel[0]*v_major[1] - vel[1]*v_major[0];
-		PrepareBBTrajectoryMaxV(&correction_profile, deviation_distance, correction_vel,
-			0, 1.0, MAX_R_V); //TODO: change this
-		PlanBBTrajectory(&correction_profile);
-		float correction_accel = BBComputeAvgAccel(&correction_profile, TIME_HORIZON);
-		float	minor_accel[2];
-		float minor_time = GetBBTime(&correction_profile);
-
-		decompose_radial(correction_accel, minor_accel, zero_vector, unit_x_vector);
-		rotate(minor_accel, -current_states.angle);
-
-		BBProfile decel_profile;
-		float decel_dist = 0.0f;
-		// Calculate the velocity along the major axis through
-		// the dot product between the major axis and the current 
-		// velocity.
-		float decel_vel = vel[0]*v_major[0] + vel[1]*v_major[1];
-		PrepareBBTrajectoryMaxV(&decel_profile, decel_dist, decel_vel,
-			0, 1.0, MAX_R_V);
-		PlanBBTrajectory(&decel_profile);
-		float decel_accel = BBComputeAvgAccel(&decel_profile, TIME_HORIZON);
-		float major_accel[2];
-		float major_time = GetBBTime(&decel_profile);
-
-		decompose_radial(decel_accel, major_accel, zero_vector, unit_x_vector);
-		rotate(major_accel, -current_states.angle);
-
-		accel[0] = minor_accel[0] + major_accel[0];
-		accel[1] = minor_accel[1] + major_accel[1];
-
-		deltaD = relative_destination[2];
-		timeTarget = (major_time > minor_time) ? major_time : minor_time;
-		timeTarget = (timeTarget > TIME_HORIZON) ? timeTarget : TIME_HORIZON;
-		targetVel = deltaD/timeTarget;
-		accel[2] = (targetVel - vel[2])/TIME_HORIZON;
-		Clamp(&accel[2], MAX_T_A);
-	}
-	else {
-		BBProfile r_profile;
-		float radial_dist = 
-			sqrtf(relative_destination[0]*relative_destination[0] + 
-			relative_destination[1]*relative_destination[1]);
-		float radial_vel = (vel[0]*relative_destination[0] + vel[1]*relative_destination[1])/radial_dist;
-		PrepareBBTrajectoryMaxV(&r_profile, radial_dist, radial_vel,
-			0, 1.0, MAX_R_V); 
-		PlanBBTrajectory(&r_profile);
-
-		printf("\n\nt1= %f", r_profile.t1);	
-		printf("t2= %f", r_profile.t2);	
-		printf("t3= %f", r_profile.t3);	
-
-		float radial_accel = BBComputeAvgAccel(&r_profile, TIME_HORIZON);
-		float time_r = GetBBTime(&r_profile);
-
-		decompose_radial(radial_accel, accel, zero_vector, 
-			relative_destination); 	
-
-		deltaD = relative_destination[2];
-		timeTarget = (time_r > TIME_HORIZON) ? time_r : TIME_HORIZON;
-		
-		targetVel = deltaD/timeTarget; 
-		accel[2] = (targetVel - vel[2])/TIME_HORIZON;
-		Clamp(&accel[2], MAX_T_A);
-	}
+	float targetVel = 2*relative_destination[2]/timeTarget; 
+	accel[2] = (targetVel - vel[2])/TIME_HORIZON;
+	Clamp(&accel[2], MAX_T_A);
 
 	if (log) {
 		log->tick.primitive_data[0] = destination[0];//accel[0];
@@ -258,11 +165,16 @@ static void shoot_tick(log_record_t *log) {
 		log->tick.primitive_data[4] = accel[1];//timeY;
 		log->tick.primitive_data[5] = accel[2];
 		log->tick.primitive_data[6] = timeTarget;
-		log->tick.primitive_data[7] = targetVel;
 	}
-	printf("x accel= %f", accel[0]);	
-	printf("y accel= %f", accel[1]);	
-	printf("theta accel= %f", accel[2]);	
+
+	float local_x_norm_vec[2] = {cosf(current_states.angle), sinf(current_states.angle)}; 
+	float local_y_norm_vec[2] = {cosf(current_states.angle + M_PI/2), sinf(current_states.angle + M_PI/2)}; 
+	
+	accel[0] = minor_accel*(local_x_norm_vec[0]*minor_vec[0] + local_x_norm_vec[1]*minor_vec[1] );
+	accel[0] += major_accel*(local_x_norm_vec[0]*major_vec[0] + local_x_norm_vec[1]*major_vec[1] );
+	accel[1] = minor_accel*(local_y_norm_vec[0]*minor_vec[0] + local_y_norm_vec[1]*minor_vec[1] );
+	accel[1] += major_accel*(local_y_norm_vec[0]*major_vec[0] + local_y_norm_vec[1]*major_vec[1] );
+
 	apply_accel(accel, accel[2]); // accel is already in local coords
 
 }
