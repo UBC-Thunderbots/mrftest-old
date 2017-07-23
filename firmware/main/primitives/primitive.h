@@ -82,5 +82,6 @@ void primitive_start(unsigned int primitive, const primitive_params_t *params);
 void primitive_tick(log_record_t *log);
 bool primitive_is_direct(unsigned int primitive);
 unsigned int get_primitive_index();
+bool primitive_params_are_equal(primitive_params_t* params1,primitive_params_t* params);
 
 #endif
