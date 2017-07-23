@@ -160,6 +160,16 @@ void receive_tick(log_record_t *record) {
 uint8_t receive_last_serial(void) {
 	return __atomic_load_n(&last_serial, __ATOMIC_RELAXED);
 }
+
+/**
+ * The previous primitive values to compare against to check if the 
+ * new primitive should be taken, or if it is a copy of the previous one.
+ */
+static primitive_params_t pparams_previous = {.params = {0, 0, 0, 0},
+																							.slow = false,
+																							.extra = 0};
+static unsigned int primitive_previous = 0;
+
 void handle_drive_packet(uint8_t * dma_buffer){
 	// Grab emergency stop status from the end of the frame.
 	bool estop_run = !!dma_buffer[MESSAGE_PAYLOAD_ADDR + NUM_ROBOTS * RECEIVE_DRIVE_BYTES_PER_ROBOT];
@@ -231,8 +241,17 @@ void handle_drive_packet(uint8_t * dma_buffer){
 	pparams.slow = !!(pparams.extra & 0x80);
 	pparams.extra &= 0x7F;
 	if ((serial != last_serial /* Non-atomic because we are only writer */) || !estop_run || primitive_is_direct(primitive)) {
-		// Apply the movement primitive.
-		primitive_start(primitive, &pparams);
+		if (!primitive_params_are_equal(&pparams, &pparams_previous) || 
+				!(primitive == primitive_previous)) {
+			primitive_previous = primitive;
+			for (unsigned int i = 0; i < 4; i++) {
+				pparams_previous.params[i] = pparams.params[i];
+			}
+			pparams_previous.slow = pparams.slow; 
+			pparams_previous.extra = pparams.extra;
+			// Apply the movement primitive.
+			primitive_start(primitive, &pparams);
+		}
 	}
 
 	// Release the drive mutex.
