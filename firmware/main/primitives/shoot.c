@@ -173,6 +173,13 @@ static void shoot_tick(log_record_t *log) {
 	deviation_distance = (v_trajectory[0]*v_major[1] 
 		- v_trajectory[1]*v_major[0])*v_trajectory_norm; 
 
+	printf("move_shoot: deviation dist: %f \r\n", deviation_distance);
+	printf("move_shoot: v_major: %f %f \r\n", v_major[0], v_major[1]);
+	printf("move_shoot: v_traj: %f %f \r\n", v_trajectory[0], v_trajectory[1]);
+	printf("move_shoot: current_states %f %f \r\n", current_states.x, current_states.y);
+	printf("move_shoot: init_pos %f %f \r\n", init_position[0], init_position[1]);
+
+
 	if (deviation_distance > ROBOT_MOUTH_WIDTH/2) {
 		BBProfile correction_profile;
 		// Calculate the velocity along the minor axis through
@@ -180,7 +187,7 @@ static void shoot_tick(log_record_t *log) {
 		// velocity.
 		float correction_vel = vel[0]*v_major[1] - vel[1]*v_major[0];
 		PrepareBBTrajectoryMaxV(&correction_profile, deviation_distance, correction_vel,
-			0, MAX_R_A, MAX_R_V);
+			0, 1.0, MAX_R_V); //TODO: change this
 		PlanBBTrajectory(&correction_profile);
 		float correction_accel = BBComputeAvgAccel(&correction_profile, TIME_HORIZON);
 		float	minor_accel[2];
@@ -196,7 +203,7 @@ static void shoot_tick(log_record_t *log) {
 		// velocity.
 		float decel_vel = vel[0]*v_major[0] + vel[1]*v_major[1];
 		PrepareBBTrajectoryMaxV(&decel_profile, decel_dist, decel_vel,
-			0, MAX_R_A, MAX_R_V);
+			0, 1.0, MAX_R_V);
 		PlanBBTrajectory(&decel_profile);
 		float decel_accel = BBComputeAvgAccel(&decel_profile, TIME_HORIZON);
 		float major_accel[2];
@@ -222,7 +229,7 @@ static void shoot_tick(log_record_t *log) {
 			relative_destination[1]*relative_destination[1]);
 		float radial_vel = (vel[0]*relative_destination[0] + vel[1]*relative_destination[1])/radial_dist;
 		PrepareBBTrajectoryMaxV(&r_profile, radial_dist, radial_vel,
-			0, MAX_R_A, MAX_R_V); 
+			0, 1.0, MAX_R_V); 
 		PlanBBTrajectory(&r_profile);
 
 		printf("\n\nt1= %f", r_profile.t1);	
