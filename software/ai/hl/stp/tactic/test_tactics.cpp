@@ -66,7 +66,7 @@ namespace {
 		AI::HL::STP::Action::move_slp(ca, world, player(), original_pos);
 	}
 
-    class ShootTest final : public Tactic {
+	class ShootTest final : public Tactic {
 		public:
 			explicit ShootTest(World world) : Tactic(world) {
 			}
@@ -76,7 +76,7 @@ namespace {
 			void execute(caller_t& caller) override;
 
 			Glib::ustring description() const override {
-				return u8"shoot test";
+				return u8"move test";
 			}
 	};
 
@@ -86,32 +86,34 @@ namespace {
 	}
 
 	void ShootTest::execute(caller_t& ca) {
-        AI::HL::STP::Action::shoot_goal(ca, world, player(), false);
+		AI::HL::STP::Action::shoot_goal(ca, world, player());
 	}
 
-    class CatchTest final : public Tactic {
-		public:
-			explicit CatchTest(World world) : Tactic(world) {
-			}
+	class CatchTest final : public Tactic {
+        public:
+            explicit CatchTest(World world) : Tactic(world) {
+            }
 
-		private:
-			Player select(const std::set<Player> &players) const override;
-			void execute(caller_t& caller) override;
+        private:
+            Player select(const std::set<Player> &players) const override;
+            void execute(caller_t& caller) override;
 
-			Glib::ustring description() const override {
-				return u8"catch test";
-			}
-	};
+            Glib::ustring description() const override {
+                return u8"catch test";
+            }
+    };
 
-	Player CatchTest::select(const std::set<Player> &players) const {
-		Player p = *(players.begin());
-		return p;
-	}
+    Player CatchTest::select(const std::set<Player> &players) const {
+        Player p = *(players.begin());
+        return p;
+    }
 
-	void CatchTest::execute(caller_t& ca) {
+    void CatchTest::execute(caller_t& ca) {
         AI::HL::STP::Action::catch_ball(ca, world, player(), world.field().enemy_goal());
-	}
+    }
+	
 }
+
 
 
 Tactic::Ptr AI::HL::STP::Tactic::move_test(World world, Point dest) {

@@ -424,7 +424,6 @@ software/ai/hl/stp/play/simple_play.h -text
 software/ai/hl/stp/play/stop.cpp -text
 software/ai/hl/stp/play/test_catch.cpp -text
 software/ai/hl/stp/play/test_move.cpp -text
-software/ai/hl/stp/play/test_shoot.cpp -text
 software/ai/hl/stp/play/tri_attack_defensive.cpp -text
 software/ai/hl/stp/play_executor.cpp -text
 software/ai/hl/stp/play_executor.h -text

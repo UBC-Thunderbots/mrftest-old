@@ -20,14 +20,15 @@ void AI::HL::STP::Action::shoot_goal(caller_t& ca, World world, Player player, b
 }
 
 void AI::HL::STP::Action::shoot_target(caller_t& ca, World world, Player player, Point target, double velocity, bool chip, bool should_wait) {
-	const Angle orient = (target - player.position()).orientation();
+	const Angle orient = (target - world.ball().position()).orientation();
 
 	// wait for chicker to be ready
 	while (!player.chicker_ready()) Action::yield(ca);
 
 	// ram the ball
 
-    player.move_shoot(world.ball().position() + (world.ball().position() - player.position()).norm(0.05), orient, velocity, chip);
+    player.move_shoot(world.ball().position() + (target - world.ball().position()).norm(0.05), orient, velocity, chip);
+    //player.move_shoot(Point(0,0), Angle::zero(), velocity, chip);
     LOGF_INFO(u8"%1", world.ball().position() + (world.ball().position() - player.position()).norm(0.05));
     if(should_wait) Action::wait_shoot(ca, player);
 }
