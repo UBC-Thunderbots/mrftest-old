@@ -112,6 +112,13 @@ void dr_get(dr_data_t *ret) {
 }
 
 /**
+ * \brief provides current state information to caller
+ */
+void dr_get_ball(dr_ball_data_t *ret) {
+	*ret = current_ball_state;
+}
+
+/**
  * \brief sets the applied accels
  */
 void dr_setaccel(float linear_accel[2], float angular_accel) {
