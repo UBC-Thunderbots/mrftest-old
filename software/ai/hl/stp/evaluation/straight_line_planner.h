@@ -21,6 +21,8 @@ namespace AI {
                 	 */
                 	std::vector<Point> straight_line_plan(World world, Player player, Point target, AI::Flags::MoveFlags added_flags = AI::Flags::MoveFlags::NONE);
 
+					# warning might not want to expose helpers later, or move them to eval
+
                 	/**
                 	 * Returns an ordered list of points representing the path from start to target, while avoiding obstacles
                 	 */
@@ -29,21 +31,24 @@ namespace AI {
                 	/**
                 	 * Returns the first point from obstacles that the line from start to end collides with
                 	 */
-                	Geom::Circle getFirstCollision(const Point &start, const Point &end, const std::vector<Geom::Circle> &obstacles);
+                	Geom::Circle getFirstCollision(const Point &start, const Point &end, const std::vector<Geom::Circle> &obstacles, double buffer = 0.0);
 
                 	Geom::Circle getCollision(const Point &point, const std::vector<Geom::Circle> &obstacles);
 
                 	/**
-                	 * Given a point and a list of obstacles, return a vector of points representing the group of obstacles
-                	 * around obstacle. Obstacles are considered to be a group if they are close enough together that a robot
-                	 * cannot pass between them
+                	 * Given an obstacle and a list of all obstalces, return a list of obstacles that are connected to the originObstacle.
+                	 * Obstacles are considered to be connected if they are less than "buffer" distance away from intersecting.
+                	 * Also returns the buffer value used to create this group as part of the pair
+                	 *
+                	 * This function will internally modify the obstacles vector so do not pass it by reference!
                 	 */
-                	std::vector<Geom::Circle> getGroupOfObstacles(const Geom::Circle &obstacle, const std::vector<Geom::Circle> &obstacles, double buffer = 0.0);
+                	std::pair<std::vector<Geom::Circle>, double> getGroupOfObstacles(const Geom::Circle &originObstacle, std::vector<Geom::Circle> obstacles, double buffer = 0.0);
 
                 	/**
                 	 * Returns the Points in obstacles that form tangent lines with the start points.
+                	 * @param groupBuffer the buffer value used when calcualting the group of obstacles
                 	 */
-                	std::pair<Point, Point> getGroupTangentPoints(const Point &start, const std::vector<Geom::Circle> &obstacles, double buffer = 0.0);
+                	std::pair<Point, Point> getGroupTangentPoints(const Point &start, const std::vector<Geom::Circle> &obstacles, double groupBuffer, double buffer = 0.0);
 
                 	double getPathScore(const Point &start, const std::vector<Point> &path);
                 }

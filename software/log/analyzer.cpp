@@ -124,6 +124,7 @@ namespace {
 	}
 
 	void tsv_writer_ball(std::ostream &os, const std::vector<Log::Record> &records, Gtk::Window &) {
+		os << "Label\ttimestamp\tball_x\tball_y\tconfidence\tball_vx\tball_vy\n";
 		for (const Log::Record &record : records) {
 			if (record.has_tick()) {
 				const Log::Tick &tick = record.tick();
@@ -132,6 +133,7 @@ namespace {
 				os << '\t' << timespec_to_string_machine(tick.start_time());
 				os << '\t' << (ball.position().x() / 1000000.0);
 				os << '\t' << (ball.position().y() / 1000000.0);
+				os << '\t' << "X";
 				os << '\t' << (ball.velocity().x() / 1000000.0);
 				os << '\t' << (ball.velocity().y() / 1000000.0);
 				os << '\n';
@@ -146,6 +148,7 @@ namespace {
 						os << '\t' << timespec_to_string_machine(vision.timestamp());
 						os << '\t' << (ball.x() / 1000.0);
 						os << '\t' << (ball.y() / 1000.0);
+						os << '\t' << ball.confidence();
 						os << "\tX";
 						os << "\tX";
 						os << '\n';
@@ -574,6 +577,104 @@ namespace {
 		}
 	}
 
+	void tsv_writer_all(std::ostream &os, const std::vector<Log::Record> &records, Gtk::Window &) {
+		// Make sure records are valid for writing player data
+		if (records.size() < 2 || !records[1].has_config()) {
+			throw std::runtime_error("No config record where it ought to be.");
+		}
+
+		Log::Colour friendly_colour = records[1].config().friendly_colour();
+		Log::Colour enemy_colour;
+		if(friendly_colour == Log::COLOUR_YELLOW)
+			enemy_colour = Log::COLOUR_BLUE;
+		else
+			enemy_colour = Log::COLOUR_YELLOW;
+
+		// Assumes there will be at most 6 robots per team
+		// can't use get_size() because need constant number of columns
+		int robots_team_size = 6;
+
+		// write headers for the columns
+		os << "Label\ttimestamp\tball_x\tball_y\tconfidence\tball_vx\tball_vy"
+				<< "\tf1_x\tf1_y\tf1_vx\tf1_vy\tf2_x\tf2_y\tf2_vx\tf2_vy\tf3_x\tf3_y\tf3_vx\tf3_vy\tf4_x\tf4_y\tf4_vx\tf4_vy\tf5_x\tf5_y\tf5_vx\tf5_vy\tf6_x\tf6_y\tf6_vx\tf6_vy"
+				<< "\te1_x\te1_y\te1_vx\te1_vy\te2_x\te2_y\te2_vx\te2_vy\te3_x\te3_y\te3_vx\te3_vy\te4_x\te4_y\te4_vx\te4_vy\te5_x\te5_y\te5_vx\te5_vy\te6_x\te6_y\te6_vx\te6_vy"
+				<< "\n";
+
+		for (const Log::Record &record : records) {
+			// set color of robots
+			if (record.has_config()) {
+				friendly_colour = record.config().friendly_colour();
+				if(friendly_colour == Log::COLOUR_YELLOW)
+					enemy_colour = Log::COLOUR_BLUE;
+				else
+					enemy_colour = Log::COLOUR_YELLOW;
+			}else if (record.has_tick()) {
+				// write ball
+				const Log::Tick &tick = record.tick();
+				const Log::Tick::Ball &ball = tick.ball();
+				os << "Tick";
+				os << '\t' << timespec_to_string_machine(tick.start_time());
+				os << '\t' << (ball.position().x() / 1000000.0);
+				os << '\t' << (ball.position().y() / 1000000.0);
+				os << '\t' << "X"; // confidence
+				os << '\t' << (ball.velocity().x() / 1000000.0);
+				os << '\t' << (ball.velocity().y() / 1000000.0);
+
+				// write friendly players
+				for (int j = 0; j < robots_team_size; ++j) {
+					if(j >= tick.friendly_robots_size()) {
+						os << '\t' << "X";
+						os << '\t' << "X";
+						os << '\t' << "X";
+						os << '\t' << "X";
+					}else {
+						const Log::Tick::FriendlyRobot &bot = tick.friendly_robots(j);
+						os << '\t' << (bot.position().x() / 1000000.0);
+						os << '\t' << (bot.position().y() / 1000000.0);
+						os << '\t' << (bot.velocity().x() / 1000000.0);
+						os << '\t' << (bot.velocity().y() / 1000000.0);
+					}
+				}
+
+				// write enemy players
+				for (int j = 0; j < robots_team_size; ++j) {
+					if(j >= tick.enemy_robots_size()) {
+						os << '\t' << "X";
+						os << '\t' << "X";
+						os << '\t' << "X";
+						os << '\t' << "X";
+					}else {
+						const Log::Tick::EnemyRobot &bot = tick.enemy_robots(j);
+						os << '\t' << (bot.position().x() / 1000000.0);
+						os << '\t' << (bot.position().y() / 1000000.0);
+						os << '\t' << (bot.velocity().x() / 1000000.0);
+						os << '\t' << (bot.velocity().y() / 1000000.0);
+					}
+				}
+
+				os << '\n';
+			} else if (record.has_vision()) {
+				// write ball
+				const Log::Vision &vision = record.vision();
+				const SSL_WrapperPacket &wrapper = vision.data();
+				if (wrapper.has_detection()) {
+					const SSL_DetectionFrame &frame = wrapper.detection();
+					for (int j = 0; j < frame.balls_size(); ++j) {
+						const SSL_DetectionBall &ball = frame.balls(j);
+						os << "Vision";
+						os << '\t' << timespec_to_string_machine(vision.timestamp());
+						os << '\t' << (ball.x() / 1000.0);
+						os << '\t' << (ball.y() / 1000.0);
+						os << '\t' << ball.confidence();
+						os << "\tX";
+						os << "\tX";
+						os << '\n';
+					}
+				}
+			}
+		}
+	}
+
 	/**
 	 * \brief The different types of TSV writers available.
 	 */
@@ -589,6 +690,7 @@ namespace {
 		{ &tsv_writer_enemy_players, u8"Enemy players position/velocity (predicted and vision)" },
 		{ &tsv_writer_stamps, u8"Tick/vision/refbox timestamps" },
 		{ &tsv_writer_compute_times, u8"Tick computation times" },
+		{ &tsv_writer_all, u8"Ball pos/vel (predicted & vision), all player pos/vel" },
 	};
 
 	/**

@@ -49,6 +49,7 @@ namespace {
 		files.clear();
 		std::copy_if(dir.begin(), dir.end(), std::back_inserter(files), [](const std::string &s) { return !s.empty() && s[0] != '.' && LogLoader::is_current_version(filename_to_pathname(s)); });
 		std::sort(files.begin(), files.end());
+		std::reverse(files.begin(), files.end());
 	}
 }
 

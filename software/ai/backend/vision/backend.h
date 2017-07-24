@@ -272,7 +272,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 		if (time_delta >= 0) {
 			bool any_ball_inside = false;
 			for (const SSL_DetectionBall &b : det.balls()) {
-				if (fabs(b.x()) < field_.length() * 500 && fabs(b.y()) < field_.width() * 500) {
+				if (fabs(b.x()) <= field_.length() * 500 && fabs(b.y()) <= field_.width() * 500) {
 					any_ball_inside = true;
 					break;
 				}
@@ -325,64 +325,36 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 		}
 
 		if (AI::BE::Vision::USE_PARTICLE_FILTER) {
-			if (det.balls().size() > 0) {
-				ball_.add_field_data(pFilter_->getEstimate(), best_time);
-			} else {
-				// No useful detection from camera; instead, see if a robot has the ball.
-				std::vector<Point> has_ball_inputs;
-				for (std::size_t i = 0; i < friendly_team().size(); ++i) {
-					Player::Ptr player = friendly_team().get(i);
-					if (player->has_ball()) {
-						player->lock_time(time_rec);
-						Point pos = player->position(0);
-						pos += Point::of_angle(player->orientation(0))
-								* ROBOT_CENTRE_TO_FRONT_DISTANCE;
-						has_ball_inputs.push_back(pos);
-					}
-				}
+			pFilter_->update(ball_.position(time_delta));
+			ball_.add_field_data(pFilter_->getEstimate(), best_time);
 
-				if (!has_ball_inputs.empty()) {
-					Point avg;
-					for (auto i : has_ball_inputs) {
-						avg += i;
-					}
-					avg /= static_cast<double>(has_ball_inputs.size());
-					ball_.add_field_data(avg, time_rec);
-				}
-			}
-
-			pFilter_->update(time_delta);
+			// This might be useful to include in the future
+//			// No useful detection from camera; instead, see if a robot has the ball.
+//			std::vector<Point> has_ball_inputs;
+//			for (std::size_t i = 0; i < friendly_team().size(); ++i) {
+//				Player::Ptr player = friendly_team().get(i);
+//				if (player->has_ball()) {
+//					player->lock_time(time_rec);
+//					Point pos = player->position(0);
+//					pos += Point::of_angle(player->orientation(0))
+//							* ROBOT_CENTRE_TO_FRONT_DISTANCE;
+//					has_ball_inputs.push_back(pos);
+//				}
+//			}
+//
+//			if (!has_ball_inputs.empty()) {
+//				Point avg;
+//				for (auto i : has_ball_inputs) {
+//					avg += i;
+//				}
+//				avg /= static_cast<double>(has_ball_inputs.size());
+//				ball_.add_field_data(avg, time_rec);
+//			}
 		} else {
 			/* KALMAN - UPDATE BALL */
 			if (best_prob >= BALL_FILTER_THRESHOLD) {
 				ball_.add_field_data(best_pos, best_time);
-			} else {
-				/*
-				// No useful detection from camera; instead, see if a robot has the ball.
-				std::vector<Point> has_ball_inputs;
-				for (std::size_t i = 0; i < friendly_team().size(); ++i) {
-					Player::Ptr player = friendly_team().get(i);
-					if (player->has_ball()) {
-						player->lock_time(time_rec);
-						Point pos = player->position(0);
-						pos += Point::of_angle(player->orientation(0))
-								* ROBOT_CENTRE_TO_FRONT_DISTANCE;
-						has_ball_inputs.push_back(pos);
-					}
-				}
-
-				if (!has_ball_inputs.empty()) {
-					Point avg;
-					for (auto i : has_ball_inputs) {
-						avg += i;
-					}
-					avg /= static_cast<double>(has_ball_inputs.size());
-					ball_.add_field_data(avg, time_rec);
-				}
-				*/
 			}
-
-			// ball_.add_field_data(best_pos, best_time);
 		}
 	}
 	else {

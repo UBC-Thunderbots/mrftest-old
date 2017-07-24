@@ -1,4 +1,5 @@
 #include "ai/hl/stp/evaluation/straight_line_planner.h"
+#include "ai/hl/stp/evaluation/rrt_planner.h"
 #include "ai/hl/stp/evaluation/plan_util.h"
 #include "geom/shapes.h"
 #include "geom/angle.h"
@@ -19,28 +20,29 @@ namespace {
 }
 
 DoubleParam NEW_POINT_BUFFER(u8"How far from obstacles new points are generated", u8"AI/Navigator", 0.02, 0.0, 100.0);
-DoubleParam ROBOT_PROJECTION_FACTOR(u8"The fraction of robot velocity to project in front as an obstacle", u8"AI/Navigator", 0.1, 0.0, 10.0);
+DoubleParam ROBOT_PROJECTION_FACTOR(u8"The fraction of robot velocity to project in front as an obstacle", u8"AI/Navigator", 0.5, 0.0, 10.0);
 
 // TODO: take waypoints as param
 std::vector<Point> Evaluation::SLP::straight_line_plan(World world, Player player, Point target, AI::Flags::MoveFlags added_flags) {
-	std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
-
+	std::chrono::time_point<std::chrono::system_clock> start_slp = std::chrono::system_clock::now();
+	std::chrono::time_point<std::chrono::system_clock> start_setup = std::chrono::system_clock::now();
 
 	Point start = player.position();
 	std::vector<Circle> obstacles;
-//	return std::vector<Point> {target};
 
 	/* All obstacles include an additional robot max radius to account for the planning robot as well
 	 * This means that the CENTER POINT of the planning robot cannot go within the obstacles radius
 	 */
 
+	// TODO: take into account current velocity and velovity of robot goung around
 	// TODO: point collision function should return distance in a pair
 
 	// Friendly robots
 	for(auto i : world.enemy_team()) {
 		// taking the velocity divided by AI ticks per second
-		double scaledVel = i.velocity().len() * ROBOT_PROJECTION_FACTOR;
-		for(double d = 0.0; d <= scaledVel; d+= 0.02) {
+		double projectedVel = i.velocity().len() * ROBOT_PROJECTION_FACTOR;
+		double shiftedVel = i.velocity().len() * ROBOT_PROJECTION_FACTOR * 0.5;
+		for(double d = 0.0; d <= projectedVel; d+= 0.02) {
 			Point enemy = i.position() + i.velocity().norm(d);
 			obstacles.push_back(Circle(enemy, Plan::enemy(world, player) + Robot::MAX_RADIUS + NEW_POINT_BUFFER));
 		}
@@ -50,8 +52,9 @@ std::vector<Point> Evaluation::SLP::straight_line_plan(World world, Player playe
 	for(auto i : world.friendly_team()) {
 		if(i.position() != start) {
 			// taking the velocity divided by AI ticks per second
-			double scaledVel = i.velocity().len() * ROBOT_PROJECTION_FACTOR;
-			for(double d = 0.0; d <= scaledVel; d+= 0.02) {
+			double projectedVel = i.velocity().len() * ROBOT_PROJECTION_FACTOR;
+			double shiftedVel = i.velocity().len() * ROBOT_PROJECTION_FACTOR * 0.5;
+			for(double d = shiftedVel; d <= projectedVel; d+= 0.02) {
 				Point friendly = i.position() + i.velocity().norm(d);
 				obstacles.push_back(Circle(friendly, Plan::friendly(player) + Robot::MAX_RADIUS + NEW_POINT_BUFFER));
 			}
@@ -72,7 +75,7 @@ std::vector<Point> Evaluation::SLP::straight_line_plan(World world, Player playe
 
 	// friendly defense area
 	double friendlyDefenseAvoidDist = Plan::friendly_defense(world, player);
-	int numFriendlyDefenseObstacles = 5; // MUST BE GREATER THAN 1
+	int numFriendlyDefenseObstacles = 4; // MUST BE GREATER THAN 1
 	double friendlyDeltaDist = world.field().defense_area_stretch() / numFriendlyDefenseObstacles - 1;
 	for(int i = 0; i < numFriendlyDefenseObstacles; i++) {
 		Point p = Point(-world.field().length() / 2, -world.field().defense_area_stretch() / 2 + i * friendlyDeltaDist);
@@ -81,7 +84,7 @@ std::vector<Point> Evaluation::SLP::straight_line_plan(World world, Player playe
 
 	// enemy defense area
 	double enemyDefenseAvoidDist = Plan::friendly_kick(world, player);
-	int numEnemyDefenseObstacles = 5; // MUST BE GREATER THAN 1
+	int numEnemyDefenseObstacles = 4; // MUST BE GREATER THAN 1
 	double enemyDeltaDist = world.field().defense_area_stretch() / numEnemyDefenseObstacles - 1;
 	for(int i = 0; i < numEnemyDefenseObstacles; i++) {
 		Point p = Point(world.field().length() / 2, -world.field().defense_area_stretch() / 2 + i * enemyDeltaDist);
@@ -98,34 +101,34 @@ std::vector<Point> Evaluation::SLP::straight_line_plan(World world, Player playe
 	// In thie case, the first priority is for the player to leave the violation zone (in the case of start being invalid)
 	// and getting as close as possible without being invalid (if the case of the target being invalid)
 	Point prepend = NULL_POINT;
-//	Circle startCollision = SLP::getCollision(start, obstacles);
-//	if(startCollision != NULL_CIRCLE) {
-//		std::vector<Circle> startCollisionGroup = SLP::getGroupOfObstacles(startCollision, obstacles, NEW_POINT_BUFFER);
-//		std::vector<Point> possiblePoints;
-//		double closestDist = 99999;
-//		int numChecks = 60;
-//		for(int i = 0; i < numChecks; i++) {
-//			for(Circle c : startCollisionGroup) {
-//				std::vector<Point> intersectPoints = line_circle_intersect(c.origin, c.radius + NEW_POINT_BUFFER, start, start + Point(1, 0).rotate(Angle::full() / numChecks * i));
-//				possiblePoints.insert(possiblePoints.begin(), intersectPoints.begin(), intersectPoints.end());
-//			}
-//		}
-//
-//		// find the closest point that's valid that we can move to
-//		for(Point p : possiblePoints) {
-//			bool valid = SLP::getCollision(p, startCollisionGroup) == NULL_CIRCLE;
-//			if(valid && (prepend == NULL_POINT || (p - start).lensq() < (prepend - start).lensq())) {
-//				prepend = p;
-//			}
-//		}
-//
-//		prepend = startCollision.origin + (start - startCollision.origin).norm(startCollision.radius + NEW_POINT_BUFFER);
-//	}
+	Circle startCollision = SLP::getCollision(start, obstacles);
+	if(startCollision != NULL_CIRCLE) {
+		std::vector<Circle> startCollisionGroup = SLP::getGroupOfObstacles(startCollision, obstacles, NEW_POINT_BUFFER).first;
+		std::vector<Point> possiblePoints;
+		double closestDist = 99999;
+		int numChecks = 60;
+		for(int i = 0; i < numChecks; i++) {
+			for(Circle c : startCollisionGroup) {
+				std::vector<Point> intersectPoints = line_circle_intersect(c.origin, c.radius + NEW_POINT_BUFFER, start, start + Point(1, 0).rotate(Angle::full() / numChecks * i));
+				possiblePoints.insert(possiblePoints.begin(), intersectPoints.begin(), intersectPoints.end());
+			}
+		}
+
+		// find the closest point that's valid that we can move to
+		for(Point p : possiblePoints) {
+			bool valid = SLP::getCollision(p, startCollisionGroup) == NULL_CIRCLE;
+			if(valid && (prepend == NULL_POINT || (p - start).lensq() < (prepend - start).lensq())) {
+				prepend = p;
+			}
+		}
+
+		prepend = startCollision.origin + (start - startCollision.origin).norm(startCollision.radius + NEW_POINT_BUFFER);
+	}
 
 	Point newTarget = NULL_POINT;
 	Circle targetCollision = SLP::getCollision(target, obstacles);
 	if(targetCollision != NULL_CIRCLE) {
-		std::vector<Circle> targetCollisionGroup = SLP::getGroupOfObstacles(targetCollision, obstacles, NEW_POINT_BUFFER);
+		std::vector<Circle> targetCollisionGroup = SLP::getGroupOfObstacles(targetCollision, obstacles, NEW_POINT_BUFFER).first;
 		std::vector<Point> possiblePoints;
 		double closestDist = 99999;
 		int numChecks = 60;
@@ -148,6 +151,8 @@ std::vector<Point> Evaluation::SLP::straight_line_plan(World world, Player playe
 		target = newTarget;
 	}
 
+	std::chrono::time_point<std::chrono::system_clock> end_setup = std::chrono::system_clock::now();
+
 	LOG_INFO(u8"STARTING THE RECUSIVE SLP");
 	std::vector<Point> path;
 	if(prepend == NULL_POINT) {
@@ -159,12 +164,14 @@ std::vector<Point> Evaluation::SLP::straight_line_plan(World world, Player playe
 	LOG_INFO(u8"DONE RECURSIVE SLP");
 
 	if(path.empty()) {
-		LOG_INFO(u8"failed to find a path with SLP!!!!!");
+		LOG_INFO(u8"failed to find a path with SLP! Using rrt instead");
+		path = Evaluation::RRT::rrt_plan(world, player, target, std::vector<Point>(), true, added_flags);
 	}
 
-	std::chrono::time_point<std::chrono::system_clock> end = std::chrono::system_clock::now();
-	auto slp_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - now).count();
-	LOGF_INFO(u8"SLP TIME: %1", slp_time);
+	std::chrono::time_point<std::chrono::system_clock> end_slp = std::chrono::system_clock::now();
+	auto slp_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_slp - start_slp).count();
+	auto setup_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_setup - start_setup).count();
+	LOGF_INFO(u8"SLP TIME: %1    SETUP TIME: %2", slp_time, setup_time);
 
 	return path;
 }
@@ -175,12 +182,13 @@ std::vector<Point> Evaluation::SLP::straight_line_plan_helper(const Point &start
 	}
 
 	Circle firstCollision = SLP::getFirstCollision(start, target, obstacles);
+	std::vector<Circle> obstacleGroup = SLP::getGroupOfObstacles(firstCollision, obstacles, 1.5 * NEW_POINT_BUFFER).first;
+
 	if(firstCollision == NULL_CIRCLE) {
 		return std::vector<Point> {target};
 	}
 
 	if(mode == SLP::MODE_LEFT) {
-		std::vector<Circle> obstacleGroup = SLP::getGroupOfObstacles(firstCollision, obstacles, 1.5 * NEW_POINT_BUFFER);
 		Point leftPerpPoint = NULL_POINT;
 		double leftPerpPointDist = -1;
 
@@ -200,14 +208,17 @@ std::vector<Point> Evaluation::SLP::straight_line_plan_helper(const Point &start
 
 		std::vector<Point> planFirstPart = SLP::straight_line_plan_helper(start, leftPerpPoint, obstacles, SLP::MODE_LEFT, maxDepth - 1);
 		std::vector<Point> planSecondPart = SLP::straight_line_plan_helper(leftPerpPoint, target, obstacles, SLP::MODE_LEFT, maxDepth - 1);
-		if(planFirstPart.empty() || planSecondPart.empty()) {
+
+		if(planFirstPart.empty()) {
+			// if the first part is empty, it doesn't matter what the second part is since we can't get there. Return an
+			// empty vector to signal a failed path
 			return std::vector<Point>();
 		}else {
+			// return as much as we can. this is ok even if the second part is empty
 			planFirstPart.insert(planFirstPart.end(), planSecondPart.begin(), planSecondPart.end());
 			return planFirstPart;
 		}
 	}else if(mode == SLP::MODE_RIGHT) {
-		std::vector<Circle> obstacleGroup = SLP::getGroupOfObstacles(firstCollision, obstacles, 1.5 * NEW_POINT_BUFFER);
 		Point rightPerpPoint = NULL_POINT;
 		double rightPerpPointDist = -1;
 
@@ -227,18 +238,23 @@ std::vector<Point> Evaluation::SLP::straight_line_plan_helper(const Point &start
 
 		std::vector<Point> planFirstPart = SLP::straight_line_plan_helper(start, rightPerpPoint, obstacles, SLP::MODE_RIGHT, maxDepth - 1);
 		std::vector<Point> planSecondPart = SLP::straight_line_plan_helper(rightPerpPoint, target, obstacles, SLP::MODE_RIGHT, maxDepth - 1);
-		if(planFirstPart.empty() || planSecondPart.empty()) {
+
+		if(planFirstPart.empty()) {
+			// if the first part is empty, it doesn't matter what the second part is since we can't get there. Return an
+			// empty vector to signal a failed path
 			return std::vector<Point>();
 		}else {
+			// return as much as we can. this is ok even if the second part is empty
 			planFirstPart.insert(planFirstPart.end(), planSecondPart.begin(), planSecondPart.end());
 			return planFirstPart;
 		}
 	}else if(mode == SLP::MODE_BOTH) {
-		std::vector<Circle> obstacleGroup = SLP::getGroupOfObstacles(firstCollision, obstacles, 1.5 * NEW_POINT_BUFFER);
-		Point leftPointStart = SLP::getGroupTangentPoints(start, obstacleGroup, NEW_POINT_BUFFER).first;
-		Point leftPointTarget = SLP::getGroupTangentPoints(target, obstacleGroup, NEW_POINT_BUFFER).second;
-		Point rightPointStart = SLP::getGroupTangentPoints(start, obstacleGroup, NEW_POINT_BUFFER).second;
-		Point rightPointTarget = SLP::getGroupTangentPoints(target, obstacleGroup, NEW_POINT_BUFFER).first;
+		std::pair<Point, Point> startTangentPoints = SLP::getGroupTangentPoints(start, obstacleGroup, NEW_POINT_BUFFER);
+		std::pair<Point, Point> targetTangentPoints = SLP::getGroupTangentPoints(target, obstacleGroup, NEW_POINT_BUFFER);
+		Point leftPointStart = startTangentPoints.first;
+		Point leftPointTarget = targetTangentPoints.second;
+		Point rightPointStart = startTangentPoints.second;
+		Point rightPointTarget = startTangentPoints.first;
 
 		std::vector<Point> leftPath1 = SLP::straight_line_plan_helper(start, leftPointStart, obstacles, SLP::MODE_CLOSEST_SIDE, maxDepth - 1);
 		std::vector<Point> leftPath2 = SLP::straight_line_plan_helper(leftPointStart, leftPointTarget, obstacles, SLP::MODE_LEFT, maxDepth - 1);
@@ -248,8 +264,13 @@ std::vector<Point> Evaluation::SLP::straight_line_plan_helper(const Point &start
 		std::vector<Point> rightPath2 = SLP::straight_line_plan_helper(rightPointStart, rightPointTarget, obstacles, SLP::MODE_RIGHT, maxDepth - 1);
 		std::vector<Point> rightPath3 = SLP::straight_line_plan_helper(rightPointTarget, target, obstacles, SLP::MODE_BOTH, maxDepth - 1);
 
-		if(leftPath1.empty() || leftPath2.empty() || leftPath3.empty()) {
-			if(rightPath1.empty() || rightPath2.empty() || rightPath3.empty()) {
+		// we only care about the first 2 segments because if one of them is empty, the third doesn't matter anyway
+		// since we can't get there
+		bool leftPathValid = !leftPath1.empty() && !leftPath2.empty();
+		bool rightPathValid = !rightPath1.empty() && !rightPath2.empty();
+
+		if(!leftPathValid) {
+			if(!rightPathValid) {
 				// Neither direction is valid
 				return std::vector<Point>();
 			}else {
@@ -259,7 +280,7 @@ std::vector<Point> Evaluation::SLP::straight_line_plan_helper(const Point &start
 				return rightPath1;
 			}
 		}else {
-			if(rightPath1.empty() || rightPath2.empty() || rightPath3.empty()) {
+			if(!rightPathValid) {
 				// Only the left path is valid
 				leftPath1.insert(leftPath1.end(), leftPath2.begin(), leftPath2.end());
 				leftPath1.insert(leftPath1.end(), leftPath3.begin(), leftPath3.end());
@@ -271,6 +292,15 @@ std::vector<Point> Evaluation::SLP::straight_line_plan_helper(const Point &start
 
 				rightPath1.insert(rightPath1.end(), rightPath2.begin(), rightPath2.end());
 				rightPath1.insert(rightPath1.end(), rightPath3.begin(), rightPath3.end());
+
+				bool leftPathReachesTarget = leftPath1.back() == target;
+				bool rightPathReachesTarget = rightPath1.back() == target;
+
+				if(leftPathReachesTarget && !rightPathReachesTarget) {
+					return leftPath1;
+				}else if(!leftPathReachesTarget && rightPathReachesTarget) {
+					return rightPath1;
+				}else if(!leftPathReachesTarget && !rightPathReachesTarget)
 
 				if(SLP::getPathScore(start, leftPath1) > SLP::getPathScore(start, rightPath1)) {
 					return leftPath1;
@@ -297,15 +327,13 @@ std::vector<Point> Evaluation::SLP::straight_line_plan_helper(const Point &start
 	}
 }
 
-Circle Evaluation::SLP::getFirstCollision(const Point &start, const Point &end, const std::vector<Circle> &obstacles) {
-	// TODO: add check for empty obstacles
+Circle Evaluation::SLP::getFirstCollision(const Point &start, const Point &end, const std::vector<Circle> &obstacles, double buffer) {
 	Circle closestObstacle = NULL_CIRCLE;
 
 	for(Circle c : obstacles) {
-		if(intersects(c, Seg(start, end))) {
-			if(closestObstacle == NULL_CIRCLE || (c.origin - start).len() < (closestObstacle.origin - start).len()) {
-				closestObstacle = c;
-			}
+		if(intersects(Circle(c.origin, c.radius + buffer), Seg(start, end)) &&
+				(closestObstacle == NULL_CIRCLE || (c.origin - start).len() < (closestObstacle.origin - start).len())) {
+			closestObstacle = c;
 		}
 	}
 
@@ -327,35 +355,48 @@ Circle Evaluation::SLP::getCollision(const Point &point, const std::vector<Circl
 	return closestObstacle;
 }
 
-std::vector<Circle> Evaluation::SLP::getGroupOfObstacles(const Circle &obstacle, const std::vector<Circle> &obstacles, double buffer) {
-	std::vector<Circle> touchingObstacles = {obstacle};
-	std::vector<Circle> obstaclesToAdd;
-	# warning this can definitely be optimized. Check for empty list of obstacles, maybe use std::set and loop on obstaclesToAdd instead of whole list again
-	while(true) {
-		obstaclesToAdd.clear();
+std::pair<std::vector<Circle>, double> Evaluation::SLP::getGroupOfObstacles(const Circle &originObstacle, std::vector<Circle> obstacles, double buffer) {
+	// initialize these vectors to the size of obstacles since they both could hold that many items,
+	// and this prevents more memory operations later
+	std::vector<Circle> touchingObstacles(obstacles.size()); // The obstacles that are connected to obstacle
+	std::vector<Circle> nextObstacles(obstacles.size()); // The obstacles that were immediately connected to the obstacle just checked, and will be checked next
+	std::vector<Circle> tempNextObstacles(obstacles.size());
+	nextObstacles.push_back(originObstacle);
+	obstacles.erase(std::remove(obstacles.begin(), obstacles.end(), originObstacle), obstacles.end());
 
-		for(Circle c : touchingObstacles) {
-			for(Circle ob : obstacles) {
-				# warning a wrapper function to check if an object is in a vector would be nice
-				if(Geom::intersects(Circle(c.origin, c.radius + buffer), ob) && std::find(touchingObstacles.begin(), touchingObstacles.end(), ob) == touchingObstacles.end()) {
-					obstaclesToAdd.push_back(ob);
+	while(!obstacles.empty()) {
+		for(Circle ob : nextObstacles) {
+			for(auto it = obstacles.begin(); it != obstacles.end();) {
+				// only add the buffer to the radius of one obstacle so we only account for the buffer once
+				if(Geom::intersects(Circle(ob.origin, ob.radius + buffer), *it)) {
+					tempNextObstacles.push_back(*it);
+					 // remove this obstacle from the list of all obstacles since we don't want to check it again later
+					it = obstacles.erase(it);
+				}else {
+					it++;
 				}
 			}
 		}
 
-		if(obstaclesToAdd.empty()) {
-			break;
-		}
-
-		touchingObstacles.insert(touchingObstacles.end(), obstaclesToAdd.begin(), obstaclesToAdd.end());
+		touchingObstacles.insert(touchingObstacles.end(), nextObstacles.begin(), nextObstacles.end());
+		nextObstacles = tempNextObstacles;
+		tempNextObstacles.clear();
 	}
 
-	return touchingObstacles;
+	touchingObstacles.insert(touchingObstacles.end(), nextObstacles.begin(), nextObstacles.end());
+	return std::make_pair(touchingObstacles, buffer);
 }
 
-std::pair<Point, Point> Evaluation::SLP::getGroupTangentPoints(const Point &start, const std::vector<Circle> &obstacles, double buffer) {
+std::pair<Point, Point> Evaluation::SLP::getGroupTangentPoints(const Point &start, const std::vector<Circle> &obstacles, double groupBuffer, double buffer) {
 	if(obstacles.empty()) {
 		return std::make_pair(NULL_POINT, NULL_POINT);
+	}
+
+	// buffer should be slightly buffer than groupBuffer. If the obstacle group was created with a larger buffer than the
+	// given tahgentPoint buffer, then when checking if tangent points are valid none will be valid because they will always
+	// be within the groupBuffer.
+	if(groupBuffer > buffer) {
+		buffer = groupBuffer + 0.001;
 	}
 
 	Point tangent1 = NULL_POINT;
@@ -363,9 +404,15 @@ std::pair<Point, Point> Evaluation::SLP::getGroupTangentPoints(const Point &star
 	Circle obstacle1 = NULL_CIRCLE;
 
 	for(Circle c : obstacles) {
-		std::vector<Point> tans = {get_circle_tangent_points(start, c, buffer).first, get_circle_tangent_points(start, c, buffer).second};
-		for(Point t : tans) {
-			Circle collision = Evaluation::SLP::getFirstCollision(start, start + (t - start).norm(1000), obstacles);
+		if(contains(c, start)) {
+			// if start is inside an obstacle it won't be able to find valid tangent points, so return.
+			return std::make_pair(NULL_POINT, NULL_POINT);
+		}
+
+		std::pair<Point, Point> circleTangentPoints = get_circle_tangent_points(start, c, buffer);
+		std::vector<Point> circleTangents = {circleTangentPoints.first, circleTangentPoints.second};
+		for(Point t : circleTangents) {
+			Circle collision = Evaluation::SLP::getFirstCollision(start, start + (t - start).norm(1000), obstacles, groupBuffer);
 			if(tangent1 == NULL_POINT && collision == NULL_CIRCLE) {
 				tangent1 = t;
 				obstacle1 = c;
@@ -379,9 +426,14 @@ std::pair<Point, Point> Evaluation::SLP::getGroupTangentPoints(const Point &star
 		}
 	}
 
-//	assert(tangent1 != NULL_POINT);
-//	assert(tangent2 != NULL_POINT);
+	// typically we should either find neither or both points, but just in case we get a weird
+	// case return NULL_POINTS if we can't get both
+	if(tangent1 == NULL_POINT || tangent2 == NULL_POINT) {
+		return std::make_pair(NULL_POINT, NULL_POINT);
+	}
 
+	// return the tangent points in order (left, right) relative to the start point
+	// (left is like counterclockwise, right is vice-versa)
 	if(is_clockwise(start - obstacle1.origin, tangent1 - obstacle1.origin)) {
 		return std::make_pair(tangent1, tangent2);
 	}else {
