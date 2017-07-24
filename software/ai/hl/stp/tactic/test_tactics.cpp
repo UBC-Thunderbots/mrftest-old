@@ -76,7 +76,7 @@ namespace {
 			void execute(caller_t& caller) override;
 
 			Glib::ustring description() const override {
-				return u8"move test";
+				return u8"shoot test";
 			}
 	};
 
@@ -86,7 +86,7 @@ namespace {
 	}
 
 	void ShootTest::execute(caller_t& ca) {
-		AI::HL::STP::Action::shoot_goal(ca, world, player());
+		AI::HL::STP::Action::catch_and_shoot_goal(ca, world, player(), false);
 	}
 
 	class CatchTest final : public Tactic {

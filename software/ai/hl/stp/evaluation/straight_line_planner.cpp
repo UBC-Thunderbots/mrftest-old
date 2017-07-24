@@ -6,6 +6,7 @@
 #include "util/dprint.h"
 #include "util/param.h"
 #include <assert.h>
+#include <chrono>
 
 using namespace AI::HL::STP;
 namespace Plan = AI::HL::STP::Evaluation::Plan;
@@ -22,8 +23,12 @@ DoubleParam ROBOT_PROJECTION_FACTOR(u8"The fraction of robot velocity to project
 
 // TODO: take waypoints as param
 std::vector<Point> Evaluation::SLP::straight_line_plan(World world, Player player, Point target, AI::Flags::MoveFlags added_flags) {
+	std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
+
+
 	Point start = player.position();
 	std::vector<Circle> obstacles;
+//	return std::vector<Point> {target};
 
 	/* All obstacles include an additional robot max radius to account for the planning robot as well
 	 * This means that the CENTER POINT of the planning robot cannot go within the obstacles radius
@@ -93,29 +98,29 @@ std::vector<Point> Evaluation::SLP::straight_line_plan(World world, Player playe
 	// In thie case, the first priority is for the player to leave the violation zone (in the case of start being invalid)
 	// and getting as close as possible without being invalid (if the case of the target being invalid)
 	Point prepend = NULL_POINT;
-	Circle startCollision = SLP::getCollision(start, obstacles);
-	if(startCollision != NULL_CIRCLE) {
-		std::vector<Circle> startCollisionGroup = SLP::getGroupOfObstacles(startCollision, obstacles, NEW_POINT_BUFFER);
-		std::vector<Point> possiblePoints;
-		double closestDist = 99999;
-		int numChecks = 60;
-		for(int i = 0; i < numChecks; i++) {
-			for(Circle c : startCollisionGroup) {
-				std::vector<Point> intersectPoints = line_circle_intersect(c.origin, c.radius + NEW_POINT_BUFFER, start, start + Point(1, 0).rotate(Angle::full() / numChecks * i));
-				possiblePoints.insert(possiblePoints.begin(), intersectPoints.begin(), intersectPoints.end());
-			}
-		}
-
-		// find the closest point that's valid that we can move to
-		for(Point p : possiblePoints) {
-			bool valid = SLP::getCollision(p, startCollisionGroup) == NULL_CIRCLE;
-			if(valid && (prepend == NULL_POINT || (p - start).lensq() < (prepend - start).lensq())) {
-				prepend = p;
-			}
-		}
-
-		prepend = startCollision.origin + (start - startCollision.origin).norm(startCollision.radius + NEW_POINT_BUFFER);
-	}
+//	Circle startCollision = SLP::getCollision(start, obstacles);
+//	if(startCollision != NULL_CIRCLE) {
+//		std::vector<Circle> startCollisionGroup = SLP::getGroupOfObstacles(startCollision, obstacles, NEW_POINT_BUFFER);
+//		std::vector<Point> possiblePoints;
+//		double closestDist = 99999;
+//		int numChecks = 60;
+//		for(int i = 0; i < numChecks; i++) {
+//			for(Circle c : startCollisionGroup) {
+//				std::vector<Point> intersectPoints = line_circle_intersect(c.origin, c.radius + NEW_POINT_BUFFER, start, start + Point(1, 0).rotate(Angle::full() / numChecks * i));
+//				possiblePoints.insert(possiblePoints.begin(), intersectPoints.begin(), intersectPoints.end());
+//			}
+//		}
+//
+//		// find the closest point that's valid that we can move to
+//		for(Point p : possiblePoints) {
+//			bool valid = SLP::getCollision(p, startCollisionGroup) == NULL_CIRCLE;
+//			if(valid && (prepend == NULL_POINT || (p - start).lensq() < (prepend - start).lensq())) {
+//				prepend = p;
+//			}
+//		}
+//
+//		prepend = startCollision.origin + (start - startCollision.origin).norm(startCollision.radius + NEW_POINT_BUFFER);
+//	}
 
 	Point newTarget = NULL_POINT;
 	Circle targetCollision = SLP::getCollision(target, obstacles);
@@ -139,10 +144,11 @@ std::vector<Point> Evaluation::SLP::straight_line_plan(World world, Player playe
 			}
 		}
 
-		newTarget = startCollision.origin + (start - startCollision.origin).norm(startCollision.radius + NEW_POINT_BUFFER);
+		newTarget = targetCollision.origin + (start - targetCollision.origin).norm(targetCollision.radius + NEW_POINT_BUFFER);
 		target = newTarget;
 	}
 
+	LOG_INFO(u8"STARTING THE RECUSIVE SLP");
 	std::vector<Point> path;
 	if(prepend == NULL_POINT) {
 		 path = straight_line_plan_helper(start, target, obstacles, SLP::MODE_BOTH, 30);
@@ -150,10 +156,15 @@ std::vector<Point> Evaluation::SLP::straight_line_plan(World world, Player playe
 		path = straight_line_plan_helper(prepend, target, obstacles, SLP::MODE_BOTH, 30);
 		path.insert(path.begin(), prepend);
 	}
+	LOG_INFO(u8"DONE RECURSIVE SLP");
 
 	if(path.empty()) {
 		LOG_INFO(u8"failed to find a path with SLP!!!!!");
 	}
+
+	std::chrono::time_point<std::chrono::system_clock> end = std::chrono::system_clock::now();
+	auto slp_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - now).count();
+	LOGF_INFO(u8"SLP TIME: %1", slp_time);
 
 	return path;
 }
@@ -368,8 +379,8 @@ std::pair<Point, Point> Evaluation::SLP::getGroupTangentPoints(const Point &star
 		}
 	}
 
-	assert(tangent1 != NULL_POINT);
-	assert(tangent2 != NULL_POINT);
+//	assert(tangent1 != NULL_POINT);
+//	assert(tangent2 != NULL_POINT);
 
 	if(is_clockwise(start - obstacle1.origin, tangent1 - obstacle1.origin)) {
 		return std::make_pair(tangent1, tangent2);
