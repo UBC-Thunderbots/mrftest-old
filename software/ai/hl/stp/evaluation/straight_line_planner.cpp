@@ -19,8 +19,8 @@ namespace {
 	const constexpr Circle NULL_CIRCLE = Circle(NULL_POINT, 0);
 }
 
-DoubleParam NEW_POINT_BUFFER(u8"How far from obstacles new points are generated", u8"AI/Navigator", 0.02, 0.0, 100.0);
-DoubleParam ROBOT_PROJECTION_FACTOR(u8"The fraction of robot velocity to project in front as an obstacle", u8"AI/Navigator", 0.5, 0.0, 10.0);
+DoubleParam NEW_POINT_BUFFER(u8"How far from obstacles new points are generated", u8"AI/Navigator", 0.04, 0.0, 100.0);
+DoubleParam ROBOT_PROJECTION_FACTOR(u8"The fraction of robot velocity to project in front as an obstacle", u8"AI/Navigator", 0.1, 0.0, 10.0);
 
 // TODO: take waypoints as param
 std::vector<Point> Evaluation::SLP::straight_line_plan(World world, Player player, Point target, AI::Flags::MoveFlags added_flags) {
@@ -29,40 +29,38 @@ std::vector<Point> Evaluation::SLP::straight_line_plan(World world, Player playe
 
 	Point start = player.position();
 	std::vector<Circle> obstacles;
-	player.set_flags(player.flags() | added_flags);
 
 	/* All obstacles include an additional robot max radius to account for the planning robot as well
 	 * This means that the CENTER POINT of the planning robot cannot go within the obstacles radius
 	 */
 
-	// TODO: take into account current velocity and velovity of robot goung around
 	// TODO: point collision function should return distance in a pair
 
 	// Enemy robots
-//	for(auto enemy : world.enemy_team()) {
-//		double enemyAvoidDist = Plan::enemy(world, player) + Robot::MAX_RADIUS + NEW_POINT_BUFFER;
-//		double distFromEnemy = (start - enemy.position()).len();
-//
-//		// 1.2 is an arbitrary constant to make sure we are a bit further away than the avoid dist before projecting
-//		if(enemy.velocity().len() < 0.01 || distFromEnemy < enemyAvoidDist * 1.2) {
-//			obstacles.push_back(Circle(enemy.position(), enemyAvoidDist));
-//		}else {
-//			// This scaling factor helps scale the projection down when we are close to the enemy
-//			double distScaling = (1 - std::pow(2, -distFromEnemy * 1.2 * 30));
-//			// the range of distances in front of the robots position that we pretend it is since it's moving
-//			// this helps us not plan closely in fron of moving robots and prefer to go behind
-//			double startProjectedVel = enemy.velocity().len() * ROBOT_PROJECTION_FACTOR * distScaling / 2; // don't project start as aggresively
-//			double endProjectedVel = enemy.velocity().len() * ROBOT_PROJECTION_FACTOR * distScaling;
-//			// how many objects we need to project the robot. The +2 is constant for the start and end positions which should always be there
-//			int numProjections = static_cast<int>(std::fabs(endProjectedVel - startProjectedVel) / (enemyAvoidDist * 2)) + 2;
-//			// the distance between each projected obstacle
-//			double deltaDist = std::fabs(endProjectedVel - startProjectedVel) / (numProjections - 1);
-//			for(int i = 0; i < numProjections; i++) {
-//				Point enemyProjectedPos = enemy.position() + enemy.velocity().norm(startProjectedVel + i * deltaDist);
-//				obstacles.push_back(Circle(enemyProjectedPos, enemyAvoidDist));
-//			}
-//		}
-//	}
+	for(auto enemy : world.enemy_team()) {
+		double enemyAvoidDist = Plan::enemy(world, player) + Robot::MAX_RADIUS + NEW_POINT_BUFFER;
+		double distFromEnemy = (start - enemy.position()).len();
+
+		// 1.2 is an arbitrary constant to make sure we are a bit further away than the avoid dist before projecting
+		if(enemy.velocity().len() < 0.03 || distFromEnemy < enemyAvoidDist * 1.2) {
+			obstacles.push_back(Circle(enemy.position(), enemyAvoidDist));
+		}else {
+			// This scaling factor helps scale the projection down when we are close to the enemy
+			double distScaling = (1 - std::pow(2, -distFromEnemy * 1.2 * 30));
+			// the range of distances in front of the robots position that we pretend it is since it's moving
+			// this helps us not plan closely in fron of moving robots and prefer to go behind
+			double startProjectedVel = enemy.velocity().len() * ROBOT_PROJECTION_FACTOR * distScaling / 2; // don't project start as aggresively
+			double endProjectedVel = enemy.velocity().len() * ROBOT_PROJECTION_FACTOR * distScaling;
+			// how many objects we need to project the robot. The +2 is constant for the start and end positions which should always be there
+			int numProjections = static_cast<int>(std::fabs(endProjectedVel - startProjectedVel) / (enemyAvoidDist * 2)) + 2;
+			// the distance between each projected obstacle
+			double deltaDist = std::fabs(endProjectedVel - startProjectedVel) / (numProjections - 1);
+			for(int i = 0; i < numProjections; i++) {
+				Point enemyProjectedPos = enemy.position() + enemy.velocity().norm(startProjectedVel + i * deltaDist);
+				obstacles.push_back(Circle(enemyProjectedPos, enemyAvoidDist));
+			}
+		}
+	}
 
 	// Friendly robots
 	for(auto friendly : world.friendly_team()) {
@@ -74,7 +72,7 @@ std::vector<Point> Evaluation::SLP::straight_line_plan(World world, Player playe
 		double distFromFriendly = (start - friendly.position()).len();
 
 		// 1.2 is an arbitrary constant to make sure we are a bit further away than the avoid dist before projecting
-		if(friendly.velocity().len() < 0.01 || distFromFriendly < friendlyAvoidDist * 1.2) {
+		if(friendly.velocity().len() < 0.03 || distFromFriendly < friendlyAvoidDist * 1.2) {
 			obstacles.push_back(Circle(friendly.position(), friendlyAvoidDist));
 		}else {
 			// This scaling factor helps scale the projection down when we are close to the enemy
@@ -108,7 +106,7 @@ std::vector<Point> Evaluation::SLP::straight_line_plan(World world, Player playe
 
 	// friendly defense area
 	double friendlyDefenseAvoidDist = Plan::friendly_defense(world, player);
-	int numFriendlyDefenseObstacles = 4; // MUST BE GREATER THAN 1
+	int numFriendlyDefenseObstacles = 5; // MUST BE GREATER THAN 1
 	double friendlyDeltaDist = world.field().defense_area_stretch() / numFriendlyDefenseObstacles - 1;
 	for(int i = 0; i < numFriendlyDefenseObstacles; i++) {
 		Point p = Point(-world.field().length() / 2, -world.field().defense_area_stretch() / 2 + i * friendlyDeltaDist);
@@ -117,40 +115,48 @@ std::vector<Point> Evaluation::SLP::straight_line_plan(World world, Player playe
 
 	// enemy defense area
 	double enemyDefenseAvoidDist = Plan::friendly_kick(world, player);
-	int numEnemyDefenseObstacles = 4; // MUST BE GREATER THAN 1
+	int numEnemyDefenseObstacles = 5; // MUST BE GREATER THAN 1
 	double enemyDeltaDist = world.field().defense_area_stretch() / numEnemyDefenseObstacles - 1;
 	for(int i = 0; i < numEnemyDefenseObstacles; i++) {
 		Point p = Point(world.field().length() / 2, -world.field().defense_area_stretch() / 2 + i * enemyDeltaDist);
 		obstacles.push_back(Circle(p, enemyDefenseAvoidDist));
 	}
 
+	// goal trespass
+	// need play area bounds
+	// need total area bounds
+	// need own half
+	// need penaly friendy and enemy
+
 	// This will adjust the path if the start or target point are in invalid locations (they violate the flags)
 	// In thie case, the first priority is for the player to leave the violation zone (in the case of start being invalid)
 	// and getting as close as possible without being invalid (if the case of the target being invalid)
 	Point prepend = NULL_POINT;
-	Circle startCollision = SLP::getClosestCollision(start, obstacles);
+	Circle startCollision = SLP::getCollision(start, obstacles);
 	if(startCollision != NULL_CIRCLE) {
-		std::vector<Circle> startCollisionGroup = SLP::getGroupOfObstacles(startCollision, obstacles, NEW_POINT_BUFFER).first;
-		std::vector<Point> possiblePoints;
-		double closestDist = 99999;
-		int numChecks = 60;
-		for(int i = 0; i < numChecks; i++) {
-			for(Circle c : startCollisionGroup) {
-				std::vector<Point> intersectPoints = line_circle_intersect(c.origin, c.radius + NEW_POINT_BUFFER, start, start + Point(1, 0).rotate(Angle::full() / numChecks * i));
-				possiblePoints.insert(possiblePoints.begin(), intersectPoints.begin(), intersectPoints.end());
-			}
-		}
-
-		// find the closest point that's valid that we can move to
-		for(Point p : possiblePoints) {
-			if(Plan::valid_dst(p, world, player) && (prepend == NULL_POINT || (p - start).lensq() < (prepend - start).lensq())) {
-				prepend = p;
-			}
-		}
+		LOG_INFO("PREPENDING");
+		prepend = startCollision.origin + (start - startCollision.origin).norm(startCollision.radius + NEW_POINT_BUFFER);
+//		std::vector<Circle> startCollisionGroup = SLP::getGroupOfObstacles(startCollision, obstacles, NEW_POINT_BUFFER).first;
+//		std::vector<Point> possiblePoints;
+//		double closestDist = 99999;
+//		int numChecks = 60;
+//		for(int i = 0; i < numChecks; i++) {
+//			for(Circle c : startCollisionGroup) {
+//				std::vector<Point> intersectPoints = line_circle_intersect(c.origin, c.radius + NEW_POINT_BUFFER, start, start + Point(1, 0).rotate(Angle::full() / numChecks * i));
+//				possiblePoints.insert(possiblePoints.begin(), intersectPoints.begin(), intersectPoints.end());
+//			}
+//		}
+//
+//		// find the closest point that's valid that we can move to
+//		for(Point p : possiblePoints) {
+//			if(Plan::valid_dst(p, world, player) && (prepend == NULL_POINT || (p - start).lensq() < (prepend - start).lensq())) {
+//				prepend = p;
+//			}
+//		}
 	}
 
 	Point newTarget = NULL_POINT;
-	Circle targetCollision = SLP::getClosestCollision(target, obstacles);
+	Circle targetCollision = SLP::getCollision(target, obstacles);
 	if(targetCollision != NULL_CIRCLE) {
 		std::vector<Circle> targetCollisionGroup = SLP::getGroupOfObstacles(targetCollision, obstacles, NEW_POINT_BUFFER).first;
 		std::vector<Point> possiblePoints;
@@ -181,10 +187,10 @@ std::vector<Point> Evaluation::SLP::straight_line_plan(World world, Player playe
 	// need penaly friendy and enemy
 
 	std::chrono::time_point<std::chrono::system_clock> end_setup = std::chrono::system_clock::now();
-
+	LOGF_INFO("CALLING HELPER WITH %1 OBSTACLES", obstacles.size());
 	std::vector<Point> path;
 	if(prepend == NULL_POINT) {
-		 path = straight_line_plan_helper(world, player, start, target, obstacles, SLP::MODE_BOTH, 30);
+		path = straight_line_plan_helper(world, player, start, target, obstacles, SLP::MODE_BOTH, 30);
 	}else {
 		path = straight_line_plan_helper(world, player, prepend, target, obstacles, SLP::MODE_BOTH, 30);
 		path.insert(path.begin(), prepend);
@@ -204,7 +210,13 @@ std::vector<Point> Evaluation::SLP::straight_line_plan(World world, Player playe
 }
 
 std::vector<Point> Evaluation::SLP::straight_line_plan_helper(World world, Player player, const Point &start, const Point &target, const std::vector<Geom::Circle> &obstacles, SLP::PlanMode mode, int maxDepth) {
-	if(maxDepth < 0 || Plan::valid_dst(target, world, player)) {
+	if(maxDepth < 0) {
+		LOG_INFO("RECURSIVE DEPTH EXCEEDED");
+		return std::vector<Point>();
+	}
+
+	if(!Plan::valid_dst(target, world, player)) {
+		LOGF_INFO("INVALID TARGET %1", target);
 		return std::vector<Point>();
 	}
 
@@ -236,13 +248,9 @@ std::vector<Point> Evaluation::SLP::straight_line_plan_helper(World world, Playe
 
 		std::vector<Point> planFirstPart = SLP::straight_line_plan_helper(world, player, start, leftPerpPoint, obstacles, SLP::MODE_LEFT, maxDepth - 1);
 		std::vector<Point> planSecondPart = SLP::straight_line_plan_helper(world, player, leftPerpPoint, target, obstacles, SLP::MODE_LEFT, maxDepth - 1);
-
-		if(planFirstPart.empty()) {
-			// if the first part is empty, it doesn't matter what the second part is since we can't get there. Return an
-			// empty vector to signal a failed path
+		if(planFirstPart.empty() || planSecondPart.empty()) {
 			return std::vector<Point>();
 		}else {
-			// return as much as we can. this is ok even if the second part is empty
 			planFirstPart.insert(planFirstPart.end(), planSecondPart.begin(), planSecondPart.end());
 			return planFirstPart;
 		}
@@ -266,25 +274,19 @@ std::vector<Point> Evaluation::SLP::straight_line_plan_helper(World world, Playe
 
 		std::vector<Point> planFirstPart = SLP::straight_line_plan_helper(world, player, start, rightPerpPoint, obstacles, SLP::MODE_RIGHT, maxDepth - 1);
 		std::vector<Point> planSecondPart = SLP::straight_line_plan_helper(world, player, rightPerpPoint, target, obstacles, SLP::MODE_RIGHT, maxDepth - 1);
-
-		if(planFirstPart.empty()) {
-			// if the first part is empty, it doesn't matter what the second part is since we can't get there. Return an
-			// empty vector to signal a failed path
+		if(planFirstPart.empty() || planSecondPart.empty()) {
 			return std::vector<Point>();
 		}else {
-			// return as much as we can. this is ok even if the second part is empty
 			planFirstPart.insert(planFirstPart.end(), planSecondPart.begin(), planSecondPart.end());
 			return planFirstPart;
 		}
 	}else if(mode == SLP::MODE_BOTH) {
-		// Here we want to use the buffer used when creating the obstacle group since if we use a buffer smaller than that
-		// we could accidentally find tangent points between the grouped objects where we assumed there were none when originally grouping
-		std::pair<Point, Point> startTangentPoints = SLP::getGroupTangentPoints(start, obstacleGroup, obstacleGroupPair.second);
-		std::pair<Point, Point> targetTangentPoints = SLP::getGroupTangentPoints(target, obstacleGroup, obstacleGroupPair.second);
+		std::pair<Point, Point> startTangentPoints = SLP::getGroupTangentPoints(start, obstacleGroup, obstacleGroupPair.second, NEW_POINT_BUFFER);
+		std::pair<Point, Point> targetTangentPoints = SLP::getGroupTangentPoints(target, obstacleGroup, obstacleGroupPair.second, NEW_POINT_BUFFER);
 		Point leftPointStart = startTangentPoints.first;
 		Point leftPointTarget = targetTangentPoints.second;
 		Point rightPointStart = startTangentPoints.second;
-		Point rightPointTarget = startTangentPoints.first;
+		Point rightPointTarget = targetTangentPoints.first;
 
 		std::vector<Point> leftPath1 = SLP::straight_line_plan_helper(world, player, start, leftPointStart, obstacles, SLP::MODE_CLOSEST_SIDE, maxDepth - 1);
 		std::vector<Point> leftPath2 = SLP::straight_line_plan_helper(world, player, leftPointStart, leftPointTarget, obstacles, SLP::MODE_LEFT, maxDepth - 1);
@@ -294,13 +296,8 @@ std::vector<Point> Evaluation::SLP::straight_line_plan_helper(World world, Playe
 		std::vector<Point> rightPath2 = SLP::straight_line_plan_helper(world, player, rightPointStart, rightPointTarget, obstacles, SLP::MODE_RIGHT, maxDepth - 1);
 		std::vector<Point> rightPath3 = SLP::straight_line_plan_helper(world, player, rightPointTarget, target, obstacles, SLP::MODE_BOTH, maxDepth - 1);
 
-		// we only care about the first 2 segments because if one of them is empty, the third doesn't matter anyway
-		// since we can't get there
-		bool leftPathValid = !(leftPath1.empty() || leftPath2.empty() || leftPath3.empty());
-		bool rightPathValid = !(rightPath1.empty() || rightPath2.empty() || rightPath3.empty());
-
-		if(!leftPathValid) {
-			if(!rightPathValid) {
+		if(leftPath1.empty() || leftPath2.empty() || leftPath3.empty()) {
+			if(rightPath1.empty() || rightPath2.empty() || rightPath3.empty()) {
 				// Neither direction is valid
 				return std::vector<Point>();
 			}else {
@@ -310,7 +307,7 @@ std::vector<Point> Evaluation::SLP::straight_line_plan_helper(World world, Playe
 				return rightPath1;
 			}
 		}else {
-			if(!rightPathValid) {
+			if(rightPath1.empty() || rightPath2.empty() || rightPath3.empty()) {
 				// Only the left path is valid
 				leftPath1.insert(leftPath1.end(), leftPath2.begin(), leftPath2.end());
 				leftPath1.insert(leftPath1.end(), leftPath3.begin(), leftPath3.end());
@@ -323,7 +320,6 @@ std::vector<Point> Evaluation::SLP::straight_line_plan_helper(World world, Playe
 				rightPath1.insert(rightPath1.end(), rightPath2.begin(), rightPath2.end());
 				rightPath1.insert(rightPath1.end(), rightPath3.begin(), rightPath3.end());
 
-				// return the path with the best score
 				if(SLP::getPathScore(start, leftPath1) > SLP::getPathScore(start, rightPath1)) {
 					return leftPath1;
 				}else {
@@ -362,7 +358,7 @@ Circle Evaluation::SLP::getFirstCollision(const Point &start, const Point &end, 
 	return closestObstacle;
 }
 
-Circle Evaluation::SLP::getClosestCollision(const Point &point, const std::vector<Circle> &obstacles, double buffer) {
+Circle Evaluation::SLP::getCollision(const Point &point, const std::vector<Circle> &obstacles, double buffer) {
 	Circle closestObstacle = NULL_CIRCLE;
 
 	for(Circle c : obstacles) {
@@ -375,48 +371,35 @@ Circle Evaluation::SLP::getClosestCollision(const Point &point, const std::vecto
 	return closestObstacle;
 }
 
-std::pair<std::vector<Circle>, double> Evaluation::SLP::getGroupOfObstacles(const Circle &originObstacle, std::vector<Circle> obstacles, double buffer) {
-	// initialize these vectors to the size of obstacles since they both could hold that many items,
-	// and this prevents more memory operations later
-	std::vector<Circle> touchingObstacles(obstacles.size()); // The obstacles that are connected to obstacle
-	std::vector<Circle> nextObstacles(obstacles.size()); // The obstacles that were immediately connected to the obstacle just checked, and will be checked next
-	std::vector<Circle> tempNextObstacles(obstacles.size());
-	nextObstacles.push_back(originObstacle);
-	obstacles.erase(std::remove(obstacles.begin(), obstacles.end(), originObstacle), obstacles.end());
+std::pair<std::vector<Circle>, double> Evaluation::SLP::getGroupOfObstacles(const Circle &obstacle, const std::vector<Circle> &obstacles, double buffer) {
+	std::vector<Circle> touchingObstacles = {obstacle};
+	std::vector<Circle> obstaclesToAdd;
+	# warning this can definitely be optimized. Check for empty list of obstacles, maybe use std::set and loop on obstaclesToAdd instead of whole list again
+	while(true) {
+		obstaclesToAdd.clear();
 
-	while(!obstacles.empty()) {
-		for(Circle ob : nextObstacles) {
-			for(auto it = obstacles.begin(); it != obstacles.end();) {
-				// only add the buffer to the radius of one obstacle so we only account for the buffer once
-				if(Geom::intersects(Circle(ob.origin, ob.radius + buffer), *it)) {
-					tempNextObstacles.push_back(*it);
-					 // remove this obstacle from the list of all obstacles since we don't want to check it again later
-					it = obstacles.erase(it);
-				}else {
-					it++;
+		for(Circle c : touchingObstacles) {
+			for(Circle ob : obstacles) {
+				# warning a wrapper function to check if an object is in a vector would be nice
+				if(Geom::intersects(Circle(c.origin, c.radius + buffer), ob) && std::find(touchingObstacles.begin(), touchingObstacles.end(), ob) == touchingObstacles.end()) {
+					obstaclesToAdd.push_back(ob);
 				}
 			}
 		}
 
-		touchingObstacles.insert(touchingObstacles.end(), nextObstacles.begin(), nextObstacles.end());
-		nextObstacles = tempNextObstacles;
-		tempNextObstacles.clear();
+		if(obstaclesToAdd.empty()) {
+			break;
+		}
+
+		touchingObstacles.insert(touchingObstacles.end(), obstaclesToAdd.begin(), obstaclesToAdd.end());
 	}
 
-	touchingObstacles.insert(touchingObstacles.end(), nextObstacles.begin(), nextObstacles.end());
 	return std::make_pair(touchingObstacles, buffer);
 }
 
 std::pair<Point, Point> Evaluation::SLP::getGroupTangentPoints(const Point &start, const std::vector<Circle> &obstacles, double groupBuffer, double buffer) {
 	if(obstacles.empty()) {
 		return std::make_pair(NULL_POINT, NULL_POINT);
-	}
-
-	// buffer should be slightly buffer than groupBuffer. If the obstacle group was created with a larger buffer than the
-	// given tahgentPoint buffer, then when checking if tangent points are valid none will be valid because they will always
-	// be within the groupBuffer.
-	if(groupBuffer > buffer) {
-		buffer = groupBuffer + 0.001;
 	}
 
 	Point tangent1 = NULL_POINT;
@@ -429,7 +412,9 @@ std::pair<Point, Point> Evaluation::SLP::getGroupTangentPoints(const Point &star
 			return std::make_pair(NULL_POINT, NULL_POINT);
 		}
 
-		std::pair<Point, Point> circleTangentPoints = get_circle_tangent_points(start, c, buffer);
+		# warning can this be tightned up a bit more? groupBuffer needs to be accounted for while checking tangent points for validity, but the final returned points don't need to care about groupBuffer'
+
+		std::pair<Point, Point> circleTangentPoints = get_circle_tangent_points(start, c, groupBuffer + buffer);
 		std::vector<Point> circleTangents = {circleTangentPoints.first, circleTangentPoints.second};
 		for(Point t : circleTangents) {
 			Circle collision = Evaluation::SLP::getFirstCollision(start, start + (t - start).norm(1000), obstacles, groupBuffer);
