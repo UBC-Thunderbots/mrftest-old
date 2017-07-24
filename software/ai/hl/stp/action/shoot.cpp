@@ -56,9 +56,9 @@ void AI::HL::STP::Action::catch_and_shoot_target(caller_t& ca, World world, Play
 		}else{
 			// Get behind the ball without hitting it
 			// TODO: account for slowly moving ball (fast ball handled by catch)
-			Point dest = world.ball().position() + (world.ball().position() - target).norm(0.25);
+			Point dest = world.ball().position() + (world.ball().position() - target).norm(0.21);
 			player.flags(AI::Flags::calc_flags(world.playtype()) | AI::Flags::MoveFlags::AVOID_BALL_MEDIUM);
-			move(ca, world, player, dest, (target - world.ball().position()).orientation(), false);
+			move_rrt(ca, world, player, dest, (target - world.ball().position()).orientation(), false);
 		}
 		
 		if(should_wait) yield(ca);

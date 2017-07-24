@@ -19,16 +19,16 @@ static double calc_mid_vel(Point p0, Point p1, Point p2){
 	Point v2 = p2 - p1;
 	
 	//if the length one or both of the vectors are close to zero assume they are collinear
-	if(v2.len() < SMALL_DIST)
-	{
-		return MAX_SPEED/3.0;
-	}
-	else
-	{
+	//if(v2.len() < SMALL_DIST)
+	//{
+	//	return MAX_SPEED/3.0;
+	//}
+	//else
+	//{
 		double angle = std::acos((v1.norm()).dot(v2.norm())); //should be [0,pi)
 		return std::max(0.0, MAX_SPEED * std::cos(angle * angle / 1.5));
-	}
-	return 0.0;
+	//}
+	//return 0.0;
 }
 
 // if should_wait is false, robot stops after reaching destination
