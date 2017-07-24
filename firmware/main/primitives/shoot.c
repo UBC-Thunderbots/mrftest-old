@@ -157,6 +157,10 @@ static void shoot_tick(log_record_t *log) {
 	accel[2] = (targetVel - vel[2])/TIME_HORIZON;
 	Clamp(&accel[2], MAX_T_A);
 
+    float len_accel = sqrtf((accel[0] * accel[0])+(accel[1] * accel[1]));
+    accel[0] = accel[0]/len_accel; 
+    accel[1] = accel[1]/len_accel;
+
 	if (log) {
 		log->tick.primitive_data[0] = destination[0];//accel[0];
 		log->tick.primitive_data[1] = destination[1];//accel[1];

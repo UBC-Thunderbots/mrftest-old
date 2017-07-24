@@ -284,7 +284,7 @@ void handle_camera_packet(uint8_t * dma_buffer, uint8_t buffer_position){
 	ball_y |= (dma_buffer[buffer_position++] << 8);
 	
  
-	dr_set_ball_frame(ball_x, ball_y);
+	/* dr_set_ball_frame(ball_x, ball_y); */
 		 
 	// The next bytes contain the robot camera information, if any.
 	for (unsigned int i = 0; i < NUM_ROBOTS; i++) {
@@ -319,7 +319,8 @@ void handle_camera_packet(uint8_t * dma_buffer, uint8_t buffer_position){
 		timestamp |= ((uint64_t)dma_buffer[buffer_position++] << 8*i);
 	}
 	rtc_set(timestamp);
-	dr_set_ball_timestamp(timestamp);
+	/* dr_set_ball_timestamp(timestamp); */
+	dr_set_ball_frame_timestamp(ball_x, ball_y, timestamp);
 
 	// If this packet contained robot information, update
 	// the timestamp for the camera data.

@@ -18,6 +18,8 @@ namespace AI {
 				Tactic::Ptr shoot_test(World world);
 
 				Tactic::Ptr catch_test(World world);
+
+				Tactic::Ptr just_catch_test(World world);
 			}
 		}
 	}

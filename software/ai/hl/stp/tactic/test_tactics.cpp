@@ -111,7 +111,29 @@ namespace {
     void CatchTest::execute(caller_t& ca) {
         AI::HL::STP::Action::catch_ball(ca, world, player(), world.field().enemy_goal());
     }
-	
+
+	class JCatchTest final : public Tactic {
+        public:
+            explicit JCatchTest(World world) : Tactic(world) {
+            }
+
+        private:
+            Player select(const std::set<Player> &players) const override;
+            void execute(caller_t& caller) override;
+
+            Glib::ustring description() const override {
+                return u8"catch test";
+            }
+    };
+
+    Player JCatchTest::select(const std::set<Player> &players) const {
+        Player p = *(players.begin());
+        return p;
+    }
+
+    void JCatchTest::execute(caller_t& ca) {
+        AI::HL::STP::Action::just_catch_ball(ca, world, player());
+    }
 }
 
 
@@ -131,4 +153,8 @@ Tactic::Ptr AI::HL::STP::Tactic::shoot_test(World world) {
 Tactic::Ptr AI::HL::STP::Tactic::catch_test(World world) {
     LOGF_INFO(u8"%1", "Catching");
 	return Tactic::Ptr(new CatchTest(world));
+}
+
+Tactic::Ptr AI::HL::STP::Tactic::just_catch_test(World world) {
+	return Tactic::Ptr(new JCatchTest(world));
 }

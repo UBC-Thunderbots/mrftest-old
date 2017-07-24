@@ -121,7 +121,6 @@ firmware/main/physics.c -text
 firmware/main/physics.h -text
 firmware/main/pins.c -text
 firmware/main/pins.h -text
-firmware/main/primitives/catch.c -text
 firmware/main/primitives/catch.h -text
 firmware/main/primitives/direct_velocity.c -text
 firmware/main/primitives/direct_velocity.h -text
@@ -131,6 +130,7 @@ firmware/main/primitives/dribble.c -text
 firmware/main/primitives/dribble.h -text
 firmware/main/primitives/imu_test.c -text
 firmware/main/primitives/imu_test.h -text
+firmware/main/primitives/jcatch.c -text
 firmware/main/primitives/move.c -text
 firmware/main/primitives/move.h -text
 firmware/main/primitives/pivot.c -text
@@ -423,6 +423,7 @@ software/ai/hl/stp/play/shoot.cpp -text
 software/ai/hl/stp/play/simple_play.h -text
 software/ai/hl/stp/play/stop.cpp -text
 software/ai/hl/stp/play/test_catch.cpp -text
+software/ai/hl/stp/play/test_just_catch.cpp -text
 software/ai/hl/stp/play/test_move.cpp -text
 software/ai/hl/stp/play/test_shoot.cpp -text
 software/ai/hl/stp/play/tri_attack_defensive.cpp -text

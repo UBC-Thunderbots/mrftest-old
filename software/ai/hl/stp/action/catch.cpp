@@ -14,6 +14,13 @@
 
 using namespace AI::HL::STP;
 
+void AI::HL::STP::Action::just_catch_ball(caller_t& ca, World world, Player player) {
+    player.move_catch(Angle(), 0, 0); 
+    while (!player.has_ball()){
+        Action::yield(ca); 
+    }
+}
+
 void AI::HL::STP::Action::catch_ball(caller_t& ca, World world, Player player, Point target) {
 	Point target_line; // the line between the ball and target
 	Point catch_pos; // prediction of where the robot should be behind the ball to catch it

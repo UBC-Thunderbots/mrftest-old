@@ -11,6 +11,7 @@
 #include <math.h>
 
 static dr_data_t current_state;
+static dr_ball_data_t current_ball_state;
 
 /**
  * \brief The most recent ball and camera data frames.
@@ -30,6 +31,11 @@ void dr_init(void) {
   current_state.x = 0.0f;
   current_state.y = 0.0f;
   current_state.angle = 0.0f;
+
+  current_ball_state.x = 0.0f;
+  current_ball_state.y = 0.0f;
+  current_ball_state.vx = 0.0f;
+  current_ball_state.vy = 0.0f;
 
   ball_camera_data.x = 0.0;
   ball_camera_data.y = 0.0;
@@ -88,6 +94,10 @@ void dr_tick(log_record_t *log) {
 
   if(current_state.angle > M_PI) current_state.angle -= 2*M_PI;
   else if(current_state.angle < -M_PI) current_state.angle += 2*M_PI;  
+
+  //Update ball positions
+  current_ball_state.x += current_ball_state.vx*TICK_TIME;
+  current_ball_state.y += current_ball_state.vy*TICK_TIME;
 
   if (log) {
     dr_log(log);
@@ -158,6 +168,20 @@ void dr_apply_cam() {
   current_state.x = x;
   current_state.y = y;
   current_state.angle = angle;  
+
+  // TODO: apply ball data, linearly extrapolate
+
+  float ball_pos[2] = {ball_camera_data.x, ball_camera_data.y};
+  float ball_vel[2] = {current_ball_state.vx, current_ball_state.vy};
+
+  for(int i = total_delay; i >= 0; i--){
+    ball_pos[0] += ball_vel[0]*TICK_TIME;
+    ball_pos[1] += ball_vel[1]*TICK_TIME;
+  }
+  current_ball_state.x = ball_pos[0];
+  current_ball_state.y = ball_pos[1];
+  current_ball_state.vx = ball_vel[0];
+  current_ball_state.vy = ball_vel[1];
 }
 
 
@@ -167,6 +191,28 @@ void dr_apply_cam() {
 void dr_set_ball_frame(int16_t x, int16_t y) {
   ball_camera_data.x = (float)(x/1000.0);
   ball_camera_data.y = (float)(y/1000.0);
+}
+
+
+/**
+ * \brief Sets the ball's camera frame and timestamp.
+ */
+void dr_set_ball_frame_timestamp(int16_t x, int16_t y, uint64_t timestamp) {
+  float new_x = (float)(x/1000.0);
+  float new_y = (float)(y/1000.0);
+  uint64_t new_t = timestamp;
+
+  float delta_x = new_x - ball_camera_data.x;
+  float delta_y = new_y - ball_camera_data.y;
+  float delta_t = (float) (new_t - ball_camera_data.timestamp) / 1000.0;
+
+  if (delta_t > 0) {
+    current_ball_state.vx = delta_x / delta_t;
+    current_ball_state.vy = delta_y / delta_t;
+  }
+
+  ball_camera_data.x = new_x;
+  ball_camera_data.y = new_y;
 }
 
 /**

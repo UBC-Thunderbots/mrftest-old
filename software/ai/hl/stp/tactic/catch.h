@@ -8,6 +8,7 @@ namespace AI {
 		namespace STP {
 			namespace Tactic {
 				Tactic::Ptr catch_ball(World world);
+				Tactic::Ptr just_catch_ball(World world);
 			}
 		}
 	}
