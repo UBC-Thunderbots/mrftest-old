@@ -26,14 +26,18 @@ namespace AI {
                 	/**
                 	 * Returns an ordered list of points representing the path from start to target, while avoiding obstacles
                 	 */
-                	std::vector<Point> straight_line_plan_helper(const Point &start, const Point &target, const std::vector<Geom::Circle> &obstacles, PlanMode mode, int maxDepth);
+                	std::vector<Point> straight_line_plan_helper(World world, Player player, const Point &start, const Point &target, const std::vector<Geom::Circle> &obstacles, PlanMode mode, int maxDepth);
 
                 	/**
                 	 * Returns the first point from obstacles that the line from start to end collides with
+                	 * @param buffer the extra buffer radius to apply to the obstacles before evaluating collisions
                 	 */
                 	Geom::Circle getFirstCollision(const Point &start, const Point &end, const std::vector<Geom::Circle> &obstacles, double buffer = 0.0);
 
-                	Geom::Circle getCollision(const Point &point, const std::vector<Geom::Circle> &obstacles);
+                	/**
+                	 * @param buffer the extra buffer radius to apply to the obstacles before evaluating collisions
+                	 */
+                	Geom::Circle getClosestCollision(const Point &point, const std::vector<Geom::Circle> &obstacles, double buffer = 0.0);
 
                 	/**
                 	 * Given an obstacle and a list of all obstalces, return a list of obstacles that are connected to the originObstacle.
