@@ -170,8 +170,8 @@ void ParticleFilter::generateParticles(const std::vector<Point>& corePoints) {
 	if(corePoints.empty()) {
 		// If there are no basepoints, spread random points across the whole field
 		for(unsigned int i = 0; i < particles.size(); i++) {
-			double x = static_cast<double>(linearGenerator()) / (linearGenerator.max() / length_) - length_ / 2;
-			double y = static_cast<double>(linearGenerator()) / (linearGenerator.max() / width_) - width_ / 2;
+			double x = static_cast<double>(linearGenerator()) / ((double)linearGenerator.max() / length_) - length_ / 2;
+			double y = static_cast<double>(linearGenerator()) / ((double)linearGenerator.max() / width_) - width_ / 2;
 			particles[i].position = Point(x, y);
 		}
 	}else {

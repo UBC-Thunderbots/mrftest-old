@@ -395,7 +395,7 @@ void MRFDongle::send_camera_packet(std::vector<std::tuple<uint8_t, Point, Angle>
 
 	std::lock_guard<std::mutex> lock(cam_mtx);
 
-	if (camera_transfers.size() >= 4){
+	if (camera_transfers.size() >= 8){
 		std::cout << "Camera transfer queue is full, ignoring camera packet" << std::endl;	
 		return;
 	}
@@ -436,7 +436,7 @@ bool MRFDongle::submit_drive_transfer() {
 				// robot indices prefixed.
 				length = 0;
 				for (std::size_t i = 0; i != dirty_indices_count; ++i) {
-					std::cout << "encoding drive packet for bot: " << dirty_indices[i] << std::endl;
+					//std::cout << "encoding drive packet for bot: " << dirty_indices[i] << std::endl;
 					drive_packet[length++] = static_cast<uint8_t>(dirty_indices[i]);
 					robots[dirty_indices[i]]->encode_drive_packet(&drive_packet[length]);
 					length += 8;
@@ -475,6 +475,7 @@ void MRFDongle::handle_camera_transfer_done(AsyncOperation<void> &, std::list<st
 	camera_transfers.erase(iter);
 }
 void MRFDongle::send_unreliable(unsigned int robot, unsigned int tries, const void *data, std::size_t len) {
+	std::cout << "sending unreliable packet" << std::endl;
 	assert(robot < 8);
 	assert((1 <= tries) && (tries <= 256));
 	if (logger) {

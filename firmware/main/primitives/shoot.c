@@ -111,24 +111,7 @@ static void shoot_tick(log_record_t *log) {
 	relative_destination[1] = destination[1] - current_states.y;
 
 
-	// Pick whether to go clockwise or counterclockwise (based on smallest angle)
-	/*if(dest_angle >= cur_angle ){                                                                                                       
-		float dest_sub = dest_angle - 2*M_PI;                                                                                        
-		if((dest_sub - cur_angle)*(dest_sub - cur_angle) <= (dest_angle - cur_angle)*(dest_angle - cur_angle)){                             
-			relative_destination[2] = dest_sub - cur_angle;                                                              
-		}else{                                                                                                                 
-			relative_destination[2] = dest_angle - cur_angle;                                                                                 
-		}                                                                                                                      
-	}else{                                                                                                                       
-		float dest_plus = dest_angle + 2*M_PI;                                                                                       
-		if((dest_plus - cur_angle)*(dest_plus - cur_angle) <= (dest_angle - cur_angle)*(dest_angle - cur_angle)){                           
-			relative_destination[2] = dest_plus - cur_angle;                                                              
-		}else{                                                                                                                 
-			relative_destination[2] = dest_angle - cur_angle;                                                                                 
-		}                                                                                                                      
-	} */                                                                                                                      
 	relative_destination[2] = min_angle_delta(current_states.angle, destination[2]);
-	//relative_destination[2] =  destination[2] - current_states.angle;
 
 	BBProfile major_profile;
 	BBProfile minor_profile;
@@ -138,11 +121,19 @@ static void shoot_tick(log_record_t *log) {
 	
 	//TODO: tune further: experimental
 	float major_vel = major_vec[0]*vel[0] + major_vec[1]*vel[1];
-	PrepareBBTrajectoryMaxV(&major_profile, major_disp, major_vel, 0.2, 0.85, 0.85); 
-	PlanBBTrajectory(&major_profile);
-	float major_accel = BBComputeAvgAccel(&major_profile, TIME_HORIZON);
-	float time_major = GetBBTime(&major_profile);
-
+	float major_accel;
+	float time_major;
+	if(major_disp > 0){
+		//haven't reached the ball yet
+		PrepareBBTrajectoryMaxV(&major_profile, major_disp, major_vel, 1.0, 1.5, 1.5); 
+		PlanBBTrajectory(&major_profile);
+		major_accel = BBComputeAvgAccel(&major_profile, TIME_HORIZON);
+		time_major = GetBBTime(&major_profile);
+	}else{
+		//past the ball- just coast
+		major_accel = 0;
+		time_major = 0;
+	}
 	float minor_vel = minor_vec[0]*vel[0] + minor_vec[1]*vel[1];
 	PrepareBBTrajectoryMaxV(&minor_profile, minor_disp, minor_vel, 0, MAX_X_A, MAX_X_V); 
 	PlanBBTrajectory(&minor_profile);
@@ -153,7 +144,7 @@ static void shoot_tick(log_record_t *log) {
 	
 	float accel[3] = {0};
 
-	float targetVel = 2*relative_destination[2]/timeTarget; 
+	float targetVel = 1.6*relative_destination[2]/timeTarget; 
 	accel[2] = (targetVel - vel[2])/TIME_HORIZON;
 	Clamp(&accel[2], MAX_T_A);
 

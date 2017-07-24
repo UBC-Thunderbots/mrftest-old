@@ -201,10 +201,6 @@ void handle_drive_packet(uint8_t * dma_buffer){
 			words[i] &= MASK[i];
 		}
 	}
-	/*else{
-		dr_do_maneuver();//TODO delete this
-		return;
-	}*/
 
 	// Take the drive mutex.
 	xSemaphoreTake(drive_mtx, portMAX_DELAY);
@@ -330,6 +326,9 @@ void handle_camera_packet(uint8_t * dma_buffer, uint8_t buffer_position){
 }
 
 void handle_other_packet(uint8_t * dma_buffer, size_t frame_length){
+	//printf("got a message with purpose: %i", dma_buffer[MESSAGE_PURPOSE_ADDR]);
+	//printf("var index: %i", dma_buffer[MESSAGE_PURPOSE_ADDR + 1]);
+	//printf("value: %i", dma_buffer[MESSAGE_PURPOSE_ADDR + 2]);
 	switch (dma_buffer[MESSAGE_PURPOSE_ADDR]) {
 		case 0x00:
 			if (frame_length == HEADER_LENGTH + 4U + FOOTER_LENGTH) {
@@ -395,6 +394,10 @@ void handle_other_packet(uint8_t * dma_buffer, size_t frame_length){
 			charger_enable(capacitor_flag & 0x02);
 			chicker_discharge(capacitor_flag & 0x01);
 			xSemaphoreGive(drive_mtx);
+			break;
+		case 0x20U: // Update tunable variable
+			update_var(dma_buffer[MESSAGE_PAYLOAD_ADDR], dma_buffer[MESSAGE_PAYLOAD_ADDR + 1]);
+			uint8_t i = get_var(dma_buffer[MESSAGE_PAYLOAD_ADDR]);
 			break;
 	}
 }

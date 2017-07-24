@@ -37,10 +37,18 @@
         <category name="Vision">
           <double name="Ball detection probability threshold">0.002</double>
           <boolean name="Disable Vision Filter">false</boolean>
-          <boolean name="Enable Particle Filter">false</boolean>
+          <boolean name="Enable Particle Filter">true</boolean>
           <category name="Particle">
-            <double name="Particle Filter Decay Rate">0.300</double>
-            <double name="Particle Filter Variance Threshold">0.100</double>
+            <double name="How close a particle must be to the ball to get the extra PREVIOUS_BALL_WEIGHT">0.5</double>
+            <double name="How much the ball's confidence changes at a time">5.0</double>
+            <double name="How much the detected ball can move per tick without losing confidence">0.1</double>
+            <integer name="Particle Filter number of condensations">5</integer>
+            <double name="The confidence threshold for being confident or not of the ball's position">60.0</double>
+            <double name="The decay rate (per meter) of the detection weight">200</double>
+            <double name="The top fraction of particles that are used as basepoints for the next sample">0.100</double>
+            <double name="The weight of the previous ball's position">1</double>
+            <double name="The weight of the previous ball's predicted position">15</double>
+            <double name="The weight of vision detections">100</double>
           </category>
         </category>
       </category>
@@ -67,20 +75,12 @@
               <double name="speed that repel will be kicking at in a corner">3.000</double>
             </category>
             <category name="Shoot">
-              <boolean name="Include teammates in strafe sweep">true</boolean>
-              <boolean name="(Legacy) Use mp_move or MP_intercept">true</boolean>
-              <boolean name="Orient towards enemy goal">true</boolean>
-              <double name="Pivot_shoot angle thresh">20.0</double>
-              <double name="Pivot_shoot radius">0.300</double>
               <boolean name="Use mp_move or MP_intercept">true</boolean>
             </category>
             <category name="shoot">
               <degrees name="Angle threshold that defines passing accuracy, smaller is more accurate (degrees)">5.0</degrees>
               <degrees name="Angle threshold that the passee must be with respect to passer when shot, smaller is more accurate (degrees)">80.0</degrees>
               <double name="Decay constant for the ball velocity">0.100</double>
-            </category>
-            <category name="spin">
-              <radians name="change in orientation every time tick for move spin (radians)">600</radians>
             </category>
             <category name="Strafe">
               <double name="strafing increment">0.100</double>
@@ -168,6 +168,10 @@
               <boolean name="PenaltyFriendly">true</boolean>
               <boolean name="Shoot">false</boolean>
               <boolean name="Stop">true</boolean>
+              <boolean name="TESTCATCH">true</boolean>
+              <boolean name="TESTJUSTCATCH">true</boolean>
+              <boolean name="TESTMOVE">true</boolean>
+              <boolean name="TESTSHOOT">true</boolean>
               <boolean name="TriAttackDef">true</boolean>
             </category>
             <category name="Playbook">
@@ -190,6 +194,10 @@
               <integer name="PenaltyFriendly">1023</integer>
               <integer name="Shoot">1023</integer>
               <integer name="Stop">1023</integer>
+              <integer name="TESTCATCH">1023</integer>
+              <integer name="TESTJUSTCATCH">1023</integer>
+              <integer name="TESTMOVE">1023</integer>
+              <integer name="TESTSHOOT">1023</integer>
               <integer name="TriAttackDef">1023</integer>
             </category>
             <category name="Priority 0=low, 10=hi, 5=default">
@@ -212,6 +220,10 @@
               <integer name="PenaltyFriendly">5</integer>
               <integer name="Shoot">5</integer>
               <integer name="Stop">5</integer>
+              <integer name="TESTCATCH">5</integer>
+              <integer name="TESTJUSTCATCH">5</integer>
+              <integer name="TESTMOVE">5</integer>
+              <integer name="TESTSHOOT">5</integer>
               <integer name="TriAttackDef">5</integer>
             </category>
             <category name="StaticRoleAssignment">
@@ -234,6 +246,10 @@
               <boolean name="PenaltyFriendly">false</boolean>
               <boolean name="Shoot">false</boolean>
               <boolean name="Stop">false</boolean>
+              <boolean name="TESTCATCH">false</boolean>
+              <boolean name="TESTJUSTCATCH">false</boolean>
+              <boolean name="TESTMOVE">false</boolean>
+              <boolean name="TESTSHOOT">false</boolean>
               <boolean name="TriAttackDef">false</boolean>
             </category>
           </category>
@@ -265,7 +281,6 @@
           <category name="Shoot">
             <radians name="Angle threshold that defines shoot accuracy, bigger is more accurate (radians)">0.0</radians>
             <double name="big reduced radius for calculating best shot (robot radius ratio)">0.500</double>
-            <double name="Default Shooting Speed">8.00</double>
             <double name="Maximum speed ball can shoot at">8.00</double>
             <double name="Shoot accuracy (for various purposes)">5.0</double>
             <double name="small reduced radius for calculating best shot (robot radius ratio)">0.400</double>
@@ -281,9 +296,14 @@
               <boolean name="Whether or not Terence Defense should take the place of normal goalie">false</boolean>
             </category>
             <category name="indirect_chip">
-              <double name="chip dist bounce threshold. adjusts how far from the kicker the first bounce should be so the ball will not bounce into the goal">0.7</double>
-              <double name="chip_dist_fraction, adjusts how far between ball and net player will try chip">0.5</double>
+              <double name="chip dist bounce threshold. the max fraction of dist between chipper and target the first bounce should be so ball is rolling when it reaches the target">0.750</double>
+              <double name="chip_dist_fraction.  adjusts how far between ball and target the player will try chip">0.5</double>
               <double name="max power the robot can chip the ball at without problems">2.0</double>
+              <double name="percentage of distance to center of triangle to return as target">0.8</double>
+              <double name="the closest distance to the edge of the field the robot could chip-and-chase to">0.3</double>
+              <double name="the min angle (deg) between chip triangles edges required to be valid">20.0</double>
+              <double name="the min area of the chip target triangle required to be valid">0.5</double>
+              <double name="the min edge len of the chip target tri required to be valid">0.8</double>
             </category>
             <category name="pass">
               <double name=" the buffer (meters) in which passee must be with repect to target region before valid ">0.000</double>
@@ -292,8 +312,6 @@
               <boolean name="Whether the penalty goalie should choose random points">true</boolean>
             </category>
             <category name="prepare_kick">
-              <double name="controls exponential change in chipping power as a function of distance">1.0</double>
-              <double name="controls scaling factor of chip power as function of distance">0.4</double>
               <double name="test controls exponential change in chipping power as a function of distance">1.0</double>
               <double name="test controls scaling factor of chip power as function of distance">0.4</double>
             </category>
@@ -320,24 +338,11 @@
         </category>
       </category>
       <category name="Nav">
-        <double name="Average Player Velocity">1.5</double>
         <radians name="Orientation tolerance in angle">5.00</radians>
-        <category name="Pivot">
-          <degrees name="offset angle (degrees)">80</degrees>
-          <double name="offset distance">0</double>
-          <degrees name="orientation offset (degrees)">30</degrees>
-        </category>
-        <category name="PivotAram">
-          <double name="max acceleration">10</double>
-          <double name="pivot radius">1.00</double>
-        </category>
         <double name="Position tolerance in destination">0.0500</double>
         <category name="RRT">
-          <double name="angle increment (deg)">10.0</double>
           <double name="Distance to destination when we stop looking for a path (m)">0.080</double>
           <double name="Distance to extend the tree on each step (m)">0.100</double>
-          <integer name="Jon Hysteris Hack">2</integer>
-          <double name="linear increment (m)">0.050</double>
           <integer name="Number of iterations to go through before we give best partial path">200</integer>
         </category>
         <category name="Util">
@@ -363,6 +368,19 @@
           <double name="Small ball avoidance dist">0.050</double>
         </category>
         <double name="Velocity tolerance in destination">0.0600</double>
+      </category>
+      <category name="Navigator">
+        <double name="How far from obstacles new points are generated">0.0</double>
+        <double name="The fraction of robot velocity to project in front as an obstacle">0.10</double>
+      </category>
+    </category>
+    <category name="MRF">
+      <category name="Robot">
+        <integer name="Tunable parameter 0">4</integer>
+        <integer name="Tunable parameter 1">4</integer>
+        <integer name="Tunable parameter 2">4</integer>
+        <integer name="Tunable parameter 3">4</integer>
+        <boolean name="Whether or not to broadcast variable tune updates">true</boolean>
       </category>
     </category>
   </params>

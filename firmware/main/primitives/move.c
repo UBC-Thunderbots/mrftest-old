@@ -6,6 +6,7 @@
 #include "../leds.h"
 #include "../physics.h"
 #include "../bangbang.h"
+#include "../tuning.h"
 #include <math.h>
 #include <stdio.h>
 
@@ -126,14 +127,22 @@ static void move_tick(log_record_t *log) {
 	float minor_disp = minor_vec[0]*relative_destination[0] + minor_vec[1]*relative_destination[1];
 	
 	//TODO: tune further: experimental
+	float max_major_a = 3.0;//(get_var(0x00)/4.0);
+	float max_major_v = 3.0;//(get_var(0x01)/4.0);
 	float major_vel = major_vec[0]*vel[0] + major_vec[1]*vel[1];
-	PrepareBBTrajectoryMaxV(&major_profile, major_disp, major_vel, end_speed, 3.5, 3.0); 
+	PrepareBBTrajectoryMaxV(&major_profile, major_disp, major_vel, end_speed, max_major_a, max_major_v); //3.5, 3.0
+	//PrepareBBTrajectoryMaxV(&major_profile, major_disp, major_vel, end_speed, 3.5, 3.0); //3.5, 3.0
 	PlanBBTrajectory(&major_profile);
 	float major_accel = BBComputeAvgAccel(&major_profile, TIME_HORIZON);
 	float time_major = GetBBTime(&major_profile);
 
+
+	float max_minor_a = 1.5;//(get_var(0x02)/4.0);
+	float max_minor_v = 1.5;//(get_var(0x03)/4.0);
+	printf("max_minor_a: %f", max_minor_a);
 	float minor_vel = minor_vec[0]*vel[0] + minor_vec[1]*vel[1];
-	PrepareBBTrajectoryMaxV(&minor_profile, minor_disp, minor_vel, 0, 1.5, 1.5); 
+	//PrepareBBTrajectoryMaxV(&minor_profile, minor_disp, minor_vel, 0, 1.5, 1.5); //1.5, 1.5
+	PrepareBBTrajectoryMaxV(&minor_profile, minor_disp, minor_vel, 0, max_minor_a, max_minor_v); //1.5, 1.5
 	PlanBBTrajectory(&minor_profile);
 	float minor_accel = BBComputeAvgAccel(&minor_profile, TIME_HORIZON);
 	float time_minor = GetBBTime(&minor_profile);

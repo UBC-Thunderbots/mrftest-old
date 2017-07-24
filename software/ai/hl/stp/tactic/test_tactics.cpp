@@ -86,7 +86,8 @@ namespace {
 	}
 
 	void ShootTest::execute(caller_t& ca) {
-		AI::HL::STP::Action::catch_and_shoot_goal(ca, world, player(), false);
+		//AI::HL::STP::Action::catch_and_shoot_goal(ca, world, player(), false);
+		AI::HL::STP::Action::shoot_target(ca, world, player(), Point(0,0),8.0, false, true);
 	}
 
 	class CatchTest final : public Tactic {

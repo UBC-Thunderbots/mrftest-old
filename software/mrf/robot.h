@@ -47,7 +47,8 @@ class MRFRobot final : public Drive::Robot {
 		void direct_dribbler(unsigned int rpm) override;
 		void direct_chicker(double power, bool chip) override;
 		void direct_chicker_auto(double power, bool chip) override;
-
+		
+		void update_tunable_var(uint8_t, uint8_t);
 	private:
 		friend class MRFDongle;
 

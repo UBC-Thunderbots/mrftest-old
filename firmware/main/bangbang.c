@@ -3,10 +3,9 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-/* Decreases current by the minimum of current or limit
- * and returns the amount it decreased by.
- * This is used by GetState for walking the plan;
- */
+//decreases current by the maxmum of current or limit
+//and returns the amount it decreased by
+//this is used by GetState for walking the plan
 float timeLimit(float* current, float limit) {
 	float temp;
 	if (*current < limit)  {
@@ -38,9 +37,9 @@ void stepTime(float* dist, float* vel, float time, float accel) {
  * 
  */
 void PrepareBBTrajectory(BBProfile *b, float d, float vi, float vf, float MaxA) {
-	b->Distance = d;
+	if(vf*d < 0) vf =0; //not allowed- must be in same direction
+	b->Distance = d + vf*vf/(2.0*MaxA);
 	b->Vinitial = vi;
-	b->Vfinal = vf;
 	b->MaxA = MaxA;
 	b->MaxV = INFINITY; //no maxV therefore exceed the speed of light TO INFINITY AND BEYOND>>>>>>>>>>
 }
@@ -60,48 +59,44 @@ void PrepareBBTrajectory(BBProfile *b, float d, float vi, float vf, float MaxA) 
  * 
  */
 void PrepareBBTrajectoryMaxV(BBProfile *b, float d, float vi, float vf, float MaxA, float MaxV) {
-	b->Distance = d;
+	if(vf*d < 0) vf =0; //not allowed- must be in same direction
+	b->Distance = d + vf*vf/(2.0*MaxA);
 	b->Vinitial = vi;
-	b->Vfinal = vf;
 	b->MaxA = MaxA;
 	b->MaxV = MaxV;
 }
 
-/* This function does the actually trajectory planning.
- * Do not call this method directly as it assumes
- * that the accelerations are already fixed.
- * Call PlanBBTrajectory instead.
- */
-bool BBPositivePlan(BBProfile *b) {
+//does the actually trajectory planning
+//do not call this method directly as it assumes
+//that the accelerations are already fixed
+//call PlanBBTrajectory instead.
+void BBPositivePlan(BBProfile *b) {
 	//first we will assume we are not in the coast condition
 	//and hence the time spent in region two is zero
 	b->t2=0.0f;
 
-	/* If one makes the assumpton that a1 and a3 equal and in opposite directions
-	 * (which they should be) then the equation a1*t1 + a3*t3 + vi = vf
-	 * can be simplified into a1*dT = vf - vi, because deltaV and a1 are assumed
-	 * known we can then compute dT or the difference between t1 and t3 (dT = t1-t3).
-   */
-	float deltaT = (b->Vfinal - b->Vinitial) / b->a1;
+	//if one makes the assumpton that a1 and a3 are in different directons
+	//(which they should be) then the equation a1*t1 + a3*t3 + vi = vf
+	//can be simplified into a1*dT = deltaV, because deltaV and a1 are assumed
+	//known we can then compute dT or the difference between t1 and t3 (dT = t1-t3)
+	float deltaT = -b->Vinitial / b->a1;
 
-	/* Next, we tackle and attempt to compute t1 by using 
-	 * a1/2*t1^2 + vi*t1 + a3/2*t3^2 + vm*t3 = d
-	 * sub in that vm + a3*t3 = vf,
-	 * and apply the assumption that a1 = -a3:
-	 * a1/2*(t1^2 + t3^2) + vi*t1 + vf*t3 = d,
-	 * then sub in t3 = t1 - dt, some rearrangment and subbing in the definition 
-   * of dT = (vf - vi) / a1 and we have a1*t1^2 + 2*Vi*t1 + (dT*dT/2*a1 -d) = 0,
-   * which is quadratic.
-   */
+	//next we tackle and attempt to compute t1 by using 
+	//a1/2*t1^2 + vi*t1 + a3/2*t3^2 + Vm*t3 = d
+	//sub in that Vm + a3*t3 = Vf = 0
+	//and apply the assumption that a1 = -a3
+	//a1/2*(t1^2 + t3^2) + vi*t1 = d
+	//then sub in t3 = t1 - dt, some rearrangment and subbng in the definition of dt = -Vi/a1
+	//and we have a1*t1^2 + 2*Vi*t1 + (dT*dT/2*a1 -d) = 0 which is quadratic
 	float A = b->a1;
 	float B = 2.0f * b->Vinitial;
-	float C = deltaT*deltaT/2.0f*b->a1 - b->Vfinal*deltaT - b->Distance;
+	float C = deltaT*deltaT/2.0f*b->a1 - b->Distance;
 
-	/* Discriminant of the quadratic equation, to see if there is a real solution. */
+	//discrimanate of the quadratic equation, if this is negative well idon't know
 	float discrm = B*B - 4.0f*A*C;
 	if (discrm < 0.0f) {
-		printf("Error: Failed discriminant test.`\n");
-		return false; //cannot acheive so give it a fail time;
+		printf("Failed discrim test\n"); //perhaps we can log this with and error code or something
+		return; //cannot acheive so give it a fail time;
 	}
 
 	//two possible solutons to the quadraic equations 
@@ -140,7 +135,6 @@ bool BBPositivePlan(BBProfile *b) {
 			//again perhaps some form of error logging
 			b->t1 = INFINITY;
 			b->t3 = INFINITY;
-			printf("t1a: %f\r\nt1b: %f\r\nt3a: %f\r\nt3b: %f\r\n",t1a,t1b,t3a,t3b);
 		}
 	}
 
@@ -150,7 +144,7 @@ bool BBPositivePlan(BBProfile *b) {
 	//if it is below the maximum we have our solution
 	//so bail
 	if (vm < b->MaxV && vm > -b->MaxV) {
-		return true;
+		return;
 	}
 
 	//if we hit here then we are in the velocity limited case
@@ -168,7 +162,7 @@ bool BBPositivePlan(BBProfile *b) {
 		b->a1 *= -1.0f;
 		b->t1 *= -1.0f;
 	}
-	b->t3 = (b->Vfinal - b->Vmid) / b->a3;
+	b->t3 = -b->Vmid / b->a3;
 	if (b->t3 < 0.0f) {
 		b->a3 *= -1.0f;
 		b->t3 *= -1.0f;
@@ -186,7 +180,7 @@ bool BBPositivePlan(BBProfile *b) {
 	//compute t2 (this shouldn't be negative
 	//but again if it is there is a need for error logging
 	b->t2 = drem / b->Vmid;
-	return true;
+	return;
 }
 
 
@@ -204,21 +198,15 @@ void PlanBBTrajectory(BBProfile *b) {
 	//distance you are trying to travel is negative or if at your current speed you will
 	//overshoot your destination even at maximum decelleration. If both cases are 
 	//true then the flips cancel out.
-
+	
 	//are we going leftwards
 	bool Dflip = b->Distance < 0.0f;
 
 	//are the target distance and current velocity in the same direction
 	bool SameSign = !((b->Vinitial<0.0f)^(b->Distance < 0.0f));
-
-	/* This checks if we would overshoot if Distance and Vi had the same sign.
-	 * Overshoot happens when (vf^2-vi^2)/2a > d. Since we have checked for 
-	 * the same sign condition above, we can take the absolute value of both
-	 * sides of the equation to cover all cases in one calculation.
-	 */
-	bool Overshoot = 
-		((b->Vfinal*b->Vfinal)-(b->Vinitial*b->Vinitial))/(2.0f*b->MaxA)
-		> fabsf(b->Distance);
+	
+	//would we overshoot if D and Vi had teh same sign
+	bool Overshoot = (b->Vinitial*b->Vinitial > 2.0f*b->MaxA*fabsf(b->Distance));
 
 	//will we overshoot
 	bool Oflip =  SameSign && Overshoot;
@@ -228,24 +216,15 @@ void PlanBBTrajectory(BBProfile *b) {
 	if (flip) {
 		b->Distance *= -1.0f;
 		b->Vinitial *= -1.0f;
-		b->Vfinal *= -1.0f;
 	}
 	//we do all this so that we can assume a1 is posive
 	b->a1 = b->MaxA;
 	b->a3 = -b->MaxA;
-	bool validPlan = BBPositivePlan(b);
-
-	// check if we were able to compute a valid plan
-	// if not, try again with a final velociy of zero
-	if(!validPlan){
-		b->Vfinal = 0;
-		BBPositivePlan(b);
-	}
+	BBPositivePlan(b);
 	//undo the flip if it was applied
 	if(flip) {
 		b->Distance *= -1.0f;
 		b->Vinitial *= -1.0f;
-		b->Vfinal *= -1.0f;
 		b->a1 *= -1.0f;
 		b->a3 *= -1.0f;
 		b->Vmid *= -1.0f;

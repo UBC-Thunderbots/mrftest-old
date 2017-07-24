@@ -5,6 +5,7 @@
 #include "util/codec.h"
 #include "util/dprint.h"
 #include "util/string.h"
+#include "util/param.h"
 #include <array>
 #include <cassert>
 #include <cstdlib>
@@ -15,6 +16,17 @@
 #include <glibmm/main.h>
 #include <sigc++/functors/mem_fun.h>
 #include <iostream>
+
+BoolParam send_tune_updates(u8"Whether or not to broadcast variable tune updates", u8"MRF/Robot/", false);
+IntParam tune_param0(u8"Tunable parameter 0", u8"MRF/Robot/", 0, 0, 65535);
+IntParam tune_param1(u8"Tunable parameter 1", u8"MRF/Robot/", 0, 0, 65535);
+IntParam tune_param2(u8"Tunable parameter 2", u8"MRF/Robot/", 0, 0, 65535);
+IntParam tune_param3(u8"Tunable parameter 3", u8"MRF/Robot/", 0, 0, 65535);
+static int last_tp0;
+static int last_tp1;
+static int last_tp2;
+static int last_tp3;
+
 
 namespace {
 	/**
@@ -341,6 +353,17 @@ void MRFRobot::direct_chicker_auto(double power, bool chip) {
 	}
 }
 
+// This is for testing and development purposes only
+// Game-ready primitives should not be attached to any
+// Tuning variables
+void MRFRobot::update_tunable_var(uint8_t var_index, uint8_t value){
+	uint8_t buffer[3];
+	buffer[0] = 0x20; // signifies message type is tuning constant update
+	buffer[1] = var_index;
+	buffer[2] = value;
+	dongle_.send_unreliable(index, 20, buffer, sizeof(buffer));
+}
+
 constexpr unsigned int MRFRobot::SD_MESSAGE_COUNT;
 constexpr unsigned int MRFRobot::LOGGER_MESSAGE_COUNT;
 
@@ -449,7 +472,29 @@ void MRFRobot::encode_drive_packet(void *out) {
 }
 
 void MRFRobot::handle_message(const void *data, std::size_t len, uint8_t lqi, uint8_t rssi) {
-	std::cout << "Got msg from bot: "<<index<< std::endl;
+	//TODO: find better place to put this check. This isn't a good spot
+	//TODO: add in rest of params
+	if(send_tune_updates){
+		if(last_tp0 != tune_param0){
+			last_tp0 = tune_param0;
+			this->update_tunable_var(0, (uint8_t)tune_param0);	
+		}	
+		if(last_tp1 != tune_param1){
+			last_tp1 = tune_param1;
+			this->update_tunable_var(1, (uint8_t)tune_param1);	
+		}	
+		if(last_tp2 != tune_param2){
+			last_tp2 = tune_param2;
+			this->update_tunable_var(2, (uint8_t)tune_param2);	
+		}	
+		if(last_tp3 != tune_param3){
+			last_tp3 = tune_param3;
+			this->update_tunable_var(3, (uint8_t)tune_param3);	
+		}	
+		std::cout << "can send update" << std::endl;
+	
+	}
+	
 	link_quality = lqi / 255.0;
 	{
 		bool found = false;

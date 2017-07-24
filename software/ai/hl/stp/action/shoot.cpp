@@ -23,11 +23,11 @@ void AI::HL::STP::Action::shoot_target(caller_t& ca, World world, Player player,
 	const Angle orient = (target - world.ball().position()).orientation();
 
 	// wait for chicker to be ready
-	while (!player.chicker_ready()) Action::yield(ca);
+//	while (!player.chicker_ready()) Action::yield(ca);
 
 	// ram the ball
 
-    player.move_shoot(world.ball().position() + (target - world.ball().position()).norm(0.05), orient, velocity, chip);
+    player.move_shoot(world.ball().position(), orient, velocity, chip);
 //    player.move_move(world.ball().position() + (target - world.ball().position()).norm(0.05), orient, 0);
     //player.move_shoot(Point(0,0), Angle::zero(), velocity, chip);
     LOGF_INFO(u8"%1", world.ball().position() + (world.ball().position() - player.position()).norm(0.05));
@@ -43,7 +43,7 @@ void AI::HL::STP::Action::catch_and_shoot_target(caller_t& ca, World world, Play
 //		catch_ball(ca, world, player, target);
 //	}
 
-	catch_ball(ca, world, player, target);
+	//catch_ball(ca, world, player, target);
 	LOG_INFO("DONE CATCH. SHOOTING NOW");
 	shoot_target(ca, world, player, target, velocity, chip, should_wait);
 }
