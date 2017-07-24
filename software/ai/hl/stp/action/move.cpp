@@ -11,6 +11,26 @@ using namespace AI::HL::STP;
 
 DoubleParam default_desired_rpm(u8"The default desired rpm for dribbling", u8"AI/Movement/Primitives", 7000, 0, 100000);
 
+const double MAX_SPEED = 3.0;
+const double SMALL_DIST = 0.1;
+
+static double calc_mid_vel(Point p0, Point p1, Point p2){
+	Point v1 = p1 - p0;
+	Point v2 = p2 - p1;
+	
+	//if the length one or both of the vectors are close to zero assume they are collinear
+	if(v2.len() < SMALL_DIST)
+	{
+		return MAX_SPEED/3.0;
+	}
+	else
+	{
+		double angle = std::acos((v1.norm()).dot(v2.norm())); //should be [0,pi)
+		return std::max(0.0, MAX_SPEED * std::cos(angle * angle / 1.5));
+	}
+	return 0.0;
+}
+
 // if should_wait is false, robot stops after reaching destination
 void AI::HL::STP::Action::move(caller_t& ca, World world, Player player, Point dest, bool should_wait) {
     // Default to RRT
@@ -39,6 +59,22 @@ void AI::HL::STP::Action::move_rrt(caller_t& ca, World world, Player player, Poi
 	move_rrt(ca, world, player, dest, Angle(), should_wait);
 }
 
+
+void AI::HL::STP::Action::move_rrt(caller_t& ca, World world, Player player, Point dest,  Angle orientation, bool should_wait) {	
+	std::vector<Point> way_points;
+	std::vector<Point> plan = Evaluation::RRT::rrt_plan(world, player, dest, way_points, true, player.flags());
+	if(!plan.empty()){
+		if(plan.size() >1){
+			double midVel = calc_mid_vel(player.position(), plan[0], plan[1]);		
+			player.move_move(plan[0], orientation, midVel);
+		}else{ 
+			player.move_move(plan[0], orientation, 0.0);
+		}
+	}
+}
+
+
+/*
 void AI::HL::STP::Action::move_rrt(caller_t& ca, World world, Player player, Point dest,  Angle orientation, bool should_wait) {
     //LOG_DEBUG(Glib::ustring::compose("Time for new move robot %3, point %1, angle %2", local_coord.field_point(), local_coord.field_angle(), player.pattern()));
 //    std::vector<Point> way_points;
@@ -57,10 +93,10 @@ void AI::HL::STP::Action::move_rrt(caller_t& ca, World world, Player player, Poi
 	player.display_path(plan);
 	player.move_move(dest, orientation, 0);
 
-	/*It seems like when "spamming" even a little bit, the robot doesn't get within
+	*//*It seems like when "spamming" even a little bit, the robot doesn't get within
 	 * more than 0.035m of the destination
 	 *
-	 */
+	 *//*
 //    std::vector<Point> way_points;
 //    std::vector<Point> newPlan = Evaluation::RRT::rrt_plan(world, player, dest, way_points, true, player.flags());
 //	std::vector<Point> plan = newPlan;
@@ -122,15 +158,13 @@ void AI::HL::STP::Action::move_rrt(caller_t& ca, World world, Player player, Poi
 //	}
 //	LOG_INFO(u8"Done move_rrt");
 }
-
+*/
 void AI::HL::STP::Action::move_slp(caller_t& ca, World world, Player player, Point dest, bool should_wait) {
 	move_slp(ca, world, player, dest, Angle(), should_wait);
 }
 
 void AI::HL::STP::Action::move_slp(caller_t& ca, World world, Player player, Point dest, Angle orientation, bool should_wait) {
 	std::vector<Point> plan;
-	const double MAX_SPEED = 2.0;
-	const double SMALL_DIST = 1.0e-4;
 
 	do {
 		plan = Evaluation::SLP::straight_line_plan(world, player, dest);
@@ -140,19 +174,6 @@ void AI::HL::STP::Action::move_slp(caller_t& ca, World world, Player player, Poi
 		if(plan.size() > 1)
 		{
 			// Calculate end velocity based on next point, using function 2cos(x^2 / 1.5)
-			Point p1 = plan[0] - player.position();
-			Point p2 = plan[1] - plan[0];
-
-			//if the length one or both of the vectors are close to zero assume they are collinear
-			if(p1.len() < SMALL_DIST || p2.len() < SMALL_DIST || std::abs((p1.norm()).cross(p2.norm())) < SMALL_DIST)
-			{
-				final_velocity = MAX_SPEED;
-			}
-			else
-			{
-				double angle = std::acos((p1.norm()).dot(p2.norm())); //should be [0,pi)
-				final_velocity = std::max(0.0, MAX_SPEED * std::cos(angle * angle / 1.5));
-			}
 		}
 
 		LOGF_INFO("FINAL VELOCITY: ", final_velocity);

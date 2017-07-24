@@ -474,7 +474,7 @@ void MRFRobot::encode_drive_packet(void *out) {
 void MRFRobot::handle_message(const void *data, std::size_t len, uint8_t lqi, uint8_t rssi) {
 	//TODO: find better place to put this check. This isn't a good spot
 	//TODO: add in rest of params
-	if(send_tune_updates){
+	/*if(send_tune_updates){
 		if(last_tp0 != tune_param0){
 			last_tp0 = tune_param0;
 			this->update_tunable_var(0, (uint8_t)tune_param0);	
@@ -493,7 +493,7 @@ void MRFRobot::handle_message(const void *data, std::size_t len, uint8_t lqi, ui
 		}	
 		std::cout << "can send update" << std::endl;
 	
-	}
+	}*/
 	
 	link_quality = lqi / 255.0;
 	{
