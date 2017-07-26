@@ -6,7 +6,6 @@
 #include "../leds.h"
 #include "../physics.h"
 #include "../bangbang.h"
-#include "../tuning.h"
 #include <math.h>
 #include <stdio.h>
 
