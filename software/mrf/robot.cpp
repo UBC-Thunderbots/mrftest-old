@@ -158,7 +158,7 @@ namespace {
 			width = static_cast<unsigned>(power * 332.7 + 219.8);
 		} else {
 			power = clamp_symmetric(power, MAX_CHIP_VALUE);
-			width = static_cast<unsigned>(835 * power * power + 469.2 * power + 1118.5);
+			width = static_cast<unsigned>(134 * power * power + 1088 * power + 1120);
 		}
 		return clamp(width, 0U, static_cast<unsigned int>(UINT16_MAX));
 	}
