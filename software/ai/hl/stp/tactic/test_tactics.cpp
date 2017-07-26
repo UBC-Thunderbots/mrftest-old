@@ -2,6 +2,7 @@
 
 #include "ai/hl/stp/tactic/test_tactics.h"
 #include "ai/hl/stp/action/shoot.h"
+#include "ai/hl/stp/action/pivot.h"
 #include "ai/hl/stp/action/catch.h"
 #include "util/dprint.h"
 #include "ai/hl/util.h"
@@ -61,9 +62,44 @@ namespace {
 	}
 
 	void MoveTestOrientation::execute(caller_t& ca) {
-        original_pos = player().position();
-		AI::HL::STP::Action::move_slp(ca, world, player(), dest);
-		AI::HL::STP::Action::move_slp(ca, world, player(), original_pos);
+		while(true) {
+			AI::HL::STP::Action::pivot(ca, world, player(), Point(), Angle::zero(), 1);
+			yield(ca);
+		}
+
+
+
+
+//		// testing if rrt mvoes out of the field
+//		AI::Flags::MoveFlags flags = player().flags();
+//		if ((flags & AI::Flags::MoveFlags::CLIP_PLAY_AREA) != AI::Flags::MoveFlags::NONE) {
+//			LOG_INFO(u8"CLIP PLAY AREA FLAG SET");
+//		}else {
+//			LOG_INFO(u8"FLAAG NOT Set");
+//		}
+//
+////		LOG_INFO(u8"First Point");
+//		Point p = Point(0, 0);
+////		while((player().position() - p).len() > 0.05) {
+////			AI::HL::STP::Action::move_rrt(ca, world, player(), p);
+////			yield(ca);
+////		}
+//		LOG_INFO(u8"Second Point");
+//		p = Point(0, world.field().width() / 2 + 0.15);
+//		while((player().position() - p).len() > 0.05) {
+//			AI::HL::STP::Action::move_rrt(ca, world, player(), p);
+//			yield(ca);
+//		}
+//		LOG_INFO(u8"Third Point");
+//		p = Point(world.field().length()/2, world.field().width() / 2);
+//		while((player().position() - p).len() > 0.05) {
+//			AI::HL::STP::Action::move_rrt(ca, world, player(), p);
+//			yield(ca);
+//		}
+
+//        original_pos = player().position();
+//		AI::HL::STP::Action::move_slp(ca, world, player(), dest);
+//		AI::HL::STP::Action::move_slp(ca, world, player(), original_pos);
 	}
 
 	class ShootTest final : public Tactic {

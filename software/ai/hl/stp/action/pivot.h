@@ -10,7 +10,7 @@ namespace AI {
 				 *
 				 *  \param[in] target Used to determine the direction the player should be facing when player finishes pivoting.
 				 */
-				void pivot(caller_t& ca, World world, Player player, Point target, Angle swing, double radius = 0);
+				void pivot(caller_t& ca, World world, Player player, Point target, Angle finalAngle, double radius = 0);
 
 			
 			

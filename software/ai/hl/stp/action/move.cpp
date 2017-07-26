@@ -63,6 +63,7 @@ void AI::HL::STP::Action::move_rrt(caller_t& ca, World world, Player player, Poi
 void AI::HL::STP::Action::move_rrt(caller_t& ca, World world, Player player, Point dest,  Angle orientation, bool should_wait) {	
 	std::vector<Point> way_points;
 	std::vector<Point> plan = Evaluation::RRT::rrt_plan(world, player, dest, way_points, true, player.flags());
+	player.display_path(plan);
 	if(!plan.empty()){
 		if(plan.size() >1){
 			double midVel = calc_mid_vel(player.position(), plan[0], plan[1]);		

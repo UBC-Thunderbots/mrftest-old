@@ -805,10 +805,18 @@ bool is_clockwise(Vector2 v1, Vector2 v2) {
 }
 
 std::pair<Point, Point> get_circle_tangent_points(const Point &start, const Circle &circle, double buffer) {
-	double radiusAngle = std::acos(circle.radius / (start - circle.origin).len());
-	Point p1 = circle.origin + (start - circle.origin).rotate(Angle::of_radians(radiusAngle)).norm(circle.radius + buffer);
-	Point p2 = circle.origin + (start - circle.origin).rotate(-Angle::of_radians(radiusAngle)).norm(circle.radius + buffer);
-	return std::make_pair(p1, p2);
+    // If the point is already inside the circe arccos won't work so just return the perp points
+    if(contains(circle, start)) {
+        double perpDist = std::sqrt(circle.radius * circle.radius - (circle.origin - start).lensq());
+        Point p1 = start + (circle.origin - start).perp().norm(perpDist + buffer);
+        Point p2 = start - (circle.origin - start).perp().norm(perpDist + buffer);
+        return std::make_pair(p1, p2);
+    }else {
+    	double radiusAngle = std::acos(circle.radius / (start - circle.origin).len());
+    	Point p1 = circle.origin + (start - circle.origin).rotate(Angle::of_radians(radiusAngle)).norm(circle.radius + buffer);
+    	Point p2 = circle.origin + (start - circle.origin).rotate(-Angle::of_radians(radiusAngle)).norm(circle.radius + buffer);
+    	return std::make_pair(p1, p2);
+    }
 }
 
 bool point_is_to_right_of_line(const Geom::Seg &line, const Point &point) {

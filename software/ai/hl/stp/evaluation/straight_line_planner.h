@@ -45,7 +45,7 @@ namespace AI {
                 	/**
                 	 * Returns the Points in obstacles that form tangent lines with the start points.
                 	 */
-                	std::pair<Point, Point> getGroupTangentPoints(const Point &start, const std::vector<Geom::Circle> &obstacles, double groupBuffer, double buffer = 0.0);
+                	std::pair<Point, Point> getGroupTangentPoints(World world, Player player, const Point &start, const std::vector<Geom::Circle> &obstacles, double groupBuffer, double buffer = 0.0);
 
                 	double getPathScore(const Point &start, const std::vector<Point> &path);
                 }

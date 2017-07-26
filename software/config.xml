@@ -71,6 +71,10 @@
               <double name="Distance the goalie should repel the ball in robot radius">4.000</double>
               <double name="Lone Goalie: distance to goal post (m)">0.300</double>
             </category>
+            <category name="pivot">
+              <double name="Amount of rotation for each point (in degrees)">5.0</double>
+              <double name="the default final velocity for points generated while pivoting">0.500</double>
+            </category>
             <category name="repel">
               <double name="speed that repel will be kicking at in a corner">3.000</double>
             </category>
@@ -78,7 +82,7 @@
               <boolean name="Use mp_move or MP_intercept">true</boolean>
             </category>
             <category name="shoot">
-              <degrees name="Angle threshold that defines passing accuracy, smaller is more accurate (degrees)">5.0</degrees>
+              <degrees name="Angle threshold that defines passing accuracy, smaller is more accurate (degrees)">30.0</degrees>
               <degrees name="Angle threshold that the passee must be with respect to passer when shot, smaller is more accurate (degrees)">80.0</degrees>
               <double name="Decay constant for the ball velocity">0.100</double>
             </category>
@@ -171,7 +175,6 @@
               <boolean name="TESTCATCH">true</boolean>
               <boolean name="TESTJUSTCATCH">true</boolean>
               <boolean name="TESTMOVE">true</boolean>
-              <boolean name="TESTSHOOT">true</boolean>
               <boolean name="TriAttackDef">true</boolean>
             </category>
             <category name="Playbook">
@@ -197,7 +200,6 @@
               <integer name="TESTCATCH">1023</integer>
               <integer name="TESTJUSTCATCH">1023</integer>
               <integer name="TESTMOVE">1023</integer>
-              <integer name="TESTSHOOT">1023</integer>
               <integer name="TriAttackDef">1023</integer>
             </category>
             <category name="Priority 0=low, 10=hi, 5=default">
@@ -223,7 +225,6 @@
               <integer name="TESTCATCH">5</integer>
               <integer name="TESTJUSTCATCH">5</integer>
               <integer name="TESTMOVE">5</integer>
-              <integer name="TESTSHOOT">5</integer>
               <integer name="TriAttackDef">5</integer>
             </category>
             <category name="StaticRoleAssignment">
@@ -249,7 +250,6 @@
               <boolean name="TESTCATCH">false</boolean>
               <boolean name="TESTJUSTCATCH">false</boolean>
               <boolean name="TESTMOVE">false</boolean>
-              <boolean name="TESTSHOOT">false</boolean>
               <boolean name="TriAttackDef">false</boolean>
             </category>
           </category>

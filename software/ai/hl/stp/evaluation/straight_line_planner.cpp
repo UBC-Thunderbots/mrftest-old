@@ -281,8 +281,8 @@ std::vector<Point> Evaluation::SLP::straight_line_plan_helper(World world, Playe
 			return planFirstPart;
 		}
 	}else if(mode == SLP::MODE_BOTH) {
-		std::pair<Point, Point> startTangentPoints = SLP::getGroupTangentPoints(start, obstacleGroup, obstacleGroupPair.second, NEW_POINT_BUFFER);
-		std::pair<Point, Point> targetTangentPoints = SLP::getGroupTangentPoints(target, obstacleGroup, obstacleGroupPair.second, NEW_POINT_BUFFER);
+		std::pair<Point, Point> startTangentPoints = SLP::getGroupTangentPoints(world, player, start, obstacleGroup, obstacleGroupPair.second, NEW_POINT_BUFFER);
+		std::pair<Point, Point> targetTangentPoints = SLP::getGroupTangentPoints(world, player, target, obstacleGroup, obstacleGroupPair.second, NEW_POINT_BUFFER);
 		Point leftPointStart = startTangentPoints.first;
 		Point leftPointTarget = targetTangentPoints.second;
 		Point rightPointStart = startTangentPoints.second;
@@ -397,34 +397,40 @@ std::pair<std::vector<Circle>, double> Evaluation::SLP::getGroupOfObstacles(cons
 	return std::make_pair(touchingObstacles, buffer);
 }
 
-std::pair<Point, Point> Evaluation::SLP::getGroupTangentPoints(const Point &start, const std::vector<Circle> &obstacles, double groupBuffer, double buffer) {
+std::pair<Point, Point> Evaluation::SLP::getGroupTangentPoints(World world, Player player, const Point &start, const std::vector<Circle> &obstacles, double groupBuffer, double buffer) {
 	if(obstacles.empty()) {
 		return std::make_pair(NULL_POINT, NULL_POINT);
 	}
+    
+    // Whether or not start is already inside one of the obstacles
+    bool collision = getCollision(start, obstacles, groupBuffer) != NULL_CIRCLE;
 
 	Point tangent1 = NULL_POINT;
 	Point tangent2 = NULL_POINT;
 	Circle obstacle1 = NULL_CIRCLE;
 
 	for(Circle c : obstacles) {
-		if(contains(c, start)) {
-			// if start is inside an obstacle it won't be able to find valid tangent points, so return.
-			return std::make_pair(NULL_POINT, NULL_POINT);
-		}
-
 		# warning can this be tightned up a bit more? groupBuffer needs to be accounted for while checking tangent points for validity, but the final returned points don't need to care about groupBuffer'
 
 		std::pair<Point, Point> circleTangentPoints = get_circle_tangent_points(start, c, groupBuffer + buffer);
 		std::vector<Point> circleTangents = {circleTangentPoints.first, circleTangentPoints.second};
 		for(Point t : circleTangents) {
-			Circle collision = Evaluation::SLP::getFirstCollision(start, start + (t - start).norm(1000), obstacles, groupBuffer);
-			if(tangent1 == NULL_POINT && collision == NULL_CIRCLE) {
+
+            bool valid;
+            if(collision) {
+                valid = Plan::valid_path(start, t, world, player) && getCollision(t, obstacles, buffer) == NULL_CIRCLE;
+            }else {
+			    Circle collision = Evaluation::SLP::getFirstCollision(start, start + (t - start).norm(1000), obstacles, groupBuffer);
+                valid = collision == NULL_CIRCLE;
+            }
+
+			if(tangent1 == NULL_POINT && valid) {
 				tangent1 = t;
 				obstacle1 = c;
 				continue;
 			}
 
-			if(tangent1 != NULL_POINT && collision == NULL_CIRCLE) {
+			if(tangent1 != NULL_POINT && valid) {
 				tangent2 = t;
 				break;
 			}
