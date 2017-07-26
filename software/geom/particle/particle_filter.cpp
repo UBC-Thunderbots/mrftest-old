@@ -176,14 +176,24 @@ void ParticleFilter::generateParticles(const std::vector<Point>& corePoints) {
 		}
 	}else {
 		// If there are basepoints, generate points around them with a gaussian distribution
+		int count;
 		for(unsigned int i = 0; i < particles.size(); i++) {
 			Point basepoint = corePoints[static_cast<unsigned int>(i / (particles.size() / corePoints.size()))];
 			Point newParticle = Point();
+			count = 0;
 			do {
 				double x = distribution(generator) + basepoint.x;
 				double y = distribution(generator) + basepoint.y;
 				newParticle = Point(x, y);
-			}while(!isInField(newParticle, WITHIN_FIELD_THRESHOLD));
+				count++;
+			}while(!isInField(newParticle, WITHIN_FIELD_THRESHOLD) && count < 10);
+
+			if(count >= 10){
+				//failed- just generate a uniformly distributed new particle
+				double x = static_cast<double>(linearGenerator()) / ((double)linearGenerator.max() / length_) - length_ / 2;
+				double y = static_cast<double>(linearGenerator()) / ((double)linearGenerator.max() / width_) - width_ / 2;
+				newParticle = Point(x, y);
+			}
 
 			particles[i].position = newParticle;
 		}
