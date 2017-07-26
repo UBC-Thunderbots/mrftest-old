@@ -395,10 +395,10 @@ void handle_other_packet(uint8_t * dma_buffer, size_t frame_length){
 			chicker_discharge(capacitor_flag & 0x01);
 			xSemaphoreGive(drive_mtx);
 			break;
-		case 0x20U: // Update tunable variable
-			update_var(dma_buffer[MESSAGE_PAYLOAD_ADDR], dma_buffer[MESSAGE_PAYLOAD_ADDR + 1]);
-			uint8_t i = get_var(dma_buffer[MESSAGE_PAYLOAD_ADDR]);
-			break;
+		//case 0x20U: // Update tunable variable
+		//	update_var(dma_buffer[MESSAGE_PAYLOAD_ADDR], dma_buffer[MESSAGE_PAYLOAD_ADDR + 1]);
+		//	uint8_t i = get_var(dma_buffer[MESSAGE_PAYLOAD_ADDR]);
+		//	break;
 	}
 }
 	
