@@ -450,6 +450,7 @@ software/ai/hl/stp/tactic/block.cpp -text
 software/ai/hl/stp/tactic/block.h -text
 software/ai/hl/stp/tactic/block_shot_path.cpp -text
 software/ai/hl/stp/tactic/block_shot_path.h -text
+software/ai/hl/stp/tactic/block_shot_stop.h -text
 software/ai/hl/stp/tactic/catch.cpp -text
 software/ai/hl/stp/tactic/catch.h -text
 software/ai/hl/stp/tactic/cshoot.cpp -text
