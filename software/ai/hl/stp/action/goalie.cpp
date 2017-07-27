@@ -55,14 +55,18 @@ void AI::HL::STP::Action::lone_goalie(caller_t& ca, World world, Player player) 
 }
 
 void AI::HL::STP::Action::goalie_move(caller_t& ca, World world, Player player, Point dest) {
+
 	for (auto i : world.enemy_team()) {
 	// If enemy is in our defense area, go touch them so we get penalty kick
 		if(AI::HL::Util::point_in_friendly_defense(world.field() , i.position())) {
 			player.avoid_distance(AI::Flags::AvoidDistance::SHORT);
-			Action::move(ca, world, player, i.position());
+			player.move_move(i.position());
 			return;
 		}
 	}
+	player.move_move(dest, (world.ball().position() - player.position()).orientation());
+	return;
+
 	//autokick always on, if player has chipper, its autochip
 	if (player.position().orientation().to_radians() < M_PI / 2 &&
 		player.position().orientation().to_radians() < -M_PI /2)
@@ -111,4 +115,3 @@ void AI::HL::STP::Action::goalie_move(caller_t& ca, World world, Player player, 
 void AI::HL::STP::Action::goalie_move_direct(caller_t& ca, World world, Player player, const Point dest) {
 	Action::move(ca, world, player, dest, (world.ball().position() - player.position()).orientation());
 }
-

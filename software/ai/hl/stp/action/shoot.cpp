@@ -38,7 +38,7 @@ void AI::HL::STP::Action::shoot_target(caller_t& ca, World world, Player player,
 	player.move_shoot(world.ball().position(), orient, velocity, chip);
 //	player.move_move(world.ball().position() + (target - world.ball().position()).norm(0.05), orient, 0);
     //player.move_shoot(Point(0,0), Angle::zero(), velocity, chip);
-    LOGF_INFO(u8"%1", world.ball().position() + (world.ball().position() - player.position()).norm(0.05));
+    // LOGF_INFO(u8"%1", world.ball().position() + (world.ball().position() - player.position()).norm(0.05));
     if(should_wait) Action::wait_shoot(ca, player);
 }
 
@@ -48,10 +48,9 @@ void AI::HL::STP::Action::catch_and_shoot_target(caller_t& ca, World world, Play
 		/*if(world.ball().velocity().len() > 1.5){
 			//TODO: make catch_ball not wait
 			catch_ball(ca, world, player, target);
-		}else 
+		}else
 */
 		if(in_shoot_position(player.position(), world.ball().position(), target)){
-			LOG_INFO("DONE CATCH. SHOOTING NOW");
 			shoot_target(ca, world, player, target, velocity, chip, false);
 		}else{
 			// Get behind the ball without hitting it
@@ -60,7 +59,7 @@ void AI::HL::STP::Action::catch_and_shoot_target(caller_t& ca, World world, Play
 			player.flags(AI::Flags::calc_flags(world.playtype()) | AI::Flags::MoveFlags::AVOID_BALL_MEDIUM);
 			move_rrt(ca, world, player, dest, (target - world.ball().position()).orientation(), false);
 		}
-		
+
 		if(should_wait) yield(ca);
 	}while(!done && should_wait);
 }

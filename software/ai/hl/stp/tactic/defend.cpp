@@ -1,4 +1,4 @@
-//#include "ai/hl/stp/tactic/tactic.h"
+#include "ai/hl/stp/tactic/tactic.h"
 #include "ai/hl/stp/evaluation/defense.h"
 #include "ai/hl/stp/evaluation/ball.h"
 #include "ai/hl/stp/evaluation/ball_threat.h"
@@ -134,15 +134,18 @@ namespace {
 
 
 	void Goalie::execute(caller_t& ca) {
-		auto waypoints = Evaluation::evaluate_defense();
-		Vector2 dest = waypoints[0];
-		if (tdefend_goalie) {
-			AI::HL::STP::Action::lone_goalie(ca, world, player());
-			return;
-		} else if (dangerous(world, player())){
-			AI::HL::STP::Action::lone_goalie(ca, world, player());
+		while(true) {
+			auto waypoints = Evaluation::evaluate_defense();
+			Vector2 dest = waypoints[0];
+			if (tdefend_goalie) {
+				AI::HL::STP::Action::lone_goalie(ca, world, player());
+				return;
+			} else if (dangerous(world, player())){
+				AI::HL::STP::Action::lone_goalie(ca, world, player());
+			}
+			Action::goalie_move(ca, world, player(), dest);
+			yield(ca);
 		}
-		Action::goalie_move(ca, world, player(), dest);
 	}
 
 	Player Defender::select(const std::set<Player> &players) const {
@@ -196,4 +199,7 @@ Tactic::Ptr AI::HL::STP::Tactic::defend_duo_extra2(AI::HL::W::World world, bool 
 	return p;
 }
 
-
+Tactic::Ptr AI::HL::STP::Tactic::defend_duo_extra3(AI::HL::W::World world, bool active_baller) {
+	Tactic::Ptr p(new Defender(world, 4, active_baller));
+	return p;
+}

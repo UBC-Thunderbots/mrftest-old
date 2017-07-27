@@ -37,7 +37,6 @@ namespace AI {
 
                 inline void wait_shoot(caller_t& ca, Player player) {
 					while(!player.autokick_fired()) {
-                        LOG_INFO(u8"not kicked");
 						Action::yield(ca);
 					}
                     LOG_INFO(u8"kicked");
