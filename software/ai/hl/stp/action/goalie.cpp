@@ -67,18 +67,6 @@ void AI::HL::STP::Action::goalie_move(caller_t& ca, World world, Player player, 
 	player.move_move(dest, (world.ball().position() - player.position()).orientation());
 	return;
 
-	//autokick always on, if player has chipper, its autochip
-	if (player.position().orientation().to_radians() < M_PI / 2 &&
-		player.position().orientation().to_radians() < -M_PI /2)
-	{
-		if (player.has_chipper()) {
-			// just chips in the direction the robot is facing
-			Action::shoot_target(ca, world, player, Point::of_angle(player.orientation()).norm(10), BALL_MAX_SPEED, true);
-		} else {
-			// just shoots in the direction the robot is facing
-			Action::shoot_target(ca, world, player, Point::of_angle(player.orientation()).norm(10), BALL_MAX_SPEED, false);
-		}
-	}
 	// if ball is inside the defense area or just too close, repel!!!!
 	if ((AI::HL::Util::point_in_friendly_defense(world.field(), world.ball().position()) ||
 		(world.ball().position() - player.position()).len() < goalie_repel_dist * Robot::MAX_RADIUS) &&
