@@ -30,10 +30,10 @@ namespace {
 	};
 
 	const RadioConfig DEFAULT_CONFIGS[4] = {
-		{ 23U, 250, 0x1846U },
-		{ 23U, 250, 0x1847U },
-		{ 23U, 250, 0x1848U },
-		{ 23U, 250, 0x1849U },
+		{ 24U, 250, 0x1846U },
+		{ 24U, 250, 0x1847U },
+		{ 24U, 250, 0x1848U },
+		{ 24U, 250, 0x1849U },
 	};
 
 	const unsigned int ANNUNCIATOR_BEEP_LENGTH = 750;
@@ -406,10 +406,10 @@ void MRFDongle::send_camera_packet(std::vector<std::tuple<uint8_t, Point, Angle>
 	std::chrono::microseconds micros = std::chrono::duration_cast<std::chrono::microseconds>(diff);
 	uint64_t stamp = static_cast<uint64_t>(micros.count());
 	std::unique_ptr<USB::BulkOutTransfer> elt(new USB::BulkOutTransfer(device, 2, camera_packet, 55, 55, 0));
-
 	auto i = camera_transfers.insert(camera_transfers.end(), std::pair<std::unique_ptr<USB::BulkOutTransfer>, uint64_t>(std::move(elt), stamp));
 	(*i).first->signal_done.connect(sigc::bind(sigc::mem_fun(this, &MRFDongle::handle_camera_transfer_done), i));
 	(*i).first->submit();
+
 	//std::cout << "Submitted camera transfer in position:"<< camera_transfers.size() << std::endl;
 }
 bool MRFDongle::submit_drive_transfer() {
