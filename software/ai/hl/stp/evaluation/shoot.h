@@ -21,6 +21,7 @@ namespace AI {
 					Point target;
 				};
 
+				bool in_shoot_position(World world, Player player, Point target);
 				ShootData evaluate_shoot(World world, Player player, bool use_reduced_radius = true);
 
 				Point get_best_shot(World world, Robot robot);

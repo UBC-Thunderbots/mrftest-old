@@ -1,6 +1,7 @@
 #include "ai/hl/stp/evaluation/shoot.h"
 #include "ai/hl/stp/param.h"
 #include "ai/hl/util.h"
+#include "ai/hl/stp/evaluation/plan_util.h"
 #include "geom/util.h"
 #include "geom/angle.h"
 using namespace AI::HL::STP;
@@ -158,3 +159,11 @@ Evaluation::ShootData Evaluation::evaluate_shoot(World world, Player player, boo
 	return data;
 }
 
+bool Evaluation::in_shoot_position(World world, Player player, Point target){
+	Point pos = player.position();
+	Point ball = world.ball().position();
+	if((pos - ball).len() > 1.0) return false;
+	else if(((ball - pos).orientation() - (target - ball).orientation()).abs() > Angle::of_degrees(25.0)) return false;
+	else if(!Plan::valid_path(pos, ball, world, player)) return false;
+	return true;
+}

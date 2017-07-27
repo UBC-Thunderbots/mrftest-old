@@ -29,7 +29,8 @@ namespace {
 	using Triangle = Poly<3>;
 
 	DoubleParam CHIP_TARGET_FRACTION(u8"chip_dist_fraction.  adjusts how far between ball and target the player will try chip", u8"AI/HL/STP/Tactic/indirect_chip", 5.0/10.0, 0.0, 100.0);
-	DoubleParam CHIP_POWER_BOUNCE_THRESHOLD(u8"chip dist bounce threshold. the max fraction of dist between chipper and target the first bounce should be so ball is rolling when it reaches the target", u8"AI/HL/STP/Tactic/indirect_chip", 7.5/10.0, 0.0, 5.0);
+	//DoubleParam CHIP_POWER_BOUNCE_THRESHOLD(u8"chip dist bounce threshold. the max fraction of dist between chipper and target the first bounce should be so ball is rolling when it reaches the target", u8"AI/HL/STP/Tactic/indirect_chip", 7.5/10.0, 0.0, 5.0);
+	DoubleParam CHIP_POWER_BOUNCE_THRESHOLD(u8"chip dist bounce threshold", u8"AI/HL/STP/Tactic/indirect_chip", 7.5/10.0, 0.0, 5.0);
 	DoubleParam MAX_CHIP_POWER(u8"max power the robot can chip the ball at without problems", u8"AI/HL/STP/Tactic/indirect_chip", 8.0, 0.0, 100.0);
 	DoubleParam CHIP_TARGET_AREA_INSET(u8"the closest distance to the edge of the field the robot could chip-and-chase to", u8"AI/HL/STP/Tactic/indirect_chip", 0.3, 0.0, 100.0);
 	DoubleParam MIN_CHIP_TRI_AREA(u8"the min area of the chip target triangle required to be valid", u8"AI/HL/STP/Tactic/indirect_chip", 0.5, 0.0, 100.0);
