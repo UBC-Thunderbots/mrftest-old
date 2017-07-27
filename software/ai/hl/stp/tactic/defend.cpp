@@ -130,7 +130,7 @@ namespace {
 
 				Point block_pos = calc_block_cone(goal_side , goal_opp , player().position() , Robot::MAX_RADIUS);
 
-				Vector2 dirToGoal = (world.field().friendly_goal() - world.ball().position()).norm();
+				Vector2 dirToGoal = (world.field().friendly_goal() - block_pos).norm();
 				Vector2 dest = block_pos - (1.3 * Robot::MAX_RADIUS * dirToGoal);
 				Action::goalie_move(ca, world, player(), dest);
 			} else {

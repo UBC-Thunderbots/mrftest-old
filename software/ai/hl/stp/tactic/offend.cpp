@@ -42,8 +42,11 @@ namespace {
 	}
 
 	void Primary::execute(caller_t& ca) {
-		auto dest = AI::HL::STP::Evaluation::offense_positions();
-		Action::move(ca, world, player(), dest[0]);
+		while (true) {
+			auto dest = AI::HL::STP::Evaluation::offense_positions();
+			Action::move(ca, world, player(), dest[0]);
+			yield(ca);
+		}
 	}
 
 	Player Secondary::select(const std::set<Player> &players) const {
@@ -52,8 +55,11 @@ namespace {
 	}
 
 	void Secondary::execute(caller_t& ca) {
-		auto dest = AI::HL::STP::Evaluation::offense_positions();
-		Action::move(ca, world, player(), dest[1]);
+		while (true) {
+			auto dest = AI::HL::STP::Evaluation::offense_positions();
+			Action::move(ca, world, player(), dest[1]);
+			yield(ca);
+		}
 	}
 }
 
@@ -66,4 +72,3 @@ Tactic::Ptr AI::HL::STP::Tactic::offend_secondary(World world) {
 	Tactic::Ptr p(new Secondary(world));
 	return p;
 }
-

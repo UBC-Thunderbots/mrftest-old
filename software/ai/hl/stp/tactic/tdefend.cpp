@@ -112,7 +112,7 @@ void TDefendLine::execute(caller_t& ca) {
 
 	Point target, velocity;
 	Angle angle;
-
+	// defend_duo_defender
 	Point v[2] = { p1.position(), p2.position() };
 	velocity = Point(0, 0);
 
