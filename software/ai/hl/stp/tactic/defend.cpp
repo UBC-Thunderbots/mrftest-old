@@ -115,7 +115,7 @@ namespace {
 
 			if (tdefend_goalie) {
 				Vector2 dirToGoal = (world.field().friendly_goal() - world.ball().position()).norm();
-				Vector2 dest = world.field().friendly_goal() - (2 * Robot::MAX_RADIUS * dirToGoal);
+				Vector2 dest = world.field().friendly_goal() - (1.3 * Robot::MAX_RADIUS * dirToGoal);
 				Action::goalie_move(ca, world, player(), dest);
 			} else if (dangerous(world, player())){
 				AI::HL::STP::Action::lone_goalie(ca, world, player());
@@ -126,8 +126,13 @@ namespace {
 				const Field &field = world.field();
 				const Point goal_side = Point(-field.length() / 2, field.goal_width() / 2);
 				const Point goal_opp = Point(-field.length() / 2, -field.goal_width() / 2);
+
+
 				Point block_pos = calc_block_cone(goal_side , goal_opp , player().position() , Robot::MAX_RADIUS);
-				Action::goalie_move(ca, world, player(), block_pos);
+
+				Vector2 dirToGoal = (world.field().friendly_goal() - world.ball().position()).norm();
+				Vector2 dest = block_pos - (1.3 * Robot::MAX_RADIUS * dirToGoal);
+				Action::goalie_move(ca, world, player(), dest);
 			} else {
 				// solo
 				AI::HL::STP::Action::lone_goalie(ca, world, player());
