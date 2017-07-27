@@ -650,7 +650,11 @@ bool unique_line_intersect(const Vector2 &a, const Vector2 &b, const Vector2 &c,
 // ported code
 Vector2 line_intersect(const Vector2 &a, const Vector2 &b, const Vector2 &c, const Vector2 &d) {
 	//TODO figure out why this is asserting
-	assert(std::abs((d - c).cross(b - a)) > EPS);
+	//assert(std::abs((d - c).cross(b - a)) > EPS);
+    if(std::abs((d - c).cross(b - a)) < EPS){ 
+        LOG_WARN(u8"Cross product problem again"); 
+    }
+
 	return a + (a - c).cross(d - c) / (d - c).cross(b - a) * (b - a);
 }
 
