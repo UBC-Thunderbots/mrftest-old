@@ -2,7 +2,7 @@
 #include "ai/hl/stp/action/move.h"
 #include "ai/hl/stp/action/action.h"
 #include "ai/hl/stp/evaluation/rrt_planner.h"
-#include "ai/hl/stp/evaluation/straight_line_planner.h"
+//#include "ai/hl/stp/evaluation/straight_line_planner.h"
 #include "ai/hl/stp/evaluation/plan_util.h"
 #include "util/dprint.h"
 
@@ -61,6 +61,8 @@ void AI::HL::STP::Action::move_rrt(caller_t& ca, World world, Player player, Poi
 
 
 void AI::HL::STP::Action::move_rrt(caller_t& ca, World world, Player player, Point dest,  Angle orientation, bool should_wait) {	
+	//Warning: ignores should_wait
+	
 	std::vector<Point> way_points;
 	std::vector<Point> plan = Evaluation::RRT::rrt_plan(world, player, dest, way_points, true, player.flags());
 	player.display_path(plan);
@@ -165,7 +167,9 @@ void AI::HL::STP::Action::move_slp(caller_t& ca, World world, Player player, Poi
 }
 
 void AI::HL::STP::Action::move_slp(caller_t& ca, World world, Player player, Point dest, Angle orientation, bool should_wait) {
-	std::vector<Point> plan;
+	move_rrt(ca, world, player, dest, orientation, should_wait);
+	
+	/*std::vector<Point> plan;
 
 	do {
 		plan = Evaluation::SLP::straight_line_plan(world, player, dest);
@@ -184,7 +188,7 @@ void AI::HL::STP::Action::move_slp(caller_t& ca, World world, Player player, Poi
 		yield(ca);
 	}while((player.position() - dest).len() > 0.05 && should_wait);
 	LOG_INFO("DONE MOVE SLP");
-}
+*/}
 
 
 void AI::HL::STP::Action::move_dribble(caller_t& ca, World world, Player player, Angle orientation, Point dest, bool should_wait) {

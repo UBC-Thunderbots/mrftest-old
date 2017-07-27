@@ -14,7 +14,7 @@ namespace AI {
 				 *
 				 * Shoots the ball at the largest open angle of the enemy goal.
 				 */
-				void shoot_goal(caller_t& ca, World world, Player player, bool chip = false, bool should_wait = true);
+				void shoot_goal(caller_t& ca, World world, Player player, bool chip = false, bool should_wait = false);
 
 				/**
 				 * Shoot Target
@@ -23,7 +23,7 @@ namespace AI {
 				 *
 				 * Shoots the ball to a target point with a double param kicking speed for passing
 				 */
-				void shoot_target(caller_t& ca, World world, Player player, const Point target, double velocity = BALL_MAX_SPEED, bool chip = false, bool should_wait = true);
+				void shoot_target(caller_t& ca, World world, Player player, const Point target, double velocity = BALL_MAX_SPEED, bool chip = false, bool should_wait = false);
 
 				/**
 				 * Shoot Target
@@ -32,8 +32,8 @@ namespace AI {
 				 *
 				 * Shoots the ball to a target point with a double param kicking speed for passing
 				 */
-				void catch_and_shoot_target(caller_t& ca, World world, Player player, const Point target, double velocity = BALL_MAX_SPEED, bool chip = false, bool should_wait = true);
-				void catch_and_shoot_goal(caller_t& ca, World world, Player player, bool chip = false, bool should_wait = true);
+				void catch_and_shoot_target(caller_t& ca, World world, Player player, const Point target, double velocity = BALL_MAX_SPEED, bool chip = false, bool should_wait = false);
+				void catch_and_shoot_goal(caller_t& ca, World world, Player player, bool chip = false, bool should_wait = false);
 
                 inline void wait_shoot(caller_t& ca, Player player) {
 					while(!player.autokick_fired()) {
