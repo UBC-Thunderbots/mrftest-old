@@ -15,7 +15,7 @@ namespace {
 	//constexpr double RotationFudgeFactor = 1.5;
 	DoubleParam RotationFudgeFactor( u8"Multiplyer that changes the rotational speed during move_spin", u8"AI/HL/STP/Action/move_spinl", 1.5, 0.5, 4.0 );
 	}
-}
+
 void AI::HL::STP::Action::move_spin(caller_t& ca, Player player, Point dest, Angle speed) {
 	// spin in different directions depending on which quadrant of the field the robot is at
 	int direction_to_spin;
