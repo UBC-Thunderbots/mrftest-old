@@ -401,6 +401,8 @@ software/ai/hl/stp/gradient_approach/ratepass.h -text
 software/ai/hl/stp/param.cpp -text
 software/ai/hl/stp/param.h -text
 software/ai/hl/stp/play/ball_placement.cpp -text
+software/ai/hl/stp/play/basic_defense.cpp -text
+software/ai/hl/stp/play/basic_offense.cpp -text
 software/ai/hl/stp/play/block_pass_shots.cpp -text
 software/ai/hl/stp/play/corner_kick_enemy.cpp -text
 software/ai/hl/stp/play/frantic_defense.cpp -text
