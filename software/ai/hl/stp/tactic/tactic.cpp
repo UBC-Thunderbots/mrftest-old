@@ -4,6 +4,8 @@
 #include "util/dprint.h"
 #include <stdexcept>
 
+#include <iostream>
+
 using AI::HL::STP::BALL_MAX_SPEED;
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
@@ -26,7 +28,8 @@ void Tactic::player(Player p) {
 }
 
 void Tactic::tick() {
-	if (!done()) {
+	// Why do I have to check coroutine_ here as well?
+	if (!this->done() && coroutine_) {
 		coroutine_();
 	}
 }
