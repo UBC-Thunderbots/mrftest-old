@@ -1,7 +1,9 @@
 #include "tdefend.h"
 
 #include "ai/hl/stp/evaluation/defense.h"
+#include "ai/hl/stp/evaluation/player.h"
 #include "ai/hl/stp/evaluation/ball_threat.h"
+#include "ai/hl/stp/evaluation/shoot.h"
 #include "ai/hl/stp/action/ram.h"
 #include "ai/hl/util.h"
 #include "geom/util.h"
@@ -10,6 +12,7 @@
 #include "../action/defend.h"
 #include "../action/goalie.h"
 #include "../action/repel.h"
+#include "../action/move.h"
 #include "defend.h"
 
 using namespace AI::HL::STP::Tactic;
@@ -66,22 +69,23 @@ namespace {
 	}
 
 	Player TDefender::select(const std::set<Player> &players) const {
-		Point target = Evaluation::evaluate_tdefense(world, index);
-		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(target));
+		return select_baller(world, players, player());
 	}
 
 	void TDefender::execute(caller_t& ca) {
-		Point target = Evaluation::evaluate_tdefense(world, index);
-		if (Evaluation::ball_on_net(world)) { // ball is coming towards net
-			auto waypoints = Evaluation::evaluate_defense();
-			target = waypoints[index];
+		while(true) {
+			// if (Evaluation::ball_on_net(world)) { // ball is coming towards net
+			// 	auto waypoints = Evaluation::evaluate_defense();
+			// 	target = waypoints[index];
+			// }
+			Action::move(ca, world, player(), world.ball().position());
+			yield(ca);
 		}
-		Action::defender_move(ca, world, player(), target, active_baller);
 	}
-	
+
 	class TDefendLine final : public Tactic {
 		public:
-			explicit TDefendLine(World world, Coordinate p1_, Coordinate p2_, double dist_min_, double dist_max_) : 
+			explicit TDefendLine(World world, Coordinate p1_, Coordinate p2_, double dist_min_, double dist_max_) :
 				Tactic(world), p1(p1_), p2(p2_), dist_min(dist_min_), dist_max(dist_max_) {
 			}
 
@@ -109,7 +113,7 @@ void TDefendLine::execute(caller_t& ca) {
 	Point target, velocity;
 	Angle angle;
 
-	Point v[2] = { p1.position(), p2.position() }; 
+	Point v[2] = { p1.position(), p2.position() };
 	velocity = Point(0, 0);
 
 	//Point mypos = player.position();
@@ -144,4 +148,3 @@ Tactic::Ptr AI::HL::STP::Tactic::tdefend_line(World world, Coordinate p1_, Coord
 	Tactic::Ptr p(new TDefendLine(world, p1_, p2_, dist_min_, dist_max_));
 	return p;
 }
-
