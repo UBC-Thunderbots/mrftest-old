@@ -7,6 +7,7 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Tactic {
+				Tactic::Ptr pass_blocker(World world, int check_index);
 				/**
 				 * Defend Duo Goalie
 				 * Non Active Tactic
@@ -59,4 +60,3 @@ namespace AI {
 }
 
 #endif
-

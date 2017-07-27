@@ -12,6 +12,8 @@
 
 #include "../action/goalie.h"
 #include "../action/repel.h"
+#include "../action/move.h"
+
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
@@ -24,6 +26,50 @@ namespace {
 	BoolParam tdefend_defender1(u8"Whether or not Terence Defense should take the place of normal defender 1", u8"AI/HL/STP/Tactic/defend", false);
 	BoolParam tdefend_defender2(u8"Whether or not Terence Defense should take the place of normal defender 2", u8"AI/HL/STP/Tactic/defend", false);
 	BoolParam tdefend_defender3(u8"Whether or not Terence Defense should take the place of normal defender 3", u8"AI/HL/STP/Tactic/defend", false);
+
+	class PassBlocker final : public Tactic {
+		public:
+		explicit PassBlocker(World world, int check_index) : Tactic(world), check_index(check_index) {
+		}
+		private:
+			int check_index;
+			void execute(caller_t& ca);
+			Player select(const std::set<Player> &) const override;
+			Glib::ustring description() const override {
+				return u8"pass blocker";
+			}
+	};
+
+	Player PassBlocker::select(const std::set<Player> &players) const {
+		return *std::min_element(players.begin(), players.end(),  AI::HL::Util::CmpDist<Player>(world.ball().position()));
+	}
+
+	void PassBlocker::execute(caller_t& ca) {
+		while(true) {
+			Robot enemy_baller = Evaluation::calc_enemy_baller(world);
+			EnemyTeam enemies = world.enemy_team();
+			std::vector<Point> block_pass_pathes;
+			Point best_path;
+
+			for(Robot robot : enemies) {
+				if(robot.position() != enemy_baller.position() && robot.position().x < 0) {
+					block_pass_pathes.push_back(robot.position());
+				}
+			}
+
+			best_path = block_pass_pathes.at(0);
+
+			for(Point path : block_pass_pathes) {
+				if(best_path.norm() > path.norm()) {
+					best_path = path;
+				}
+			}
+
+			Point dest = enemy_baller.position() + (enemy_baller.position() - best_path) / 2;
+			Action::move(ca, world, player(), dest);
+			yield(ca);
+		}
+	}
 
 	/**
 	 * Goalie in a team of N robots.
@@ -104,6 +150,8 @@ namespace {
 
 	void Goalie2::execute(caller_t& ca) {
 		while(true) {
+			const Field &field = world.field();
+
 			for (auto i : world.enemy_team()) {
 			// If enemy is in our defense area, go touch them so we get penalty kick
 				if(AI::HL::Util::point_in_friendly_defense(world.field() , i.position())) {
@@ -115,23 +163,27 @@ namespace {
 
 			if (tdefend_goalie) {
 				Vector2 dirToGoal = (world.field().friendly_goal() - world.ball().position()).norm();
-				Vector2 dest = world.field().friendly_goal() - (1.3 * Robot::MAX_RADIUS * dirToGoal);
+				Vector2 dest = world.field().friendly_goal() - (0.6 * Robot::MAX_RADIUS * dirToGoal);
+				if(dest.x < -field.length() / 2) {
+					dest.x = -field.length()/2 + 0.1;
+				}
 				Action::goalie_move(ca, world, player(), dest);
-			} else if (dangerous(world, player())){
+			} else if (dangerous(world, player())) {
 				AI::HL::STP::Action::lone_goalie(ca, world, player());
 			} else if (world.friendly_team().size() > defender_role + 1) {
 				// has defender
 				// auto waypoints = Evaluation::evaluate_defense();
 				// Action::goalie_move(world, player, waypoints[0]);
-				const Field &field = world.field();
-				const Point goal_side = Point(-field.length() / 2, field.goal_width() / 2);
-				const Point goal_opp = Point(-field.length() / 2, -field.goal_width() / 2);
+				const Point goal_edge_left = Point(-field.length() / 2, field.goal_width() / 2);
+				const Point goal_edge_right = Point(-field.length() / 2, -field.goal_width() / 2);
 
-
-				Point block_pos = calc_block_cone(goal_side , goal_opp , player().position() , Robot::MAX_RADIUS);
-
+				Point block_pos = calc_block_cone(goal_edge_left, goal_edge_right, player().position() , Robot::MAX_RADIUS);
+				LOGF_INFO("%1", block_pos);
 				Vector2 dirToGoal = (world.field().friendly_goal() - block_pos).norm();
-				Vector2 dest = block_pos - (1.3 * Robot::MAX_RADIUS * dirToGoal);
+				Vector2 dest = block_pos - (0.6 * Robot::MAX_RADIUS * dirToGoal);
+				if(dest.x < -field.length() / 2) {
+					dest.x = -field.length() / 2 + 0.1;
+				}
 				Action::goalie_move(ca, world, player(), dest);
 			} else {
 				// solo
@@ -171,17 +223,22 @@ namespace {
 
 	Vector2 Defender::calc_defend_pos(unsigned index) const {
 		auto waypoints = Evaluation::evaluate_defense();
-		Vector2 dest = waypoints[index];
+		return waypoints[index];
 		// tdefend switch
-		if (tdefend_defender1 && index == 1) {
-			dest = Evaluation::evaluate_tdefense(world, index);
-		} else if (tdefend_defender2 && index == 2) {
-			dest = Evaluation::evaluate_tdefense(world, index);
-		} else if (tdefend_defender3 && index == 3) {
-			dest = Evaluation::evaluate_tdefense(world, index);
-		}
-		return dest;
+		// if (tdefend_defender1 && index == 1) {
+		// 	dest = Evaluation::evaluate_tdefense(world, index);
+		// } else if (tdefend_defender2 && index == 2) {
+		// 	dest = Evaluation::evaluate_tdefense(world, index);
+		// } else if (tdefend_defender3 && index == 3) {
+		// 	dest = Evaluation::evaluate_tdefense(world, index);
+		// }
+		// return dest;
 	}
+}
+
+Tactic::Ptr AI::HL::STP::Tactic::pass_blocker(World world, int check_index) {
+	Tactic::Ptr p(new PassBlocker(world, check_index));
+	return p;
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::goalie_dynamic(World world, const size_t defender_role) {
