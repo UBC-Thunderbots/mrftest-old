@@ -162,8 +162,10 @@ Evaluation::ShootData Evaluation::evaluate_shoot(World world, Player player, boo
 bool Evaluation::in_shoot_position(World world, Player player, Point target){
 	Point pos = player.position();
 	Point ball = world.ball().position();
-	if((pos - ball).len() > 1.0) return false;
-	else if(((ball - pos).orientation() - (target - ball).orientation()).abs() > Angle::of_degrees(25.0)) return false;
-	else if(!Plan::valid_path(pos, ball, world, player)) return false;
+
+	if ((pos - ball).len() > 1.0) return false;
+	else if (((ball - pos).orientation() - (target - ball).orientation()).abs() > Angle::of_degrees(25.0)) return false;
+	// This line has some sort of state that prevents the robot from ever getting into position.
+	// else if (!Plan::valid_path(pos, ball, world, player)) return false;
 	return true;
 }

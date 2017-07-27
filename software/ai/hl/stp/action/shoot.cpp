@@ -22,21 +22,18 @@ void AI::HL::STP::Action::shoot_goal(caller_t& ca, World world, Player player, b
 
 void AI::HL::STP::Action::shoot_target(caller_t& ca, World world, Player player, Point target, double velocity, bool chip, bool should_wait) {
 	bool done = false;
-	do{
-		if(Evaluation::in_shoot_position(world, player, target)){
-			const Angle orient = (target - world.ball().position()).orientation();
-			player.move_shoot(world.ball().position(), orient, velocity, chip);
-			LOG_INFO("DONE CATCH. SHOOTING NOW");
-		}else{
-			// Get behind the ball without hitting it
-			// TODO: account for slowly moving ball (fast ball handled by catch)
-			Point dest = world.ball().position() + (world.ball().position() - target).norm(0.21);
-			player.flags(AI::Flags::calc_flags(world.playtype()) | AI::Flags::MoveFlags::AVOID_BALL_MEDIUM);
-			move(ca, world, player, dest, (target - world.ball().position()).orientation(), false);
-		}
-		
-		if(should_wait) yield(ca);
-	}while(!done && should_wait);
+	if (Evaluation::in_shoot_position(world, player, target)) {
+		const Angle orient = (target - world.ball().position()).orientation();
+		player.move_shoot(world.ball().position(), orient, velocity, chip);
+		LOG_INFO("DONE CATCH. SHOOTING NOW");
+	} else {
+		// Get behind the ball without hitting it
+		// TODO: account for slowly moving ball (fast ball handled by catch)
+		LOG_INFO("NOT IN POSSITION");
+		Point dest = world.ball().position() + (world.ball().position() - target).norm(0.21);
+		player.flags(AI::Flags::calc_flags(world.playtype()) | AI::Flags::MoveFlags::AVOID_BALL_MEDIUM);
+		player.move_move(dest, (target - world.ball().position()).orientation());
+	}
 }
 
 void AI::HL::STP::Action::catch_and_shoot_target(caller_t& ca, World world, Player player, Point target, double velocity, bool chip, bool should_wait) {

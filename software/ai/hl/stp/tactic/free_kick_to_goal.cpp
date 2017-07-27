@@ -23,8 +23,7 @@ using namespace Geom;
 
 
 namespace {
-	class FreeKickToGoal final : public Tactic {
-		public:
+	class FreeKickToGoal final : public Tactic { public:
 			explicit FreeKickToGoal(World world) : Tactic(world) {
 			}
 
@@ -43,8 +42,6 @@ namespace {
 
 	void FreeKickToGoal::execute(caller_t& ca) {
 		while (true) {
-			player().move_move(world.ball().position(), (world.ball().position() - player().position()).orientation());
-
 			Point gp1 = world.field().enemy_goal_boundary().first;
 			Point gp2 = world.field().enemy_goal_boundary().second;
 

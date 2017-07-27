@@ -81,13 +81,13 @@
             <category name="repel">
               <double name="speed that repel will be kicking at in a corner">3.000</double>
             </category>
+            <category name="Shoot">
+              <boolean name="Use mp_move or MP_intercept">true</boolean>
+            </category>
             <category name="shoot">
               <degrees name="Angle threshold that defines passing accuracy, smaller is more accurate (degrees)">30.0</degrees>
               <degrees name="Angle threshold that the passee must be with respect to passer when shot, smaller is more accurate (degrees)">80.0</degrees>
               <double name="Decay constant for the ball velocity">0.100</double>
-            </category>
-            <category name="Shoot">
-              <boolean name="Use mp_move or MP_intercept">true</boolean>
             </category>
             <category name="Strafe">
               <double name="strafing increment">0.100</double>
@@ -178,6 +178,7 @@
               <boolean name="Shoot">false</boolean>
               <boolean name="Stop">true</boolean>
               <boolean name="TESTCATCH">false</boolean>
+              <boolean name="TESTDEFENSIVECHIP">false</boolean>
               <boolean name="TESTJUSTCATCH">false</boolean>
               <boolean name="TESTMOVE">false</boolean>
               <boolean name="TESTSHOOT">false</boolean>
@@ -206,6 +207,7 @@
               <integer name="Shoot">1023</integer>
               <integer name="Stop">1023</integer>
               <integer name="TESTCATCH">1023</integer>
+              <integer name="TESTDEFENSIVECHIP">1023</integer>
               <integer name="TESTJUSTCATCH">1023</integer>
               <integer name="TESTMOVE">1023</integer>
               <integer name="TESTSHOOT">1023</integer>
@@ -234,6 +236,7 @@
               <integer name="Shoot">5</integer>
               <integer name="Stop">5</integer>
               <integer name="TESTCATCH">5</integer>
+              <integer name="TESTDEFENSIVECHIP">5</integer>
               <integer name="TESTJUSTCATCH">5</integer>
               <integer name="TESTMOVE">5</integer>
               <integer name="TESTSHOOT">5</integer>
@@ -262,6 +265,7 @@
               <boolean name="Shoot">false</boolean>
               <boolean name="Stop">false</boolean>
               <boolean name="TESTCATCH">false</boolean>
+              <boolean name="TESTDEFENSIVECHIP">false</boolean>
               <boolean name="TESTJUSTCATCH">false</boolean>
               <boolean name="TESTMOVE">false</boolean>
               <boolean name="TESTSHOOT">false</boolean>
