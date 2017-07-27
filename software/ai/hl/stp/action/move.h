@@ -15,22 +15,21 @@ namespace AI {
 				 *
 				 * Move to a particular location and stop. Orient the player
 				 * towards a particular direction.
-				 * should_wait == true, to initiate default wait condition (player gets within a radius around the ball)
 				 */
-				void move(caller_t& ca, World world, Player player, Point dest, bool should_wait = false);
+				void move(caller_t& ca, World world, Player player, Point dest);
 
-				void move(caller_t& ca, World world, Player player, Point dest, Angle orientation, bool should_wait = false);
-                void move_straight(caller_t& ca, World world, Player player, Point dest, bool should_wait = false);
+				void move(caller_t& ca, World world, Player player, Point dest, Angle orientation);
+                void move_straight(caller_t& ca, World world, Player player, Point dest);
 
-				void move_straight(caller_t& ca, World world, Player player, Point dest, Angle orientation, bool should_wait = false);
+				void move_straight(caller_t& ca, World world, Player player, Point dest, Angle orientation);
 
-                void move_rrt(caller_t& ca, World world, Player player, Point dest, bool should_wait = false);
+                void move_rrt(caller_t& ca, World world, Player player, Point dest);
 
-                void move_rrt(caller_t& ca, World world, Player player, Point dest,  Angle orientation, bool should_wait = false);
+                void move_rrt(caller_t& ca, World world, Player player, Point dest,  Angle orientation);
 
-                void move_slp(caller_t& ca, World world, Player player, Point dest, bool should_wait = false);
+                void move_slp(caller_t& ca, World world, Player player, Point dest);
 
-                void move_slp(caller_t& ca, World world, Player player, Point dest,  Angle orientation, bool should_wait = false);
+                void move_slp(caller_t& ca, World world, Player player, Point dest,  Angle orientation);
 
                 /**
 				 * Move
@@ -38,18 +37,16 @@ namespace AI {
 				 * 
 				 * Move to a particular location and stop. Orient the player
 				 * towards a particular direction.
-				 * should_wait == true, to initiate default wait condition (player gets within a radius around the ball)
 				 */
-				void move_dribble(caller_t& ca, World world, Player player, Angle orientation, Point dest, bool should_wait = true);
+				void move_dribble(caller_t& ca, World world, Player player, Angle orientation, Point dest);
 
 				/**
 				 * Move
 				 *
 				 * Move to a particular location with a low velocity and stop.
 				 * Orient the player towards the ball. MOVE_CAREFUL flag is set.
-				 * should_wait == true, to initiate default wait condition (player gets within a radius around the ball)
 				 */
-				void move_careful(caller_t& ca, World world, Player player, Point dest, bool should_wait = true);
+				void move_careful(caller_t& ca, World world, Player player, Point dest);
 
 				/**
 				 * wait function with the condition: player gets with tolerence radius around the ball

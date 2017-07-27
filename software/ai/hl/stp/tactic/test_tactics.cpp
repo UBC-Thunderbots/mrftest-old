@@ -36,8 +36,8 @@ namespace {
 
 	void MoveTest::execute(caller_t& ca) {
         original_pos = player().position();
-		AI::HL::STP::Action::move_slp(ca, world, player(), dest);
-        AI::HL::STP::Action::move_slp(ca, world, player(), original_pos);
+		AI::HL::STP::Action::move(ca, world, player(), dest);
+        AI::HL::STP::Action::move(ca, world, player(), original_pos);
 	}
 
 	class MoveTestOrientation final : public Tactic {
@@ -122,7 +122,7 @@ namespace {
 	}
 
 	void ShootTest::execute(caller_t& ca) {
-		AI::HL::STP::Action::catch_and_shoot_goal(ca, world, player(), false, true);
+		AI::HL::STP::Action::catch_and_shoot_goal(ca, world, player(), false);
 	}
 
 	class CatchTest final : public Tactic {

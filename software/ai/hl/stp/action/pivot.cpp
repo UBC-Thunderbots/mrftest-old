@@ -59,7 +59,7 @@ void AI::HL::STP::Action::pivot(caller_t& ca, World world, Player player, Point 
 	if(Plan::valid_path(player.position(), dest, world, player)) {
 		player.move_move(dest, (target - dest).orientation(), finalVel);
 	}else {
-		Action::move(ca, world, player, dest, (target - dest).orientation(), false);
+		Action::move(ca, world, player, dest, (target - dest).orientation());
 	}
 }
 

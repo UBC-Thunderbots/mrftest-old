@@ -63,7 +63,7 @@ void AI::HL::STP::Action::catch_ball(caller_t& ca, World world, Player player, P
 			//catch_pos = Evaluation::quickest_intercept_position(world, player);
 		}
 
-        Action::move_rrt(ca, world, player, catch_pos, catch_orientation, false);
+        Action::move_rrt(ca, world, player, catch_pos, catch_orientation);
 
 		Action::yield(ca);
 		LOGF_INFO("%1, %2, %3", (player.position() - catch_pos).lensq() > 0.08 * 0.08, player.velocity().lensq() > 0.07 * 0.07,

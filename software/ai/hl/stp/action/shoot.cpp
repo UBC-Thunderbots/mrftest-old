@@ -14,14 +14,13 @@
 
 using namespace AI::HL::STP;
 
-void AI::HL::STP::Action::shoot_goal(caller_t& ca, World world, Player player, bool chip, bool should_wait) {
+void AI::HL::STP::Action::shoot_goal(caller_t& ca, World world, Player player, bool chip) {
 	Point shot = Evaluation::get_best_shot(world, player);
 
-	shoot_target(ca, world, player, shot, BALL_MAX_SPEED, chip, should_wait);
+	shoot_target(ca, world, player, shot, BALL_MAX_SPEED, chip);
 }
 
-void AI::HL::STP::Action::shoot_target(caller_t& ca, World world, Player player, Point target, double velocity, bool chip, bool should_wait) {
-	bool done = false;
+void AI::HL::STP::Action::shoot_target(caller_t& ca, World world, Player player, Point target, double velocity, bool chip) {
 	if (Evaluation::in_shoot_position(world, player, target)) {
 		const Angle orient = (target - world.ball().position()).orientation();
 		player.move_shoot(world.ball().position(), orient, velocity, chip);
@@ -36,35 +35,29 @@ void AI::HL::STP::Action::shoot_target(caller_t& ca, World world, Player player,
 	}
 }
 
-void AI::HL::STP::Action::catch_and_shoot_target(caller_t& ca, World world, Player player, Point target, double velocity, bool chip, bool should_wait) {
-	bool done = false;
-	do{
+void AI::HL::STP::Action::catch_and_shoot_target(caller_t& ca, World world, Player player, Point target, double velocity, bool chip) {
+	//TODO: add proper catch action
 
-		//TODO: add proper catch action
-
-		/*if(world.ball().velocity().len() > 1.5){
-			//TODO: make catch_ball not wait
-			catch_ball(ca, world, player, target);
-		}else
+	/*if(world.ball().velocity().len() > 1.5){
+		//TODO: make catch_ball not wait
+		catch_ball(ca, world, player, target);
+	}else
 */
-		if(Evaluation::in_shoot_position(world, player, target)){
-			shoot_target(ca, world, player, target, velocity, chip, false);
-		}else{
-			// Get behind the ball without hitting it
-			// TODO: account for slowly moving ball (fast ball handled by catch)
-			Point dest = world.ball().position() + (world.ball().position() - target).norm(0.21);
-			player.flags(AI::Flags::calc_flags(world.playtype()) | AI::Flags::MoveFlags::AVOID_BALL_MEDIUM);
-			move(ca, world, player, dest, (target - world.ball().position()).orientation(), false);
-		}
-		if(should_wait) yield(ca);
-	}while(!done && should_wait);
+	if(Evaluation::in_shoot_position(world, player, target)){
+		shoot_target(ca, world, player, target, velocity, chip);
+	}else{
+		// Get behind the ball without hitting it
+		// TODO: account for slowly moving ball (fast ball handled by catch)
+		Point dest = world.ball().position() + (world.ball().position() - target).norm(0.21);
+		player.flags(AI::Flags::calc_flags(world.playtype()) | AI::Flags::MoveFlags::AVOID_BALL_MEDIUM);
+		move(ca, world, player, dest, (target - world.ball().position()).orientation());
+	}
 }
 
-void AI::HL::STP::Action::catch_and_shoot_goal(caller_t& ca, World world, Player player, bool chip, bool should_wait) {
+void AI::HL::STP::Action::catch_and_shoot_goal(caller_t& ca, World world, Player player, bool chip) {
 	//TODO: remove the while true
 	while(true){
 		Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot(world, player);
-		catch_and_shoot_target(ca, world, player, shoot_data.target, BALL_MAX_SPEED, chip, false);
-		yield(ca);
+		catch_and_shoot_target(ca, world, player, shoot_data.target, BALL_MAX_SPEED, chip);
 	}
 }

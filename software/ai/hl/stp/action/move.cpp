@@ -32,36 +32,33 @@ static double calc_mid_vel(Point p0, Point p1, Point p2){
 }
 
 // if should_wait is false, robot stops after reaching destination
-void AI::HL::STP::Action::move(caller_t& ca, World world, Player player, Point dest, bool should_wait) {
+void AI::HL::STP::Action::move(caller_t& ca, World world, Player player, Point dest) {
     // Default to RRT
-    Action::move_rrt(ca, world, player, dest, should_wait);
+    Action::move_rrt(ca, world, player, dest);
     //player.move_move(local_dest(player, dest), Angle(), 0);
 	//if(should_wait) Action::wait_move(ca, player, dest);
 }
 
-void AI::HL::STP::Action::move(caller_t& ca, World world, Player player, Point dest,  Angle orientation, bool should_wait) {
-    Action::move_rrt(ca, world, player, dest, orientation, should_wait);
+void AI::HL::STP::Action::move(caller_t& ca, World world, Player player, Point dest,  Angle orientation) {
+    Action::move_rrt(ca, world, player, dest, orientation );
 }
 
 // Move in a straight line
-void AI::HL::STP::Action::move_straight(caller_t& ca, World world, Player player, Point dest, bool should_wait) {
+void AI::HL::STP::Action::move_straight(caller_t& ca, World world, Player player, Point dest) {
     //Primitive prim = Primitives::Move(player, dest, (world.ball().position() - player.position()).orientation());
     player.move_move(dest, Angle(), 0);
-	if(should_wait) Action::wait_move(ca, player, dest);
 }
 
-void AI::HL::STP::Action::move_straight(caller_t& ca, World world, Player player, Point dest,  Angle orientation, bool should_wait) {
+void AI::HL::STP::Action::move_straight(caller_t& ca, World world, Player player, Point dest,  Angle orientation) {
     player.move_move(dest, orientation, 0);
-	if(should_wait) Action::wait_move(ca, player, dest, orientation);
 }
 
-void AI::HL::STP::Action::move_rrt(caller_t& ca, World world, Player player, Point dest, bool should_wait) {
-	move_rrt(ca, world, player, dest, Angle(), should_wait);
+void AI::HL::STP::Action::move_rrt(caller_t& ca, World world, Player player, Point dest) {
+	move_rrt(ca, world, player, dest, Angle());
 }
 
 
-void AI::HL::STP::Action::move_rrt(caller_t& ca, World world, Player player, Point dest,  Angle orientation, bool should_wait) {	
-	//Warning: ignores should_wait
+void AI::HL::STP::Action::move_rrt(caller_t& ca, World world, Player player, Point dest,  Angle orientation) {	
 	
 	std::vector<Point> way_points;
 	std::vector<Point> plan = Evaluation::RRT::rrt_plan(world, player, dest, way_points, true, player.flags());
@@ -162,12 +159,12 @@ void AI::HL::STP::Action::move_rrt(caller_t& ca, World world, Player player, Poi
 //	LOG_INFO(u8"Done move_rrt");
 }
 */
-void AI::HL::STP::Action::move_slp(caller_t& ca, World world, Player player, Point dest, bool should_wait) {
-	move_slp(ca, world, player, dest, Angle(), should_wait);
+void AI::HL::STP::Action::move_slp(caller_t& ca, World world, Player player, Point dest) {
+	move_slp(ca, world, player, dest, Angle());
 }
 
-void AI::HL::STP::Action::move_slp(caller_t& ca, World world, Player player, Point dest, Angle orientation, bool should_wait) {
-	move_rrt(ca, world, player, dest, orientation, should_wait);
+void AI::HL::STP::Action::move_slp(caller_t& ca, World world, Player player, Point dest, Angle orientation) {
+	move_rrt(ca, world, player, dest, orientation);
 	
 	/*std::vector<Point> plan;
 
@@ -191,18 +188,17 @@ void AI::HL::STP::Action::move_slp(caller_t& ca, World world, Player player, Poi
 */}
 
 
-void AI::HL::STP::Action::move_dribble(caller_t& ca, World world, Player player, Angle orientation, Point dest, bool should_wait) {
+void AI::HL::STP::Action::move_dribble(caller_t& ca, World world, Player player, Angle orientation, Point dest) {
     std::vector<Point> way_points;
     std::vector<Point> plan = Evaluation::RRT::rrt_plan(world, player, dest, way_points, true, player.flags()); 
     player.display_path(plan);
     for(auto planpt : plan){
         player.move_dribble(planpt, orientation, default_desired_rpm, 0);
-        if(should_wait) Action::wait_move(ca, player, planpt);
     }
 }
 
-void AI::HL::STP::Action::move_careful(caller_t& ca, World world, Player player, Point dest, bool should_wait) {
+void AI::HL::STP::Action::move_careful(caller_t& ca, World world, Player player, Point dest) {
 	player.flags(player.flags() | AI::Flags::MoveFlags::CAREFUL);
-    Action::move(ca, world, player, dest, should_wait);  
+    Action::move(ca, world, player, dest);  
 }
 
