@@ -32,7 +32,10 @@ namespace {
 	}
 
 	void MoveOnce::execute(caller_t& caller) {
-		Action::move(caller, world, player(), dest);
+		while(true) {
+			Action::move(caller, world, player(), dest);
+			yield(caller);
+		}
 	}
 
 	class Move final : public Tactic {
@@ -58,6 +61,7 @@ namespace {
 		while (true) {
 			Action::move(caller, world, player(), dest.position());
 			yield(caller);
+			# warning probably can take this out later. no longer used with no HL primitives. Check if old HL prims added logic?
 			player().clear_prims();
 		}
 	}

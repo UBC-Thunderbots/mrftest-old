@@ -44,9 +44,12 @@ namespace {
 	}
 
 	void MoveStop::execute(caller_t& caller) {
-		player().flags(player().flags() | AI::Flags::MoveFlags::AVOID_BALL_MEDIUM);
-		std::vector<Point> positions = stop_locations(world);
-		AI::HL::STP::Action::move(caller, world, player(), positions[player_index]);
+		while(true) {
+			player().flags(player().flags() | AI::Flags::MoveFlags::AVOID_BALL_MEDIUM);
+			std::vector<Point> positions = stop_locations(world);
+			AI::HL::STP::Action::move(caller, world, player(), positions[player_index]);
+			yield(caller);
+		}
 	}
 }
 

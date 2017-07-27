@@ -66,24 +66,27 @@ namespace {
 	}
 
 	void ShootGoal::execute(caller_t& ca) {
-		std::vector<Point> obstacles;
-		Point target;
+		while(true) {
+			std::vector<Point> obstacles;
+			Point target;
 
-		for (auto i : world.enemy_team()) {
-			obstacles.push_back(i.position());
-		}
-		for (auto i : world.friendly_team()) {
-			if (i != player()) {
+			for (auto i : world.enemy_team()) {
 				obstacles.push_back(i.position());
 			}
+			for (auto i : world.friendly_team()) {
+				if (i != player()) {
+					obstacles.push_back(i.position());
+				}
+			}
+
+			bool chip = Evaluation::get_best_shot_pair(world, player()).second.abs() < Angle::of_degrees(5) && player().position().x > 0;
+			// TODO; If chipping will want to adjust power instead of always passing ball max speed (that would be an 8m chip if possible)
+			chip = false; // THIS IS TEMPORARY FOR TESTING
+
+			Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot(world, player(), true);
+			AI::HL::STP::Action::catch_and_shoot_target(ca, world, player(), shoot_data.target, AI::HL::STP::BALL_MAX_SPEED, chip);
+			yield(ca);
 		}
-
-		bool chip = Evaluation::get_best_shot_pair(world, player()).second.abs() < Angle::of_degrees(5) && player().position().x > 0;
-		// TODO; If chipping will want to adjust power instead of always passing ball max speed (that would be an 8m chip if possible)
-		chip = false; // THIS IS TEMPORARY FOR TESTING
-
-		Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot(world, player(), true);
-		AI::HL::STP::Action::catch_and_shoot_target(ca, world, player(), shoot_data.target, AI::HL::STP::BALL_MAX_SPEED, chip);
 	}
 
 	Player ShootTarget::select(const std::set<Player> &players) const {
@@ -91,7 +94,10 @@ namespace {
 	}
 
 	void ShootTarget::execute(caller_t& ca) {
-		AI::HL::STP::Action::catch_and_shoot_target(ca, world, player(), target.position());
+		while(true) {
+			AI::HL::STP::Action::catch_and_shoot_target(ca, world, player(), target.position());
+			yield(ca);
+		}
 	}
 }
 
