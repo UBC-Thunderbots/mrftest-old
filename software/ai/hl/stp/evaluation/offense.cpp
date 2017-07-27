@@ -189,7 +189,7 @@ namespace {
 		return weight_total * raw_score;
 	}
 
-	bool calc_position_best(World world, const std::vector<Point> &enemy_pos, const std::vector<Point> &dont_block, Point &best_pos, int idx) {
+	bool calc_position_best(World world, const std::vector<Point> &enemy_pos, const std::vector<Point> &dont_block, std::array<Point, 2> &best_pos, int idx) {
 		// divide up into a hexagonal grid
 		const double x1 = -world.field().length() / 2, x2 = -x1;
 		const double y1 = -world.field().width() / 2, y2 = -y1;
@@ -201,7 +201,7 @@ namespace {
 		double best_score = -1e50;
 		bool inEnemyDefenseArea=false;
 
-		best_pos = Point();
+		Point best_pos_idx = Point();
 
 		for (unsigned int i = 1; i <= 2 * static_cast<unsigned int>(grid_y) + 1; i += 2) {
 			for (unsigned int j = (i / 2 + 1) % 2 + 1; j <= 2 * static_cast<unsigned int>(grid_x) + 1; j += 2) {
@@ -227,6 +227,10 @@ namespace {
 
 				double score = scoring_function(world, enemy_pos, pos, dont_block);
 
+				if (idx == 1 && (pos - best_positions[0]).lensq() < 1) {
+					score2[i][j] = -1e99;
+				}
+
 				if (idx) {
 					score1[i][j] = score;
 				} else {
@@ -235,10 +239,12 @@ namespace {
 
 				if (score > best_score) {
 					best_score = score;
-					best_pos = pos;
+					best_pos_idx = pos;
 				}
 			}
 		}
+
+		best_pos[idx] = best_pos_idx;
 
 		return best_score > 0;
 	}
@@ -273,10 +279,10 @@ namespace {
 		   }
 		 */
 
-		calc_position_best(world, enemy_pos, dont_block, best_positions[0], 0);
+		calc_position_best(world, enemy_pos, dont_block, best_positions, 0);
 
 		dont_block.push_back(best_positions[0]);
-		calc_position_best(world, enemy_pos, dont_block, best_positions[1], 1);
+		calc_position_best(world, enemy_pos, dont_block, best_positions, 1);
 	}
 }
 
@@ -301,4 +307,3 @@ std::array<Point, 2> AI::HL::STP::Evaluation::offense_positions() {
 Point AI::HL::STP::Evaluation::passee_position() {
 	return best_positions[0];
 }
-
