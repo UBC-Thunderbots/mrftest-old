@@ -24,7 +24,7 @@ namespace {
 	class MoveStop final : public Tactic {
 		
 		public:
-			explicit MoveStop(World world, std::size_t player_index) : Tactic(world), player_index(player_index) { }
+			explicit MoveStop(World world, std::size_t set_player_index) : Tactic(world), player_index(set_player_index) { }
 
 		private:
 			Player select(const std::set<Player> &players) const override;

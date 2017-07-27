@@ -635,7 +635,7 @@ void MRFRobot::handle_message(const void *data, std::size_t len, uint8_t lqi, ui
 					}
 
 					feedback_timeout_connection.disconnect();
-					feedback_timeout_connection = Glib::signal_timeout().connect_seconds(sigc::mem_fun(this, &MRFRobot::handle_feedback_timeout), 3);
+					feedback_timeout_connection = Glib::signal_timeout().connect_seconds(sigc::mem_fun(this, &MRFRobot::handle_feedback_timeout), 10); //TODO: change this back to 3
 				} else {
 					LOG_ERROR(Glib::ustring::compose(u8"Received general robot status update with wrong byte count %1", len));
 				}

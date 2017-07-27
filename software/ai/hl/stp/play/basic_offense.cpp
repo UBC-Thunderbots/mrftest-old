@@ -4,7 +4,7 @@
 #include "ai/hl/stp/tactic/offend.h"
 
 BEGIN_DEC(BasicOffense)
-INVARIANT(true)
+INVARIANT(playtype(world, PlayType::PLAY))
 APPLICABLE(true)
 END_DEC(BasicOffense)
 

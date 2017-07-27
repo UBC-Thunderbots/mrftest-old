@@ -16,12 +16,14 @@ BEGIN_DEF(Stop)
 DONE(false)
 FAIL(false)
 EXECUTE()
-tactics[0] = Tactic::move(world, Point(world.field().friendly_goal().x + 0.1, 0));
+tactics[0] = Tactic::move(world, Point(world.field().friendly_goal().x + 0.35, 0));
 tactics[1] = Tactic::move_stop(world, 0);
 tactics[2] = Tactic::move_stop(world, 1);
 tactics[3] = Tactic::move_stop(world, 2);
-tactics[4] = Tactic::block_shot_stop(world);
-tactics[5] = Tactic::block_shot_stop(world);
+tactics[4] = Tactic::move_stop(world, 3);
+tactics[5] = Tactic::move_stop(world, 4);
+//tactics[4] = Tactic::block_shot_stop(world);
+//tactics[5] = Tactic::block_shot_stop(world);
 
 while (1) yield(caller);
 END_DEF(Stop)

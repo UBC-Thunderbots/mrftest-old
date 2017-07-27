@@ -116,8 +116,8 @@
             <double name="Steal threshold: distance of ball from enemy (robot radius)">1.100</double>
           </category>
           <category name="Goalie">
-            <boolean name="Goalie is lowest index">false</boolean>
-            <integer name="Goalie pattern index">7</integer>
+            <boolean name="Goalie is lowest index">true</boolean>
+            <integer name="Goalie pattern index">0</integer>
             <boolean name="Override refbox goalie">false</boolean>
             <boolean name="Play can't execute without goalie">false</boolean>
           </category>
@@ -159,7 +159,7 @@
               <boolean name="BallPlacement">true</boolean>
               <boolean name="BasicDefense">true</boolean>
               <boolean name="BasicOffense">true</boolean>
-              <boolean name="BlockShotPath">true</boolean>
+              <boolean name="BlockShotPath">false</boolean>
               <boolean name="CornerKickEnemy">true</boolean>
               <boolean name="FranticDefense">true</boolean>
               <boolean name="FreeKickEnemy">true</boolean>
@@ -312,7 +312,7 @@
               <boolean name="Whether or not Terence Defense should take the place of normal defender 1">false</boolean>
               <boolean name="Whether or not Terence Defense should take the place of normal defender 2">false</boolean>
               <boolean name="Whether or not Terence Defense should take the place of normal defender 3">false</boolean>
-              <boolean name="Whether or not Terence Defense should take the place of normal goalie">false</boolean>
+              <boolean name="Whether or not Terence Defense should take the place of normal goalie">true</boolean>
             </category>
             <category name="indirect_chip">
               <double name="chip dist bounce threshold">0.750</double>
