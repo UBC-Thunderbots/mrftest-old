@@ -136,7 +136,6 @@ void FriendlyTeam::update(const std::vector<const google::protobuf::RepeatedPtrF
 			const AI::BE::Physical::Player::Ptr &bot = i.ptr();
 			assert(bot->pattern() < NUM_PATTERNS);
 			if (!seen_this_frame[bot->pattern()]) {
-				std::cout << "didn't see bot: "<< bot->pattern() << std::endl;
 				++vision_failures[bot->pattern()];
 			} else {
 				vision_failures[bot->pattern()] = 0;

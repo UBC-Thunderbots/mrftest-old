@@ -12,6 +12,20 @@
 using AI::BE::RefBox;
 
 namespace {
+    /**
+     * \brief Returns the port number to use for SSL-Vision data.
+     *
+     * \return the port number, as a string
+     */
+    const char *refbox_port() {
+        const char *evar = std::getenv("SSL_REFBOX_PORT");
+        if (evar) {
+            return evar;
+        } else {
+            return "10003";
+        }
+    }
+
 	FileDescriptor create_socket(int multicast_interface) {
 		addrinfo hints;
 		std::memset(&hints, 0, sizeof(hints));
@@ -19,7 +33,7 @@ namespace {
 		hints.ai_socktype = SOCK_DGRAM;
 		hints.ai_protocol = 0;
 		hints.ai_flags = AI_PASSIVE | AI_NUMERICSERV;
-		AddrInfoSet ai(nullptr, "10003", &hints);
+		AddrInfoSet ai(nullptr, refbox_port(), &hints);
 
 		FileDescriptor fd(FileDescriptor::create_socket(ai.first()->ai_family, ai.first()->ai_socktype, ai.first()->ai_protocol));
 
