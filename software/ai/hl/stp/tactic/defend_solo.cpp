@@ -30,7 +30,11 @@ namespace {
 	}
 
 	void LoneGoalie::execute(caller_t& ca) {
-		AI::HL::STP::Action::lone_goalie(ca, world, player());
+		while(true) {
+			AI::HL::STP::Action::lone_goalie(ca, world, player());
+			yield(ca);
+		}
+
 	}
 }
 

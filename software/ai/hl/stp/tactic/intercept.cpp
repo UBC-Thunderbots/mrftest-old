@@ -33,14 +33,16 @@ namespace {
 	}
 
 	void Intercept::execute(caller_t& ca) {
-		// if it has the ball, stay there
-		if (player().has_ball()) {
-			Action::dribble(ca, player());
-			return;
+		while(true) {
+			// if it has the ball, stay there
+			if (player().has_ball()) {
+				Action::dribble(ca, player());
+			}else {
+				// orient towards the enemy goal?
+				Action::intercept(ca,world, player(), world.ball().position());
+			}
+			yield(ca);
 		}
-
-		// orient towards the enemy goal?
-		Action::intercept(ca,world, player(), world.ball().position());
 	}
 }
 

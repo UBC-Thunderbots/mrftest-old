@@ -35,9 +35,15 @@ namespace {
 	}
 
 	void MoveTest::execute(caller_t& ca) {
-        original_pos = player().position();
-		AI::HL::STP::Action::move(ca, world, player(), dest);
-        AI::HL::STP::Action::move(ca, world, player(), original_pos);
+		original_pos = player().position();
+		while((player().position() - dest).len() < 0.05) {
+			AI::HL::STP::Action::move(ca, world, player(), dest);
+			yield(ca);
+		}
+		while(true) {
+			AI::HL::STP::Action::move(ca, world, player(), original_pos);
+			yield(ca);
+		}
 	}
 
 	class MoveTestOrientation final : public Tactic {
@@ -122,7 +128,9 @@ namespace {
 	}
 
 	void ShootTest::execute(caller_t& ca) {
-		AI::HL::STP::Action::catch_and_shoot_goal(ca, world, player(), false);
+		while(true) {
+			AI::HL::STP::Action::catch_and_shoot_goal(ca, world, player(), false);
+		}
 	}
 
 	class CatchTest final : public Tactic {
@@ -145,7 +153,10 @@ namespace {
     }
 
     void CatchTest::execute(caller_t& ca) {
-        AI::HL::STP::Action::catch_ball(ca, world, player(), world.field().enemy_goal());
+    	while(true) {
+            AI::HL::STP::Action::catch_ball(ca, world, player(), world.field().enemy_goal());
+            yield(ca);
+    	}
     }
 
 	class JCatchTest final : public Tactic {
@@ -168,7 +179,9 @@ namespace {
     }
 
     void JCatchTest::execute(caller_t& ca) {
-        AI::HL::STP::Action::just_catch_ball(ca, world, player());
+    	while(true) {
+            AI::HL::STP::Action::just_catch_ball(ca, world, player());
+    	}
     }
 }
 

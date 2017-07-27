@@ -116,17 +116,23 @@ namespace {
 	}
 
 	void SpinSteal::execute(caller_t& ca) {
-		none = false;
-		EnemyTeam enemy = world.enemy_team();
-		Point dirToBall = (world.ball().position() - player().position()).norm();
-		for (const Robot i : enemy) {
-			if (Evaluation::possess_ball(world, i)) {
-				Action::move_spin(ca, player(), world.ball().position() + Robot::MAX_RADIUS * dirToBall, Angle::half());
-				return;
+		while(true) {
+			none = false;
+			EnemyTeam enemy = world.enemy_team();
+			Point dirToBall = (world.ball().position() - player().position()).norm();
+			for (const Robot i : enemy) {
+				if (Evaluation::possess_ball(world, i)) {
+					Action::move_spin(ca, player(), world.ball().position() + Robot::MAX_RADIUS * dirToBall, Angle::half());
+					break;
+				}
 			}
+			yield(ca);
+//			none = true;
+
 		}
-		none = true;
 	}
+
+
 
 	bool BackUpSteal::done() const {
 		return finished && player().has_ball();
@@ -141,21 +147,25 @@ namespace {
 	}
 
 	void BackUpSteal::execute(caller_t& ca) {
-		finished = (player().position() - start_pos).len() > backup_dist;
+		while(true) {
+			finished = (player().position() - start_pos).len() > backup_dist;
 
-		switch(state) {
-		case BACKING_UP:
-			Action::move(ca, world, player(), start_pos + Point(-backup_dist, 0));
-			if (finished) {
-				state = GOING_FORWARD;
+			switch(state) {
+			case BACKING_UP:
+				Action::move(ca, world, player(), start_pos + Point(-backup_dist, 0));
+				if (finished) {
+					state = GOING_FORWARD;
+				}
+				break;
+			case GOING_FORWARD:
+				Action::move(ca, world, player(), world.ball().position());
+				if (player().has_ball()) {
+					state = BACKING_UP;
+				}
+				break;
 			}
-			break;
-		case GOING_FORWARD:
-			Action::move(ca, world, player(), world.ball().position());
-			if (player().has_ball()) {
-				state = BACKING_UP;
-			}
-			break;
+
+			yield(ca);
 		}
 	}
 
@@ -168,18 +178,28 @@ namespace {
 	}
 
 	void TActiveDef::execute(caller_t& ca) {
-		finished = false;
-		EnemyTeam enemy = world.enemy_team();
+		while(true) {
+			finished = false;
+			EnemyTeam enemy = world.enemy_team();
+			bool enemyHasBall = false;
 
-		for (const Robot i : enemy) {
-			if (Evaluation::possess_ball(world, i)) {
-				Point dirToBall = (world.ball().position() - i.position()).norm();
-				Action::move_spin(ca, player(), world.ball().position() + 0.75 * Robot::MAX_RADIUS * dirToBall, Angle::half());
-				return;
+			Point dirToBall = Point();
+			for (const Robot i : enemy) {
+				if (Evaluation::possess_ball(world, i)) {
+					dirToBall = (world.ball().position() - i.position()).norm();
+					enemyHasBall = true;
+					break;
+				}
 			}
-		}
 
-		finished = Action::repel(ca, world, player());
+			if(enemyHasBall) {
+				Action::move_spin(ca, player(), world.ball().position() + 0.75 * Robot::MAX_RADIUS * dirToBall, Angle::half());
+			}else {
+				finished = Action::repel(ca, world, player());
+			}
+
+			yield(ca);
+		}
 	}
 
 	bool TDribbleToRegion::done() const {
@@ -191,7 +211,9 @@ namespace {
 	}
 
 	void TDribbleToRegion::execute(caller_t& ca) {
-		Action::dribble(ca, world, player(), region.center_position());
+		while(true) {
+			Action::dribble(ca, world, player(), region.center_position());
+		}
 	}
 
 	bool TSpinToRegion::done() const {

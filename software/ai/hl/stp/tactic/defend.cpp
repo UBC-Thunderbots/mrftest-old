@@ -216,9 +216,12 @@ namespace {
 	}
 
 	void Defender::execute(caller_t& ca) {
-		Vector2 dest = calc_defend_pos(index);
+		while(true) {
+			Vector2 dest = calc_defend_pos(index);
 
-		Action::defender_move(ca, world, player(), dest, active_baller);
+			Action::defender_move(ca, world, player(), dest, active_baller);
+			yield(ca);
+		}
 	}
 
 	Vector2 Defender::calc_defend_pos(unsigned index) const {

@@ -40,29 +40,33 @@ namespace {
 	}
 
 	void PenaltyGoalieNew::execute(caller_t& ca) {
-		double goalie_range = 0.5 * (world.field().friendly_goal_boundary().second - world.field().friendly_goal_boundary().first).y - Robot::MAX_RADIUS - 0.10;
+		while(true) {
+			double goalie_range = 0.5 * (world.field().friendly_goal_boundary().second - world.field().friendly_goal_boundary().first).y - Robot::MAX_RADIUS - 0.10;
 
-		double best_distance = 99; //to determine which robot is shooting
+			double best_distance = 99; //to determine which robot is shooting
 
-		if(world.enemy_team().size() < 1)
-			return;
+			if(world.enemy_team().size() < 1)
+				return;
 
-		for(auto i : world.enemy_team()) {
-			if((i.position() - world.ball().position()).len() < best_distance) {
-				shooter = i;
-				best_distance = (shooter.position() - world.ball().position()).len();
-				predicted = shooter.position() + shooter.velocity() * 0.05;
+			for(auto i : world.enemy_team()) {
+				if((i.position() - world.ball().position()).len() < best_distance) {
+					shooter = i;
+					best_distance = (shooter.position() - world.ball().position()).len();
+					predicted = shooter.position() + shooter.velocity() * 0.05;
+				}
 			}
-		}
 
-		AI::HL::STP::Action::move(ca, world, player(), clip_point(line_intersect(world.field().friendly_goal_boundary().first, 
-			world.field().friendly_goal_boundary().second, world.ball().position(), predicted), 
-			world.field().friendly_goal_boundary().first + Point(0, goalie_range), 
-			world.field().friendly_goal_boundary().second - Point(0.00001, goalie_range)) + Point(Robot::MAX_RADIUS, 0),
-			 (world.ball().position() - player().position()).orientation());
 
-		if (player().has_ball()) {
-			AI::HL::STP::Action::goalie_chip_target(ca, world, player(), world.field().enemy_goal());
+			if (player().has_ball()) {
+				AI::HL::STP::Action::goalie_chip_target(ca, world, player(), world.field().enemy_goal());
+			}else {
+				AI::HL::STP::Action::move(ca, world, player(), clip_point(line_intersect(world.field().friendly_goal_boundary().first,
+					world.field().friendly_goal_boundary().second, world.ball().position(), predicted),
+					world.field().friendly_goal_boundary().first + Point(0, goalie_range),
+					world.field().friendly_goal_boundary().second - Point(0.00001, goalie_range)) + Point(Robot::MAX_RADIUS, 0),
+					 (world.ball().position() - player().position()).orientation());
+			}
+			yield(ca);
 		}
 	}
 

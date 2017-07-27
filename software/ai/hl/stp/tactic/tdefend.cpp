@@ -61,11 +61,14 @@ namespace {
 	};
 
 	void TGoalie::execute(caller_t& ca) {
-		// Point dirToGoal = (world.field().friendly_goal() - world.ball().position()).norm();
-		// Point target = world.field().friendly_goal() - (2 * Robot::MAX_RADIUS * dirToGoal);
+		while(true) {
+			// Point dirToGoal = (world.field().friendly_goal() - world.ball().position()).norm();
+			// Point target = world.field().friendly_goal() - (2 * Robot::MAX_RADIUS * dirToGoal);
 
-		// Action::goalie_move(world, player, target);
-		Action::lone_goalie(ca, world, player());
+			// Action::goalie_move(world, player, target);
+			Action::lone_goalie(ca, world, player());
+			yield(ca);
+		}
 	}
 
 	Player TDefender::select(const std::set<Player> &players) const {
@@ -107,21 +110,23 @@ namespace {
 }
 
 void TDefendLine::execute(caller_t& ca) {
+	while(true) {
+		Point ball = world.ball().position();
 
-	Point ball = world.ball().position();
+		Point target, velocity;
+		Angle angle;
+		// defend_duo_defender
+		Point v[2] = { p1.position(), p2.position() };
+		velocity = Point(0, 0);
 
-	Point target, velocity;
-	Angle angle;
-	// defend_duo_defender
-	Point v[2] = { p1.position(), p2.position() };
-	velocity = Point(0, 0);
+		//Point mypos = player.position();
 
-	//Point mypos = player.position();
+		target = Evaluation::evaluate_tdefense_line(world, v[0], v[1], dist_min, dist_max);
 
-	target = Evaluation::evaluate_tdefense_line(world, v[0], v[1], dist_min, dist_max);
-
-	// Angle
-	angle = (ball - target).orientation();
+		// Angle
+		angle = (ball - target).orientation();
+		Action::move(ca, world, player(), target, angle);
+	}
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::tgoalie(World world, const size_t defender_role) {

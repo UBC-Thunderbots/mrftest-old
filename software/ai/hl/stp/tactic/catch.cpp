@@ -33,7 +33,10 @@ namespace {
 	}
 
 	void CatchBall::execute(caller_t& ca) {
-		AI::HL::STP::Action::catch_ball(ca, world, player(), world.field().enemy_goal());
+		while(true) {
+			AI::HL::STP::Action::catch_ball(ca, world, player(), world.field().enemy_goal());
+			yield(ca);
+		}
 	}
 }
 

@@ -47,15 +47,19 @@ namespace {
 	}
 
 	void BlockGoal::execute(caller_t& ca) {
-		if (!enemy->evaluate()) {
-			Action::stop(ca, world, player());
-//			player.dribble_stop();
-			return;
+		while(true) {
+			if (!enemy->evaluate()) {
+				Action::stop(ca, world, player());
+				yield(ca);
+				continue;
+	//			player.dribble_stop();
+			}
+			AI::HL::STP::Action::block_goal(ca, world, player(), enemy->evaluate());
+			Point dirToGoal = (world.field().friendly_goal() - player().position().norm());
+			Point target = player().position() + (AI::HL::STP::Action::block_threshold * Robot::MAX_RADIUS * dirToGoal);
+			Action::move(ca, world, player(), target);
+			yield(ca);
 		}
-		AI::HL::STP::Action::block_goal(ca, world, player(), enemy->evaluate());
-		Point dirToGoal = (world.field().friendly_goal() - player().position().norm());
-		Point target = player().position() + (AI::HL::STP::Action::block_threshold * Robot::MAX_RADIUS * dirToGoal);
-		Action::move(ca, world, player(), target);
 	}
 
 	class BlockBall final : public Tactic {
@@ -80,13 +84,17 @@ namespace {
 	}
 
 	void BlockBall::execute(caller_t& ca) {
-		if (!enemy->evaluate()) {
-			Action::stop(ca, world, player());
-			return;
+		while(true) {
+			if (!enemy->evaluate()) {
+				Action::stop(ca, world, player());
+				yield(ca);
+				continue;
+			}
+			Point dirToBall = (world.ball().position() - player().position()).norm();
+			Point target = player().position() + (AI::HL::STP::Action::block_threshold * Robot::MAX_RADIUS * dirToBall);
+			Action::move(ca, world, player(), target);
+			yield(ca);
 		}
-		Point dirToBall = (world.ball().position() - player().position()).norm();
-		Point target = player().position() + (AI::HL::STP::Action::block_threshold * Robot::MAX_RADIUS * dirToBall);
-		Action::move(ca, world, player(), target);
 	}
 }
 

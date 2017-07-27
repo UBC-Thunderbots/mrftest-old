@@ -48,36 +48,38 @@ DoubleParam CHIP_POWER_SCALING(u8"test controls scaling factor of chip power as 
 	}
 
 	void PrepareKick::execute(caller_t& ca) {
+		while(true) {
+			//Action::catch_stopped_ball(ca, world, player());
 
-		//Action::catch_stopped_ball(ca, world, player());
+			Point gp1 = world.field().enemy_goal_boundary().first;
+			Point gp2 = world.field().enemy_goal_boundary().second;
+			Angle total_angle = vertex_angle(gp1 , world.ball().position(), gp2);
+			total_angle = total_angle.angle_mod().abs();
+			Angle shot_angle = Evaluation::get_best_shot_pair(world, player()).second;
+			shot_angle = shot_angle.abs();
 
-		Point gp1 = world.field().enemy_goal_boundary().first;
-		Point gp2 = world.field().enemy_goal_boundary().second;
-		Angle total_angle = vertex_angle(gp1 , world.ball().position(), gp2);
-		total_angle = total_angle.angle_mod().abs();
-		Angle shot_angle = Evaluation::get_best_shot_pair(world, player()).second;
-		shot_angle = shot_angle.abs();
+			if(shot_angle / total_angle > 0.2){//robot has space to shoot
+				Action::shoot_target(ca, world, player(), Evaluation::get_best_shot(world, player()));
+			}else{//robot will try chip instead, should be given new target
+				Point target;
+				double chip_power;
+				if(player().position().x < 0.0) {//in our end. Will aim for centre of enemy net
+					target = world.field().enemy_goal();
+				}
+				else {//in enemy's end. Will aim for best shot at enemy net. Should not consider first blocking player
+					target = Evaluation::indirect_chip_target(world, player()).first;
+				}
 
-		if(shot_angle / total_angle > 0.2){//robot has space to shoot
-			Action::shoot_target(ca, world, player(), Evaluation::get_best_shot(world, player()));
-		}else{//robot will try chip instead, should be given new target
-			Point target;
-			double chip_power;
-			if(player().position().x < 0.0) {//in our end. Will aim for centre of enemy net
-				target = world.field().enemy_goal();
+				//second formula is a temporary modifier, since chipping is not currently accurately calibrated
+				chip_power = (target - world.ball().position()).len() * (CHIP_POWER_SCALING * pow((world.field().enemy_goal() - world.ball().position()).len(), CHIP_POWER_EXP));
+
+				LOGF_INFO(u8"TARGET: %1, POWER: %2", target, chip_power);
+
+
+				//overrideing targeting for now, due to chipping/evaluation not being accurate
+				Action::shoot_target(ca, world, player(), world.field().enemy_goal(), chip_power, true);
 			}
-			else {//in enemy's end. Will aim for best shot at enemy net. Should not consider first blocking player
-				target = Evaluation::indirect_chip_target(world, player()).first;
-			}
-
-			//second formula is a temporary modifier, since chipping is not currently accurately calibrated
-			chip_power = (target - world.ball().position()).len() * (CHIP_POWER_SCALING * pow((world.field().enemy_goal() - world.ball().position()).len(), CHIP_POWER_EXP));
-
-			LOGF_INFO(u8"TARGET: %1, POWER: %2", target, chip_power);
-
-
-			//overrideing targeting for now, due to chipping/evaluation not being accurate
-			Action::shoot_target(ca, world, player(), world.field().enemy_goal(), chip_power, true);
+			yield(ca);
 		}
 
 	}

@@ -41,12 +41,15 @@ namespace {
 	}
 
 	void DefensiveChip::execute(caller_t& ca) {
-		std::vector<Point> obstacles;
-		Point target;
+		while(true) {
+			std::vector<Point> obstacles;
+			Point target;
 
-		target = Evaluation::indirect_chipandchase_target(world).first;
-		double chip_power = (target - world.ball().position()).len();
-		AI::HL::STP::Action::catch_and_shoot_target(ca, world, player(), target, chip_power, true);
+			target = Evaluation::indirect_chipandchase_target(world).first;
+			double chip_power = (target - world.ball().position()).len();
+			AI::HL::STP::Action::catch_and_shoot_target(ca, world, player(), target, chip_power, true);
+			yield(ca);
+		}
 	}
 }
 
