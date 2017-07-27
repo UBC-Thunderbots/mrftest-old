@@ -28,7 +28,7 @@ void AI::HL::STP::Action::lone_goalie(caller_t& ca, World world, Player player) 
 	// If enemy is in our defense area, go touch them so we get penalty kick
 		if(AI::HL::Util::point_in_friendly_defense(world.field() , i.position())) {
 			player.avoid_distance(AI::Flags::AvoidDistance::SHORT);
-			Action::move(ca, world, player, i.position());
+			player.move_move(i.position());
 			return;
 		}
 	}

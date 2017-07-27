@@ -46,14 +46,8 @@ namespace {
 			}
 	};
 
- //Seung-testing
-//	Player MoveTestOrientation::select(const std::set<Player> &players) const {
-//		Player p = *(players.begin());
-//		return p;
-
-
-//Define Class player
-//Compare the distance from the 'dest' and return the the player who has the shortest distance
+	//Define Class player
+	//Compare the distance from the 'dest' and return the the player who has the shortest distance
 	Player BlockShotPath::select(const std::set<Player> &players) const {
 	  Point dest;
 	  if(destinations.size() > index){
@@ -78,10 +72,10 @@ namespace {
 				}
 			}
 
-			//Enemy_threats ranks the enemy robots that are closer to the enemy baller.
+			// Enemy_threats ranks the enemy robots that are closer to the enemy baller.
 			std::vector<Robot> enemy_threats = AI::HL::STP::Evaluation::rank_enemy_passee_risk(world, obstacles, future_block_time);
 
-			//Enemy_theats.size() is always 5.
+			// Enemy_theats.size() is always 5.
 			// If enemy_threats.size is smaller than index. all enemy_to_ is just becomeing the point (0.0)
 			if (enemy_threats.size() > index) {
 				enemy_to_block = enemy_threats[index] ? enemy_threats[index].position(future_block_time) : Point();
@@ -96,7 +90,7 @@ namespace {
 
 
 			std::pair<Point, Angle> risk_zone = angle_sweep_circles(enemy_to_block, goal_side, goal_opp, obstacles , Robot::MAX_RADIUS);
-			//Angle ang = risk_zone.second * 1;
+			// Angle ang = risk_zone.second * 1;
 
 			Point destination = enemy_to_block + 0.35*(risk_zone.first - enemy_to_block).norm();
 

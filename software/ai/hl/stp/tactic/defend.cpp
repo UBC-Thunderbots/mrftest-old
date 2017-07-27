@@ -103,33 +103,38 @@ namespace {
 	}
 
 	void Goalie2::execute(caller_t& ca) {
-		for (auto i : world.enemy_team()) {
-		// If enemy is in our defense area, go touch them so we get penalty kick
-			if(AI::HL::Util::point_in_friendly_defense(world.field() , i.position())) {
-				player().avoid_distance(AI::Flags::AvoidDistance::SHORT);
-				Action::goalie_move(ca, world, player(), i.position());
-				return;
+		while(true) {
+			for (auto i : world.enemy_team()) {
+			// If enemy is in our defense area, go touch them so we get penalty kick
+				if(AI::HL::Util::point_in_friendly_defense(world.field() , i.position())) {
+					player().avoid_distance(AI::Flags::AvoidDistance::SHORT);
+					Action::goalie_move(ca, world, player(), i.position());
+					return;
+				}
 			}
+
+			if (tdefend_goalie) {
+				Vector2 dirToGoal = (world.field().friendly_goal() - world.ball().position()).norm();
+				Vector2 dest = world.field().friendly_goal() - (2 * Robot::MAX_RADIUS * dirToGoal);
+				Action::goalie_move(ca, world, player(), dest);
+			} else if (dangerous(world, player())){
+				AI::HL::STP::Action::lone_goalie(ca, world, player());
+			} else if (world.friendly_team().size() > defender_role + 1) {
+				// has defender
+				// auto waypoints = Evaluation::evaluate_defense();
+				// Action::goalie_move(world, player, waypoints[0]);
+				const Field &field = world.field();
+				const Point goal_side = Point(-field.length() / 2, field.goal_width() / 2);
+				const Point goal_opp = Point(-field.length() / 2, -field.goal_width() / 2);
+				Point block_pos = calc_block_cone(goal_side , goal_opp , player().position() , Robot::MAX_RADIUS);
+				Action::goalie_move(ca, world, player(), block_pos);
+			} else {
+				// solo
+				AI::HL::STP::Action::lone_goalie(ca, world, player());
+			}
+			yield(ca);
 		}
-		if (tdefend_goalie) {
-			Vector2 dirToGoal = (world.field().friendly_goal() - world.ball().position()).norm();
-			Vector2 dest = world.field().friendly_goal() - (2 * Robot::MAX_RADIUS * dirToGoal);
-			Action::goalie_move(ca, world, player(), dest);
-		} else if (dangerous(world, player())){
-			AI::HL::STP::Action::lone_goalie(ca, world, player());
-		} else if (world.friendly_team().size() > defender_role + 1) {
-			// has defender
-			// auto waypoints = Evaluation::evaluate_defense();
-			// Action::goalie_move(world, player, waypoints[0]);
-			const Field &field = world.field();
-			const Point goal_side = Point(-field.length() / 2, field.goal_width() / 2);
-			const Point goal_opp = Point(-field.length() / 2, -field.goal_width() / 2);
-			Point block_pos = calc_block_cone(goal_side , goal_opp , player().position() , Robot::MAX_RADIUS);
-			Action::goalie_move(ca, world, player(), block_pos);
-		} else {
-			// solo
-			AI::HL::STP::Action::lone_goalie(ca, world, player());
-		}
+
 	}
 
 
