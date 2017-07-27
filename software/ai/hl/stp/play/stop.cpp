@@ -4,7 +4,7 @@
 #include "ai/hl/stp/tactic/shoot.h"
 #include "ai/hl/stp/tactic/move.h"
 #include "ai/hl/stp/tactic/move_stop.h"
-#include "ai/hl/stp/tactic/block_shot_path.h"
+#include "ai/hl/stp/tactic/block_shot_stop.h"
 
 
 BEGIN_DEC(Stop)
@@ -20,8 +20,8 @@ tactics[0] = Tactic::move(world, Point(world.field().friendly_goal().x + 0.1, 0)
 tactics[1] = Tactic::move_stop(world, 0);
 tactics[2] = Tactic::move_stop(world, 1);
 tactics[3] = Tactic::move_stop(world, 2);
-tactics[4] = Tactic::block_shot_path(world, 0);
-tactics[5] = Tactic::block_shot_path(world, 1);
+tactics[4] = Tactic::block_shot_stop(world);
+tactics[5] = Tactic::block_shot_stop(world);
 
 while (1) yield(caller);
 END_DEF(Stop)
