@@ -3,6 +3,7 @@
 #include "ai/hl/stp/tactic/free_kick_to_goal.h"
 #include "ai/hl/stp/tactic/shoot.h"
 #include "ai/hl/stp/tactic/offend.h"
+#include "ai/hl/stp/tactic/defend_solo.h"
 
 BEGIN_DEC(FreeKickFriendly)
 INVARIANT(playtype(world, PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) || playtype(world, PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY))
@@ -13,7 +14,7 @@ BEGIN_DEF(FreeKickFriendly)
 DONE(false)
 FAIL(false)
 EXECUTE()
-tactics[0] = Tactic::goalie_dynamic(world, 1);
+tactics[0] = Tactic::lone_goalie(world);
 tactics[1] = Tactic::free_kick_to_goal(world);
 tactics[2] = Tactic::defend_duo_defender(world);
 tactics[3] = Tactic::offend(world);

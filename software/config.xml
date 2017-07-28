@@ -69,7 +69,7 @@
             </category>
             <category name="Goalie">
               <double name="Distance the goalie should repel the ball in robot radius">4.000</double>
-              <double name="Lone Goalie: distance to goal post (m)">0.300</double>
+              <double name="Lone Goalie: distance to goal post (m)">0.500</double>
             </category>
             <category name="move_spinl">
               <double name="Multiplyer that changes the rotational speed during move_spin">1.500</double>
@@ -156,7 +156,7 @@
           </category>
           <category name="Play">
             <category name="Enable">
-              <boolean name="BallPlacement">true</boolean>
+              <boolean name="BallPlacement">false</boolean>
               <boolean name="BasicDefense">true</boolean>
               <boolean name="BasicOffense">true</boolean>
               <boolean name="BlockShotPath">false</boolean>
@@ -164,15 +164,15 @@
               <boolean name="FranticDefense">true</boolean>
               <boolean name="FreeKickEnemy">true</boolean>
               <boolean name="FreeKickFriendly">true</boolean>
-              <boolean name="GrabBallDefensive">true</boolean>
-              <boolean name="GrabBallOffensive">true</boolean>
+              <boolean name="GrabBallDefensive">false</boolean>
+              <boolean name="GrabBallOffensive">false</boolean>
               <boolean name="Idle">false</boolean>
               <boolean name="Intercept_v2_test">false</boolean>
               <boolean name="JustCShoot">false</boolean>
               <boolean name="JustShoot">true</boolean>
               <boolean name="KickoffEnemy">true</boolean>
               <boolean name="KickoffFriendly">true</boolean>
-              <boolean name="OffensiveBlock">true</boolean>
+              <boolean name="OffensiveBlock">false</boolean>
               <boolean name="PenaltyEnemy">true</boolean>
               <boolean name="PenaltyFriendly">true</boolean>
               <boolean name="Shoot">false</boolean>

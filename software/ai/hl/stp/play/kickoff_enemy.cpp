@@ -5,6 +5,7 @@
 #include "ai/hl/stp/tactic/shadow_kickoff.h"
 #include "ai/hl/stp/tactic/move.h"
 #include "ai/hl/stp/tactic/shoot.h"
+#include "ai/hl/stp/tactic/defend_solo.h"
 
 namespace {
 	// the distance we want the players to the ball
@@ -29,7 +30,7 @@ BEGIN_DEF(KickoffEnemy)
 DONE(false)
 FAIL(false)
 EXECUTE()
-tactics[0] = Tactic::defend_duo_goalie(world);
+tactics[0] = Tactic::lone_goalie(world);
 tactics[1] = Tactic::defend_duo_defender(world);
 tactics[2] = Tactic::move(world, kicker_position);
 tactics[3] = Tactic::shadow_kickoff(world, Enemy::closest_ball(world, 1), ready_positions[0]);

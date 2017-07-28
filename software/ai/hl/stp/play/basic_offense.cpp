@@ -2,6 +2,7 @@
 #include "ai/hl/stp/tactic/defend.h"
 #include "ai/hl/stp/tactic/shoot.h"
 #include "ai/hl/stp/tactic/offend.h"
+#include "ai/hl/stp/tactic/defend_solo.h"
 
 BEGIN_DEC(BasicOffense)
 INVARIANT(playtype(world, PlayType::PLAY))
@@ -12,7 +13,7 @@ BEGIN_DEF(BasicOffense)
 DONE(false)
 FAIL(false)
 EXECUTE()
-tactics[0] = Tactic::defend_duo_goalie(world);
+tactics[0] = Tactic::lone_goalie(world);
 tactics[1] = Tactic::shoot_goal(world);
 tactics[2] = Tactic::offend(world);
 tactics[3] = Tactic::offend_secondary(world);

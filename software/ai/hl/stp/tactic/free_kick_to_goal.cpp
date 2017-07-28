@@ -81,7 +81,7 @@ DoubleParam chip_power(u8"chipping power level", "AI/HL/STP/Tactic/free_kick_to_
 			//player can see at least 15% of the net (not including close enemies). Will chip at net
 			else /*(Evaluation::indirect_chip_target(world, player()).second / total_angle > 0.15)*/ {
 				Point target = Evaluation::indirect_chip_target(world, player()).first;
-				double chip_power = (target - world.ball().position()).len() * 0.75;
+				double chip_power = (target - world.ball().position()).len() * 0.5;
 				Action::shoot_target(ca, world, player(), target, chip_power, true);
 				//LOGF_INFO(u8"TARGET: %1, POWER: %2, TYPE: %3", target, chip_power, "chip at net");
 			}

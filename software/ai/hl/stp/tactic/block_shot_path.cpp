@@ -4,6 +4,7 @@
 #include "ai/util.h"
 #include "ai/hl/stp/action/move.h"
 #include "ai/hl/stp/evaluation/defense.h"
+#include "ai/hl/stp/action/move.h"
 #include "geom/util.h"
 #include "ai/hl/stp/evaluation/enemy.h"
 #include "ai/hl/stp/play/play.h"
@@ -111,7 +112,7 @@ namespace {
 			}
 
 			//original_pos = player().position();
-			player().move_move(destination, (destination - player().position()).orientation());
+			Action::move(ca, world, player(), destination, (destination - player().position()).orientation());
 
 			yield(ca);
 		}

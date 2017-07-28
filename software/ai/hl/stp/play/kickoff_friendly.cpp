@@ -4,6 +4,7 @@
 #include "ai/hl/stp/tactic/move.h"
 #include "ai/hl/stp/tactic/shoot.h"
 #include "ai/hl/stp/tactic/free_kick_to_goal.h"
+#include "ai/hl/stp/tactic/defend_solo.h"
 
 using namespace AI::HL::W;
 namespace Predicates = AI::HL::STP::Predicates;
@@ -29,7 +30,7 @@ BEGIN_DEF(KickoffFriendly)
 DONE(false)
 FAIL(false)
 EXECUTE()
-tactics[0] = Tactic::goalie_dynamic(world, 1);
+tactics[0] = Tactic::lone_goalie(world);
 tactics[1] = Tactic::move(world, kicker_position);
 tactics[2] = Tactic::defend_duo_defender(world, true);
 tactics[3] = Tactic::move(world, ready_positions[0]);

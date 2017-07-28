@@ -5,6 +5,7 @@
 #include "ai/hl/stp/tactic/block.h"
 #include "ai/hl/stp/tactic/shadow_enemy.h"
 #include "ai/hl/stp/tactic/block_shot_path.h"
+#include "ai/hl/stp/tactic/defend_solo.h"
 
 BEGIN_DEC(BlockShotPath)
 INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 2))
@@ -15,7 +16,7 @@ BEGIN_DEF(BlockShotPath)
 DONE(our_ball(world))
 FAIL(their_ball(world))
 EXECUTE()
-tactics[0] = Tactic::goalie_dynamic(world, 1);
+tactics[0] = Tactic::lone_goalie(world);
 tactics[1] = Tactic::tactive_def(world);
 tactics[2] = Tactic::defend_duo_defender(world);
 tactics[3] = Tactic::block_shot_path(world, 0);
