@@ -464,6 +464,8 @@ software/ai/hl/stp/tactic/defensive_chip.cpp -text
 software/ai/hl/stp/tactic/defensive_chip.h -text
 software/ai/hl/stp/tactic/free_kick_to_goal.cpp -text
 software/ai/hl/stp/tactic/free_kick_to_goal.h -text
+software/ai/hl/stp/tactic/goal_line_defense.cpp -text
+software/ai/hl/stp/tactic/goal_line_defense.h -text
 software/ai/hl/stp/tactic/idle.cpp -text
 software/ai/hl/stp/tactic/idle.h -text
 software/ai/hl/stp/tactic/intercept.cpp -text
