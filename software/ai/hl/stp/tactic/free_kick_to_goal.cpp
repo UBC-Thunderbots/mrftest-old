@@ -53,25 +53,29 @@ namespace {
 				//LOGF_INFO(u8"TARGET: %1, POWER: %2, TYPE: %3", "net", "max", "shot on goal");
 			}
 			//player can see at least 15% of the net (not including close enemies). Will chip at net
-			else if(Evaluation::indirect_chip_target(world, player()).second / total_angle > 0.15) {
+			else /*(Evaluation::indirect_chip_target(world, player()).second / total_angle > 0.15)*/ {
 				Point target = Evaluation::indirect_chip_target(world, player()).first;
-				double chip_power = (target - world.ball().position()).len();
+				double chip_power = (target - world.ball().position()).len() * 0.75;
 				Action::shoot_target(ca, world, player(), target, chip_power, true);
 				//LOGF_INFO(u8"TARGET: %1, POWER: %2, TYPE: %3", target, chip_power, "chip at net");
 			}
-			// If there is enough space to chip and chase, try chip and chase
-			else if(Evaluation::indirect_chipandchase_target(world).second == true) {
-				Point target = Evaluation::indirect_chipandchase_target(world).first;
-				double chip_power = (target - world.ball().position()).len();
-				Action::shoot_target(ca, world, player(), target, chip_power, true);
-				//LOGF_INFO(u8"TARGET: %1, POWER: %2, TYPE: %3", target, chip_power, "chip and chase");
-			}
-			// Try to ricochet the ball off an enemy to get another kick
-			else {
-				Point target = Evaluation::deflect_off_enemy_target(world);
-				Action::shoot_target(ca, world, player(), target);
-				//LOGF_INFO(u8"TARGET: %1, POWER: %2, TYPE: %3", target, "MAX", "shank shot");
-			}
+
+			# warning uncomment this later. We should have slightly different logic for free kick vs kickoff
+
+//			// If there is enough space to chip and chase, try chip and chase
+//			else if(Evaluation::indirect_chipandchase_target(world).second == true) {
+//				Point target = Evaluation::indirect_chipandchase_target(world).first;
+//				# warning the constant to reduce chip dist is a quick robocup hack. Should rather change evaluation of where to chip or the calibration
+//				double chip_power = (target - world.ball().position()).len() * 0.8;
+//				Action::shoot_target(ca, world, player(), target, chip_power, true);
+//				//LOGF_INFO(u8"TARGET: %1, POWER: %2, TYPE: %3", target, chip_power, "chip and chase");
+//			}
+//			// Try to ricochet the ball off an enemy to get another kick
+//			else {
+//				Point target = Evaluation::deflect_off_enemy_target(world);
+//				Action::shoot_target(ca, world, player(), target);
+//				//LOGF_INFO(u8"TARGET: %1, POWER: %2, TYPE: %3", target, "MAX", "shank shot");
+//			}
 			yield(ca);
 		}
 	}

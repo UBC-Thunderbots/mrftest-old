@@ -14,44 +14,78 @@
 #include "util/param.h"
 
 using namespace AI::HL::STP;
+using namespace Geom;
 using AI::HL::STP::Evaluation::BallThreat;
 
 namespace {
 	const double FAST = 100.0;
-	DoubleParam lone_goalie_dist(u8"Lone Goalie: distance to goal post (m)", u8"AI/HL/STP/Action/Goalie", 0.30, 0.05, 1.0);
+	DoubleParam lone_goalie_dist(u8"Lone Goalie: distance to goal post (m)", u8"AI/HL/STP/Action/Goalie", 0.5, 0.05, 1.0);
 	DoubleParam goalie_repel_dist(u8"Distance the goalie should repel the ball in robot radius", u8"AI/HL/STP/Action/Goalie", 4.0, 1.0, 6.0);
 }
 
 //goalie moves in the direction towards the ball within the lone_goalie_dist from the goal post
 void AI::HL::STP::Action::lone_goalie(caller_t& ca, World world, Player player) {
-	for (auto i : world.enemy_team()) {
-	// If enemy is in our defense area, go touch them so we get penalty kick
-		if(AI::HL::Util::point_in_friendly_defense(world.field() , i.position())) {
-			player.avoid_distance(AI::Flags::AvoidDistance::SHORT);
-			player.move_move(i.position());
-			return;
-		}
-	}
+//	for (auto i : world.enemy_team()) {
+//	// If enemy is in our defense area, go touch them so we get penalty kick
+//		if(AI::HL::Util::point_in_friendly_defense(world.field() , i.position())) {
+//			player.avoid_distance(AI::Flags::AvoidDistance::SHORT);
+//			player.move_move(i.position());
+//			return;
+//		}
+//	}
 	// Patrol
 	//const Point default_pos = Point(-0.45 * world.field().length(), 0);
-	const Point centre_of_goal = world.field().friendly_goal();
-	Point target = world.ball().position() - centre_of_goal;
+//	const Point centre_of_goal = world.field().friendly_goal();
+//	Point target = world.ball().position() - centre_of_goal;
+//
+//	double lone_goalie_dist2 = (world.field().friendly_goal_boundary().first - world.field().friendly_goal_boundary().second).len() / 2 + 0.05;
+//
+//	target = target.norm() * lone_goalie_dist2;
+//	target += centre_of_goal;
+//	if (target.x < world.field().friendly_goal().x + Robot::MAX_RADIUS) {
+//		// avoid going inside the goal
+//		target.x = world.field().friendly_goal().x + Robot::MAX_RADIUS;
+//	}
+//
+//	double r = world.field().defense_area_radius() + world.field().defense_area_stretch() / 2;
+//	// prevents goalie from chasing ball too far??
+//	if ((target - centre_of_goal).len() > r) {
+//		target = centre_of_goal + (target - centre_of_goal).norm() * r;
+//	}
+//	goalie_move(ca, world, player, target);
 
-	double lone_goalie_dist2 = (world.field().friendly_goal_boundary().first - world.field().friendly_goal_boundary().second).len() / 2 + 0.05;
+//	Circle circle = Circle(Point(world.field().friendly_goal() + Point(-1, 0)), lone_goalie_dist);
+	Circle circle = Circle(Point(world.field().friendly_goal()), lone_goalie_dist);
+	Point centerOfGoal = world.field().friendly_goal();
+	Point targetDir = world.ball().position() - centerOfGoal;
+	std::vector<Point> targets = line_circle_intersect(circle.origin, circle.radius, centerOfGoal, world.ball().position());
 
-	target = target.norm() * lone_goalie_dist2;
-	target += centre_of_goal;
-	if (target.x < world.field().friendly_goal().x + Robot::MAX_RADIUS) {
+	Point target;
+	if(targets.empty() || targets.size() >= 2) {
+		LOG_INFO("EMPTY VECTOR");
+		target = centerOfGoal + targetDir.norm(lone_goalie_dist);
+	}else {
+		target = targets[0];
+	}
+
+	if (target.x < world.field().friendly_goal().x + Robot::MAX_RADIUS + 0.05) {
 		// avoid going inside the goal
-		target.x = world.field().friendly_goal().x + Robot::MAX_RADIUS;
+		target.x = world.field().friendly_goal().x + Robot::MAX_RADIUS + 0.05;
 	}
 
-	double r = world.field().defense_area_radius() + world.field().defense_area_stretch() / 2;
-	// prevents goalie from chasing ball too far??
-	if ((target - centre_of_goal).len() > r) {
-		target = centre_of_goal + (target - centre_of_goal).norm() * r;
-	}
-	goalie_move(ca, world, player, target);
+	player.display_path(std::vector<Point> {target});
+//	Point target = centerOfGoal + targetDir.norm(lone_goalie_dist);
+
+//	if(dist(Seg(world.field().friendly_goal_boundary().first, world.field().friendly_goal_boundary().second), target) < lone_goalie_dist) {
+//		target = target * (lone_goalie_dist / std::fabs(target.x - centerOfGoal.x));
+//	}
+
+//	if (target.x < world.field().friendly_goal().x) {
+//		// avoid going inside the goal
+//		target = target * (Robot::MAX_RADIUS * 2 / std::fabs(target.x - centerOfGoal.x));
+//	}
+
+	player.move_move(target, targetDir.orientation(), 0);
 }
 
 void AI::HL::STP::Action::goalie_move(caller_t& ca, World world, Player player, Point dest) {

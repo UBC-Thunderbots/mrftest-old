@@ -16,7 +16,7 @@ BEGIN_DEF(TriAttackDef)
 DONE(offensive(world))
 FAIL(ball_in_our_corner(world))
 EXECUTE()
-tactics[0] = Tactic::defend_duo_goalie(world);
+tactics[0] = Tactic::lone_goalie(world);
 tactics[1] = Tactic::tactive_def(world);
 tactics[2] = Tactic::defend_duo_defender(world);
 tactics[3] = Tactic::tdefend_line(world, Coordinate(world, Point(-1.1, 0.25), Coordinate::YType::BALL, Coordinate::OriginType::BALL), Coordinate(world, Point(-0.7, 0.25), Coordinate::YType::BALL, Coordinate::OriginType::BALL), 0, 1.5);
