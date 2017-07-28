@@ -518,6 +518,7 @@ Vector2 clip_point(const Vector2 &p, const Rect &r) {
 	return ret;
 }
 
+# warning does this work? unit test
 std::vector<Vector2> line_circle_intersect(const Vector2 &centre, double radius, const Vector2 &segA, const Vector2 &segB) {
 	std::vector<Vector2> ans;
 
@@ -647,16 +648,54 @@ bool unique_line_intersect(const Vector2 &a, const Vector2 &b, const Vector2 &c,
 	return std::abs((d - c).cross(b - a)) > EPS;
 }
 
+std::vector<Point> line_intersect(const Geom::Seg &a, const Geom::Seg &b) {
+	if(std::abs((b.end - b.start).cross(a.end - a.start)) < EPS){
+		LOG_WARN(u8"Cross product problem again in new function");
+		return std::vector<Point>();
+	}
+
+	return std::vector<Point> {a.start + (a.start - b.start).cross(b.end - b.start) / (b.end - b.start).cross(a.end - a.start) * (a.end - a.start)};
+}
+
 // ported code
 Vector2 line_intersect(const Vector2 &a, const Vector2 &b, const Vector2 &c, const Vector2 &d) {
 	//TODO figure out why this is asserting
 	//assert(std::abs((d - c).cross(b - a)) > EPS);
-    if(std::abs((d - c).cross(b - a)) < EPS){ 
-        LOG_WARN(u8"Cross product problem again"); 
+    if(std::abs((d - c).cross(b - a)) < EPS){
+        LOG_WARN(u8"Cross product problem again");
     }
 
 	return a + (a - c).cross(d - c) / (d - c).cross(b - a) * (b - a);
+
+//	// testing new code from http://flassari.is/2008/11/line-line-intersection-in-cplusplus/
+//	// Store the values for fast access and easy
+//	// equations-to-code conversion
+//	float x1 = a.x, x2 = b.x, x3 = c.x, x4 = d.x;
+//	float y1 = a.y, y2 = b.y, y3 = c.y, y4 = d.y;
+//
+//	float dd = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+//	// If d is zero, there is no intersection
+//	if (d == 0) return std::vector<Point>();
+//
+//	// Get the x and y
+//	float pre = (x1*y2 - y1*x2), post = (x3*y4 - y3*x4);
+//	float x = ( pre * (x3 - x4) - (x1 - x2) * post ) / dd;
+//	float y = ( pre * (y3 - y4) - (y1 - y2) * post ) / dd;
+//
+//	// Check if the x and y coordinates are within both lines
+//	if ( x < std::min(x1, x2) || x > std::max(x1, x2) ||
+//	x < std::min(x3, x4) || x > std::max(x3, x4) ) return NULL;
+//	if ( y < std::min(y1, y2) || y > std::max(y1, y2) ||
+//	y < std::min(y3, y4) || y > std::max(y3, y4) ) return NULL;
+//
+//	// Return the point of intersection
+//	Point* ret = new Point();
+//	ret->x = x;
+//	ret->y = y;
+//	return ret;
 }
+
+# warning a line intersect that takes segments would be nice
 
 Vector2 reflect(const Vector2 &v, const Vector2 &n) {
 	if (n.len() < EPS) {

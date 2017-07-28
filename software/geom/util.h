@@ -300,6 +300,8 @@ bool unique_line_intersect(const Point &a, const Point &b, const Point &c, const
  */
 Point line_intersect(const Point &a, const Point &b, const Point &c, const Point &d);
 
+std::vector<Point> line_intersect(const Geom::Seg &a, const Geom::Seg &b);
+
 /**
  * Reflects a ray incident on origin given the normal of the reflecting plane.
  *
