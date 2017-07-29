@@ -3,11 +3,14 @@
 #include "ai/hl/stp/action/move.h"
 #include "ai/common/robot.h"
 #include "ai/hl/util.h"
+#include "util/param.h"
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 
 namespace {
+	DoubleParam dist_from_goal_factor(u8"goal line defense dist from goal factor", u8"AI/HL/STP/Action/defend", 1.25, 0.0, 8.0);
+
 	class GoalLineDefense final : public Tactic {
 		public:
   	  explicit GoalLineDefense(World world, std::string position) : Tactic(world), position(position){
@@ -26,6 +29,7 @@ namespace {
 			}
 	};
 
+	# warning improve player select functions in general. Look at hungarian again?
 	Player GoalLineDefense::select(const std::set<Player> &players) const{
   	return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(getDefendPoint()));
 	}
@@ -35,8 +39,7 @@ namespace {
 		Point base = position == "bottom" ? world.field().friendly_goal_boundary().first :
 			world.field().friendly_goal_boundary().second;
 		ball_goal_traj = base - world.ball().position();
-		const double dist_from_goal_factor = 1.25;
-	  const double goal_crease_radius = world.field().defense_area_radius() + world.field().defense_area_stretch() / 2;
+		const double goal_crease_radius = world.field().defense_area_radius() + world.field().defense_area_stretch() / 2;
 		Point goal_boundary_trag = - ball_goal_traj.norm(dist_from_goal_factor * goal_crease_radius);
 		const double friendly_outline_boundry = -world.field().length() / 2;
 
