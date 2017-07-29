@@ -22,7 +22,7 @@ namespace {
 	DoubleParam lone_goalie_dist(u8"Lone Goalie: distance to goal post (m)", u8"AI/HL/STP/Action/Goalie", 0.5, 0.05, 1.0);
 	DoubleParam goalie_repel_dist(u8"Distance the goalie should repel the ball in robot radius", u8"AI/HL/STP/Action/Goalie", 4.0, 1.0, 6.0);
 	DoubleParam goalieChipPower(u8"How far the goalie chips when it clears the ball", u8"AI/HL/STP/Action/Goalie", 1.5, 0.0, 6.0);
-	DoubleParam ballVelocityThreshold(u8"How slow the ball must be to kick it away", u8"AI/HL/STP/Action/Goalie", 0.05, 0.0, 8.0);
+	DoubleParam ballVelocityThreshold(u8"How slow the ball must be to kick it away", u8"AI/HL/STP/Action/Goalie", 0.15, 0.0, 8.0);
 }
 
 //goalie moves in the direction towards the ball within the lone_goalie_dist from the goal post
@@ -49,9 +49,11 @@ void AI::HL::STP::Action::lone_goalie(caller_t& ca, World world, Player player) 
 //	player.display_path(std::vector<Point> {target});
 //	player.move_move(target, targetDir.orientation(), 0);
 
+	bool ballInFrontOfRobots = world.ball().position().x > player.position().x + 0.03;
+
 	LOGF_INFO(u8"ball vel: %1", world.ball().velocity().len());
 	if(dist(world.ball().position(), Seg(world.field().friendly_goal_boundary().first, world.field().friendly_goal_boundary().second)) < world.field().defense_area_radius() &&
-			world.ball().velocity().len() < ballVelocityThreshold && world.ball().position().x > player.position().x + 0.03) {
+			world.ball().velocity().len() < ballVelocityThreshold && ballInFrontOfRobots) {
 		Action::shoot_target(ca, world, player, world.field().enemy_goal(), goalieChipPower, true);
 	}else {
 		Seg goalLine = Seg(world.field().friendly_goal_boundary().first, world.field().friendly_goal_boundary().second);
