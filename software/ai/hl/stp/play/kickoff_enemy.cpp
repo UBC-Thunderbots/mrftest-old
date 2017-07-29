@@ -6,6 +6,7 @@
 #include "ai/hl/stp/tactic/move.h"
 #include "ai/hl/stp/tactic/shoot.h"
 #include "ai/hl/stp/tactic/defend_solo.h"
+#include "ai/hl/stp/tactic/goal_line_defense.h"
 
 namespace {
 	// the distance we want the players to the ball
@@ -32,10 +33,12 @@ FAIL(false)
 EXECUTE()
 tactics[0] = Tactic::lone_goalie(world);
 tactics[1] = Tactic::defend_duo_defender(world);
-tactics[2] = Tactic::move(world, kicker_position);
-tactics[3] = Tactic::shadow_kickoff(world, Enemy::closest_ball(world, 1), ready_positions[0]);
-tactics[4] = Tactic::shadow_kickoff(world, Enemy::closest_ball(world, 2), ready_positions[1]);
-tactics[5] = Tactic::move(world, Point(world.field().friendly_goal().x + world.field().defense_area_radius() + 3*Robot::MAX_RADIUS, 0));
+tactics[2] = Tactic::goal_line_defense_top(world);
+tactics[3] = Tactic::goal_line_defense_bottom(world);
+//tactics[2] = Tactic::move(world, kicker_position);
+tactics[4] = Tactic::shadow_kickoff(world, Enemy::closest_ball(world, 1), ready_positions[0]);
+tactics[5] = Tactic::shadow_kickoff(world, Enemy::closest_ball(world, 2), ready_positions[1]);
+//tactics[5] = Tactic::move(world, Point(world.field().friendly_goal().x + world.field().defense_area_radius() + 3*Robot::MAX_RADIUS, 0));
 
 while (1) yield(caller);
 END_DEF(KickoffEnemy)

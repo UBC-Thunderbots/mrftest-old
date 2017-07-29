@@ -46,17 +46,17 @@ void AI::HL::STP::Action::shoot_goal(caller_t& ca, World world, Player player, b
 
 void AI::HL::STP::Action::shoot_target(caller_t& ca, World world, Player player, Point target, double velocity, bool chip) {
 	AI::Flags::MoveFlags playerFlags = player.flags();
-	player.unset_flags(AI::Flags::MoveFlags::AVOID_BALL_MEDIUM | AI::Flags::MoveFlags::AVOID_BALL_TINY);
-	if (Evaluation::in_shoot_position(world, player, target) && Plan::valid_path(player.position(), target, world, player)) {
+	//player.unset_flags(AI::Flags::MoveFlags::AVOID_BALL_MEDIUM | AI::Flags::MoveFlags::AVOID_BALL_TINY);
+	if (Evaluation::in_shoot_position(world, player, target)) {
 		const Angle orient = (target - world.ball().position()).orientation();
 		player.move_shoot(world.ball().position(), orient, velocity, chip);
 	} else {
 		// Get behind the ball without hitting it
 		// TODO: account for slowly moving ball (fast ball handled by catch)
-		player.set_flags(playerFlags);
+	//	player.set_flags(playerFlags);
 		get_behind_ball(ca, world, player, target);
 	}
-	player.set_flags(playerFlags);
+	//player.set_flags(playerFlags);
 }
 
 void AI::HL::STP::Action::catch_and_shoot_target(caller_t& ca, World world, Player player, Point target, double velocity, bool chip) {

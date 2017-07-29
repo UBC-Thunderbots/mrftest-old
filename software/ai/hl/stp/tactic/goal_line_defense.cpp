@@ -43,10 +43,10 @@ namespace {
 		Point goal_boundary_trag = - ball_goal_traj.norm(dist_from_goal_factor * goal_crease_radius);
 		const double friendly_outline_boundry = -world.field().length() / 2;
 
-		if(ball_goal_traj.len() < goal_crease_radius || ball_goal_traj.x < friendly_outline_boundry) {
-			Point ball_goal_center_traj = world.field().friendly_goal() - world.ball().position();
-			return Point(ball_goal_center_traj.x - goal_crease_radius, ball_goal_center_traj.y + world.field().defense_area_stretch() / 2);
-		}
+	//	if(ball_goal_traj.len() < goal_crease_radius || ball_goal_traj.x < friendly_outline_boundry) {
+	//		Point ball_goal_center_traj = world.field().friendly_goal() - world.ball().position();
+	//		return Point(ball_goal_center_traj.x - goal_crease_radius, ball_goal_center_traj.y + world.field().defense_area_stretch() / 2);
+	//	}
 
 		return base + goal_boundary_trag;
 	}
@@ -64,7 +64,7 @@ namespace {
 	void GoalLineDefense::execute(caller_t& ca) {
 		while(true) {
 			Point defend_point = getDefendPoint();
-		  AI::HL::STP::Action::move(ca, world, player(), defend_point, (-defend_point).orientation());
+		  AI::HL::STP::Action::move(ca, world, player(), defend_point, (world.ball().position() - player().position()).orientation());
 			yield(ca);
 			player().clear_prims();
 		}

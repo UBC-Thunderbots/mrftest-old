@@ -70,7 +70,7 @@
             <category name="Goalie">
               <double name="Distance the goalie should repel the ball in robot radius">4.000</double>
               <double name="How far the goalie chips when it clears the ball">1.500</double>
-              <double name="How slow the ball must be to kick it away">0.15</double>
+              <double name="How slow the ball must be to kick it away">0.05</double>
               <double name="Lone Goalie: distance to goal post (m)">0.500</double>
             </category>
             <category name="move_spinl">
@@ -160,10 +160,11 @@
             <category name="Enable">
               <boolean name="BallPlacement">false</boolean>
               <boolean name="BasicDefense">true</boolean>
-              <boolean name="BasicOffense">true</boolean>
+              <boolean name="BasicOffense">false</boolean>
               <boolean name="BlockShotPath">false</boolean>
               <boolean name="CornerKickEnemy">true</boolean>
-              <boolean name="FranticDefense">true</boolean>
+              <boolean name="DefensiveOffense">true</boolean>
+              <boolean name="FranticDefense">false</boolean>
               <boolean name="FreeKickEnemy">true</boolean>
               <boolean name="FreeKickFriendly">true</boolean>
               <boolean name="GrabBallDefensive">false</boolean>
@@ -171,7 +172,7 @@
               <boolean name="Idle">false</boolean>
               <boolean name="Intercept_v2_test">false</boolean>
               <boolean name="JustCShoot">false</boolean>
-              <boolean name="JustShoot">true</boolean>
+              <boolean name="JustShoot">false</boolean>
               <boolean name="KickoffEnemy">true</boolean>
               <boolean name="KickoffFriendly">true</boolean>
               <boolean name="OffensiveBlock">false</boolean>
@@ -192,6 +193,7 @@
               <integer name="BasicOffense">1023</integer>
               <integer name="BlockShotPath">1023</integer>
               <integer name="CornerKickEnemy">1023</integer>
+              <integer name="DefensiveOffense">1023</integer>
               <integer name="FranticDefense">1023</integer>
               <integer name="FreeKickEnemy">1023</integer>
               <integer name="FreeKickFriendly">1023</integer>
@@ -221,6 +223,7 @@
               <integer name="BasicOffense">5</integer>
               <integer name="BlockShotPath">5</integer>
               <integer name="CornerKickEnemy">5</integer>
+              <integer name="DefensiveOffense">5</integer>
               <integer name="FranticDefense">5</integer>
               <integer name="FreeKickEnemy">5</integer>
               <integer name="FreeKickFriendly">5</integer>
@@ -250,6 +253,7 @@
               <boolean name="BasicOffense">false</boolean>
               <boolean name="BlockShotPath">false</boolean>
               <boolean name="CornerKickEnemy">false</boolean>
+              <boolean name="DefensiveOffense">false</boolean>
               <boolean name="FranticDefense">false</boolean>
               <boolean name="FreeKickEnemy">false</boolean>
               <boolean name="FreeKickFriendly">false</boolean>
@@ -317,7 +321,7 @@
               <boolean name="Whether or not Terence Defense should take the place of normal goalie">true</boolean>
             </category>
             <category name="free_kick_to_goal">
-              <double name="chipping power level">1.00</double>
+              <double name="chipping power level">0.50</double>
             </category>
             <category name="indirect_chip">
               <double name="chip dist bounce threshold">0.750</double>
