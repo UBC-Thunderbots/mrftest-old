@@ -8,7 +8,7 @@
 
 BEGIN_DEC(DefensiveOffense)
 INVARIANT(playtype(world, PlayType::PLAY))
-APPLICABLE(true)
+APPLICABLE(our_ball(world))
 END_DEC(DefensiveOffense)
 
 BEGIN_DEF(DefensiveOffense)
@@ -17,15 +17,10 @@ FAIL(false)
 EXECUTE()
 tactics[0] = Tactic::lone_goalie(world);
 tactics[1] = Tactic::shoot_goal(world);
-//tactics[2] = Tactic::offend(world);
 tactics[2] = Tactic::goal_line_defense_bottom(world);
 tactics[3] = Tactic::goal_line_defense_top(world);
 tactics[4] = Tactic::block_shot_path(world,0, 5.0);
 tactics[5] = Tactic::block_shot_path(world,1, 5.0);
-//tactics[3] = Tactic::offend_secondary(world);
-//tactics[4] = Tactic::defend_duo_defender(world);
-//tactics[5] = Tactic::defend_duo_extra1(world);
-
 
 wait(caller, tactics[1].get());
 END_DEF(DefensiveOffense)
