@@ -24,14 +24,18 @@ namespace STP {
 namespace GradientApproach {
 	std::vector<double> optimizePass(PassInfo::worldSnapshot snapshot, Point start_target, double start_t_delay,double start_shoot_vel, unsigned int max_func_evals)
 		{
-		double alpha = 0.5;
+		double alpha = 0.5; //gradient descent param
 
-		unsigned int num_params = 4;
-		double tiny_step = 0.0000000001;
-		std::vector<double> current_params(num_params,0);
+		unsigned int num_params = 4; //target x, target y, time to pass at, ball velocity
+		double tiny_step = 0.0000000001; // gradient descent small step
+		std::vector<double> current_params(num_params,0); 
 		std::vector<double> test_params(num_params,0);
 		std::vector<double> weights(num_params,0);
 
+		// used to normalize coordinates
+		// gradient descent works much better if the function being optimized is homogenous in direction
+		// for example f = x^2 + y^2 is easier to optimize than f = x^2 + 50*y^2
+		// the weights are used as an attempt to make the ratePass function more homogenous
 		weights[0] = 1;
 		weights[1] = 1;
 		weights[2] = 2;
@@ -155,10 +159,9 @@ std::vector<double> testOptimizePass(PassInfo::worldSnapshot snapshot, Point sta
 
 		while(func_evals <= (max_func_evals - num_params -1)){
 
-			//find derivative of all the params
+			//find (approximate) derivative of all the params
 			grad = approximateGradient( snapshot ,current_params,  tiny_step, current_func_val, num_params, weights);
-			func_evals = func_evals + num_params;
-
+			func_evals = func_evals + num_params; // update the num
 			
 			//step the test params
 			test_params = current_params;
