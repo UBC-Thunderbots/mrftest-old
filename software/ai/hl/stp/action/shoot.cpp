@@ -22,8 +22,8 @@ void get_behind_ball(caller_t& ca, World world, Player player, Point target) {
 	Point behind_ball = world.ball().position() + (world.ball().position() - target).norm(behinddist);
 
 	if (playerproj > -behinddist + 0.10) {
-		Point dest1 = behind_ball + (world.ball().position() - target).norm(0.4).rotate(Angle::quarter());
-		Point dest2 = behind_ball + (world.ball().position() - target).norm(0.4).rotate(-Angle::quarter());
+		Point dest1 = behind_ball + (world.ball().position() - target).norm(0.3).rotate(Angle::quarter());
+		Point dest2 = behind_ball + (world.ball().position() - target).norm(0.3).rotate(-Angle::quarter());
 
 		// Go to the closest position to the player out of the two sideways points from the behind-ball point
 		Point dest = (dest1 - player.position()).lensq() > (dest2 - player.position()).lensq() ? dest2 : dest1;
