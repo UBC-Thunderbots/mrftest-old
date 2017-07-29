@@ -14,6 +14,7 @@ namespace {
 	DoubleParam linear_increment(u8"dribble linear increment", u8"AI/HL/STP/Action/Dribble", 0.05, 0.001, 1);
 }
 
+# warning these should not use the old HL primitives
 void AI::HL::STP::Action::dribble(caller_t& ca, World world, Player player, Point dest) {
 	AI::HL::STP::Action::dribble(ca, world, player, dest, (world.ball().position() - player.position()).orientation());
 }

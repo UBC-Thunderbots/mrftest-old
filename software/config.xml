@@ -69,6 +69,8 @@
             </category>
             <category name="Goalie">
               <double name="Distance the goalie should repel the ball in robot radius">4.000</double>
+              <double name="How far the goalie chips when it clears the ball">1.500</double>
+              <double name="How slow the ball must be to kick it away">0.15</double>
               <double name="Lone Goalie: distance to goal post (m)">0.500</double>
             </category>
             <category name="move_spinl">
@@ -313,6 +315,9 @@
               <boolean name="Whether or not Terence Defense should take the place of normal defender 2">false</boolean>
               <boolean name="Whether or not Terence Defense should take the place of normal defender 3">false</boolean>
               <boolean name="Whether or not Terence Defense should take the place of normal goalie">true</boolean>
+            </category>
+            <category name="free_kick_to_goal">
+              <double name="chipping power level">1.00</double>
             </category>
             <category name="indirect_chip">
               <double name="chip dist bounce threshold">0.750</double>

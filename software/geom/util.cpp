@@ -649,7 +649,7 @@ bool unique_line_intersect(const Vector2 &a, const Vector2 &b, const Vector2 &c,
 }
 
 std::vector<Point> line_intersect(const Geom::Seg &a, const Geom::Seg &b) {
-	if(std::abs((b.end - b.start).cross(a.end - a.start)) < EPS){
+	if(std::fabs((b.end - b.start).cross(a.end - a.start)) < EPS){
 		LOG_WARN(u8"Cross product problem again in new function");
 		return std::vector<Point>();
 	}
@@ -661,7 +661,7 @@ std::vector<Point> line_intersect(const Geom::Seg &a, const Geom::Seg &b) {
 Vector2 line_intersect(const Vector2 &a, const Vector2 &b, const Vector2 &c, const Vector2 &d) {
 	//TODO figure out why this is asserting
 	//assert(std::abs((d - c).cross(b - a)) > EPS);
-    if(std::abs((d - c).cross(b - a)) < EPS){
+    if(std::fabs((d - c).cross(b - a)) < EPS){
         LOG_WARN(u8"Cross product problem again");
     }
 

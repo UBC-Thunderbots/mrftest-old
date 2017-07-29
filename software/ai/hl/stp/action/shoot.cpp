@@ -10,9 +10,11 @@
 #include "ai/hl/stp/action/catch.h"
 #include "ai/hl/stp/action/action.h"
 #include "ai/hl/stp/action/intercept.h"
+#include "ai/hl/stp/evaluation/plan_util.h"
 #include "ai/hl/stp/action/move.h"
 
 using namespace AI::HL::STP;
+namespace Plan = AI::HL::STP::Evaluation::Plan;
 
 void get_behind_ball(caller_t& ca, World world, Player player, Point target) {
 	double playerproj = Geom::proj_len(Geom::Seg(world.ball().position(), target), player.position());
@@ -43,14 +45,18 @@ void AI::HL::STP::Action::shoot_goal(caller_t& ca, World world, Player player, b
 }
 
 void AI::HL::STP::Action::shoot_target(caller_t& ca, World world, Player player, Point target, double velocity, bool chip) {
-	if (Evaluation::in_shoot_position(world, player, target)) {
+	AI::Flags::MoveFlags playerFlags = player.flags();
+	player.unset_flags(AI::Flags::MoveFlags::AVOID_BALL_MEDIUM | AI::Flags::MoveFlags::AVOID_BALL_TINY);
+	if (Evaluation::in_shoot_position(world, player, target) && Plan::valid_path(player.position(), target, world, player)) {
 		const Angle orient = (target - world.ball().position()).orientation();
 		player.move_shoot(world.ball().position(), orient, velocity, chip);
 	} else {
 		// Get behind the ball without hitting it
 		// TODO: account for slowly moving ball (fast ball handled by catch)
+		player.set_flags(playerFlags);
 		get_behind_ball(ca, world, player, target);
 	}
+	player.set_flags(playerFlags);
 }
 
 void AI::HL::STP::Action::catch_and_shoot_target(caller_t& ca, World world, Player player, Point target, double velocity, bool chip) {
