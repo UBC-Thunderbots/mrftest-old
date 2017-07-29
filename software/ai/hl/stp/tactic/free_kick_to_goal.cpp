@@ -53,23 +53,23 @@ DoubleParam chip_power(u8"chipping power level", "AI/HL/STP/Tactic/free_kick_to_
 
 				Point targetDefensiveCrease = world.field().enemy_goal();
 
-				targetDefensiveCrease.x = targetDefensiveCrease.x - world.field().defense_area_radius(); //set the target to be on the "D" of the goal crease
+				targetDefensiveCrease.x = targetDefensiveCrease.x - world.field().defense_area_radius() - 0.1; //set the target to be on the "D" of the goal crease
 
 				//check to see which side of the net to shoot on
-				if (world.ball().position().y > 0) {
-				targetDefensiveCrease.y = targetDefensiveCrease.y + 0.5;	//TODO: change this to change side depending on which side he robot is on
-				}
-				else {
-					targetDefensiveCrease.y = targetDefensiveCrease.y - 0.5;
-				}
-
-//				ALTERNATEIVE LOCATION
 //				if (world.ball().position().y > 0) {
-//					targetDefensiveCrease.y = targetDefensiveCrease.y - 0.5;	//TODO: change this to change side depending on which side he robot is on
+//				targetDefensiveCrease.y = targetDefensiveCrease.y + 0.5;	//TODO: change this to change side depending on which side he robot is on
 //				}
 //				else {
-//					targetDefensiveCrease.y = targetDefensiveCrease.y + 0.5;
+//					targetDefensiveCrease.y = targetDefensiveCrease.y - 0.5;
 //				}
+//
+//				ALTERNATEIVE LOCATION
+				if (world.ball().position().y > 0) {
+					targetDefensiveCrease.y = targetDefensiveCrease.y - 0.5;	//TODO: change this to change side depending on which side he robot is on
+				}
+				else {
+					targetDefensiveCrease.y = targetDefensiveCrease.y + 0.5;
+				}
 
 
 				Action::shoot_target(ca, world, player(), targetDefensiveCrease, chip_power, true );
