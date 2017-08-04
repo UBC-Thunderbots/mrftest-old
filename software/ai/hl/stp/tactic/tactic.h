@@ -98,7 +98,7 @@ namespace AI {
 						/**
 						 * \brief The main execution of this tactic.
 						 *
-						 * This function runs every tick.
+						 * This function runs only once when the tactic is created
 						 * A subclass must implement this function.
 						 */
 						virtual void execute(caller_t& caller) = 0;
@@ -116,6 +116,7 @@ namespace AI {
 						/**
 						 * \brief Yields and waits for the primitive to complete.
 						 */
+						# warning remove this is we no longer use the primitive wrapper
 						static void wait(caller_t& ca, const AI::BE::Primitives::Primitive& prim);
 
 						/**

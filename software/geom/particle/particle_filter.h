@@ -11,7 +11,8 @@ namespace AI {
 			namespace Particle {
 
 				const unsigned int PARTICLE_FILTER_NUM_PARTICLES = 500;
-				const double PARTICLE_GENERATION_VARIANCE = 0.05;
+				const double PARTICLE_GENERATION_VARIANCE_LARGE = 0.05;
+				const double PARTICLE_GENERATION_VARIANCE_SMALL = 0.01;
 				const double WITHIN_FIELD_THRESHOLD = 0.05; // How close points must be to the field to be valid
 				const double MAX_BALL_CONFIDENCE = 100.0;
 
@@ -29,16 +30,21 @@ namespace AI {
 				// This is used as a placeholder point for when we don't have real data
 				const Point TMP_POINT = Point(-99.99, -99.99);
 
-				/*
-				 * Defines a particle used by the particle filter. A particle is just a point with an associated
-				 * confidence value of how good the particle filter thinks it is.
+				/**
+				 * Defines a particle used by the particle filter.
+				 *
+				 * A particle is a point with an associated confidence value of how good the particle filter thinks it is.
 				 */
 				struct Particle {
 					Particle(Point p = Point(), double c = 0.0) : position(p), confidence(c) {} // Default values for Particles
 					Point position;
 					double confidence;
 
-					// Used with std::sort to sort a vector of Particles by their confidence values
+					/**
+					 * Overrides the < (less-than) operator.
+					 *
+					 * Used with std::sort to sort a vector of Particles by their confidence values
+					 */
 					inline bool operator < (const Particle& p) const {
 						return confidence < p.confidence;
 					}
@@ -49,16 +55,27 @@ namespace AI {
 				 */
 				class ParticleFilter final {
 					public:
+						/**
+						 * The constructor for the particle filter.
+						 *
+						 * @param length the length of the field the particle filter is operating on
+						 * @param width the width of the field the particle filter is operating on
+						 */
 						explicit ParticleFilter(double length, double width);
 
 						/**
-						 * Adds a point to the Particle Filter's list of points. These points are used as basepoints
-						 * for particle generation
+						 * Adds a point to the Particle Filter
+						 *
+						 * Adds a particle with the given position to the Particle Filter. These points are used as the
+						 * basepoints when generating new particles.
+						 *
+						 * @param pos the position of the particle to be added
 						 */
-						void add(Point ballLocation);
+						void add(Point pos);
 
 						/**
 						 * Updates the state of the Particle Filter, generating new particles and re-evaluating them.
+						 *
 						 * Steps:
 						 * - Generate new particles around the given basepoints
 						 * - Evaluate each new particle and update its confidence value
@@ -66,16 +83,24 @@ namespace AI {
 						 * - Repeat the above steps for the number of condensations. This should cause the particles and basepoints
 						 *   to converge to the most confident position (the ball).
 						 * - Finally, average the final basepoints to get the ball's position
+						 *
+						 * @param ballPredictedPos an optional parameter for the ball's predicted position. The Particle Filter
+						 *                         uses this Point to help evaluate the particles, since particles that are closer
+						 *                         to the ball's predicted position are more likely to be the ball
 						 */
 						void update(Point ballPredictedPos = TMP_POINT);
 
 						/**
 						 * Returns the ball's estimated position
+						 *
+						 * @return the ball's estimated position
 						 */
 						Point getEstimate();
 
 						/**
 						 * Returns the variance corresponding to the ball's estimated position
+						 *
+						 * @return the variance corresponding to the ball's estimated position
 						 */
 						double getEstimateVariance();
 
@@ -85,7 +110,8 @@ namespace AI {
 						unsigned int seed; // The seed for the random number generators
 						std::default_random_engine generator; // The generator used with the normal_distrubution to generate values with a gaussian distribution
 						std::minstd_rand0 linearGenerator; // The generator used to generate random linear values
-						std::normal_distribution<double> distribution; // Used with the generator to generate values with a gaussian distrubution
+						std::normal_distribution<double> distributionLarge; // Used with the generator to generate values with a gaussian distrubution
+						std::normal_distribution<double> distributionSmall; // Used with the generator to generate values with a gaussian distrubution
 
 						std::vector<Point> detections; // detections by vision
 						std::vector<Point> basepoints; // The points around which new particles are generated
@@ -103,55 +129,78 @@ namespace AI {
 						double width_;
 
 						/**
+						 * Generates new particles areound the given basepoints
+						 *
 						 * Generates PARTICLE_FILTER_NUM_PARTICLES Particles in gaussian distributions around the
 						 * given basepoints. If no basepoints are given, generates the Particles randomly across the
-						 * whole field.
+						 * whole field. The particles will try to be generated within the bounds of the field
+						 *
+						 * @param smallDistribution whether or not the particles should be generated with the small
+						 * 							distribution or not. The default is to use the larger distribution
 						 */
-						void generateParticles(const std::vector<Point>& basepoints);
+						void generateParticles(const std::vector<Point>& basepoints, bool smallDistribution);
 
 						/**
 						 * Updates the confidence of each Particle in the list of particles
+						 *
+						 * Evaluates each particle in the filter's list of particles and assigns a new confidence
+						 * value for each.
 						 */
 						void updateParticleConfidences();
 
 						/**
-						 * Increase or decreases the ball's confidence value by val, keeping it withing the range
-						 * of 0 to MAX_BALL_CONFIDENCE
+						 * Increments or decrements the ball's confidence value by val, keeping the value clamped
+						 * between 0 and MAX_BALL_CONFIDENCE
+						 *
+						 * @param val the amount to update the confidence by
 						 */
 						void updateBallConfidence(double val);
 
 						/**
-						 * Evaluate the given particle's position and returns a score based on how good the particle is (the higher the better).
+						 * Evaluates the given Point and returns a score based on how likely is it that the ball is at that location
+						 *
 						 * Evaluation factors:
 						 * - Distance from a vision detection (closer is better)
 						 * - Distance from the ball's previous position (closer is better)
 						 * - Distance from the ball's previous predicted location (closer is better)
+						 *
+						 * @param pos the position of the particle to be evaluated
 						 */
-						double evaluateParticle(const Point& particle);
+						double evaluateParticle(const Point& pos);
 
 						/**
-						 * Returns the Detection Weight as a function of distance from the ball.
-						 * Detections that are close to the ball's last known position should be
-						 * weighted higher.
+						 * Returns the Detection Weight as a function of distance from the ball's previous location.
+						 *
+						 * @param dist the distance from the ball's last known location
 						 */
 						double getDetectionWeight(const double dist);
 
 						/**
 						 * Return true if the Point is within the field plus the given threshold,
 						 * otherwise return false
+						 *
+						 * @param p the point
+						 * @param threshold how far outside the field the point can be before the function returns false
+						 * @return true if p is within the field plus the tolerance, and false otherwise
 						 */
 						bool isInField(const Point& p, double threshold = 0.0);
 
 						/**
 						 * Returns the mean of a list of points
+						 *
+						 * @param points the vector of points
+						 * @return the mean point of points
 						 */
-						// TODO: put this in Evaluation
+						#warning put this in evaluation
 						Point getPointsMean(const std::vector<Point>& points);
 
 						/**
 						 * Returns the variance of a list of Points
+						 *
+						 * @param points the vector of points
+						 * @return the variance of the list of points
 						 */
-						// TODO: put this in Evaluation
+						#warning put this in evaluation
 						double getPointsVariance(const std::vector<Point>& points);
 				};
 			}

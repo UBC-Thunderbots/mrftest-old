@@ -7,7 +7,7 @@
 using namespace AI::BE::Vision::Particle;
 
 /* Notes on the weights and evaluation:
- * - PREDICTION_WEIGHT should (probably) always be higher than PREVIOUS_BALL_WEIGHT because
+ * - PREDICTION_WEIGHT should always be greater than PREVIOUS_BALL_WEIGHT because
  *   in the case where there is no vision detection, we want to take the prediction position not
  *   the old ball position so the ball keeps moving (we don't want the ball to stop if we lose vision for a second).
  *
@@ -16,7 +16,6 @@ using namespace AI::BE::Vision::Particle;
  *   weights should just be used to help weight the particles closer to the detection closest to the ball
  *   (which should be the detection for the real ball)
  */
-
 IntParam AI::BE::Vision::Particle::PARTICLE_FILTER_NUM_CONDENSATIONS(
 		u8"Particle Filter number of condensations",
 		u8"AI/Backend/Vision/Particle", 5, 1, 50);
@@ -62,7 +61,8 @@ ParticleFilter::ParticleFilter(double length, double width) {
 
 	// These will be used to generate Points with a gaussian distribution
 	generator = std::default_random_engine(seed);
-	distribution = std::normal_distribution<double>(0.0, PARTICLE_GENERATION_VARIANCE);
+	distributionLarge = std::normal_distribution<double>(0.0, PARTICLE_GENERATION_VARIANCE_LARGE);
+	distributionSmall = std::normal_distribution<double>(0.0, PARTICLE_GENERATION_VARIANCE_SMALL);
 
 	// This will be used to generate Points spread across the whole field
 	linearGenerator = std::minstd_rand0(seed);
@@ -109,7 +109,7 @@ void ParticleFilter::update(Point ballPredictedPos) {
 	// - Evaluate each particle, and keep the top percentage of particles to use as
 	//   basepoints for the next iteration. These particles should converge to the ball's location.
 	for(int i = 0; i < PARTICLE_FILTER_NUM_CONDENSATIONS; i++) {
-		generateParticles(basepoints);
+		generateParticles(basepoints, i > PARTICLE_FILTER_NUM_CONDENSATIONS / 2);
 		updateParticleConfidences();
 
 		unsigned int numParticlesToKeep = static_cast<unsigned int>(ceil(TOP_PERCENTAGE_OF_PARTICLES * PARTICLE_FILTER_NUM_PARTICLES));
@@ -136,13 +136,13 @@ void ParticleFilter::update(Point ballPredictedPos) {
 	// If there are no balls detected, lose a bit of confidence in the ball. If we can't see the ball it could
 	// be covered, be being moved, or be off the field, and we don't know.
 	if(detections.empty()) {
-		updateBallConfidence(-5.0);
+		updateBallConfidence(-BALL_CONFIDENCE_DELTA);
 	}
 
 	// If something indicates we might have noise / be filtering incorrectly, lose confidence.
 	// If this happens, don't use the newly calculated position as it might be bad.
 	if((newBallPosition - ballPosition).len() > BALL_VALID_DIST_THRESHOLD ||
-			newBallPositionVariance > PARTICLE_GENERATION_VARIANCE * 1.5) {
+			newBallPositionVariance > PARTICLE_GENERATION_VARIANCE_LARGE * 1.5) {
 		updateBallConfidence(-BALL_CONFIDENCE_DELTA);
 		// TODO: possibly use the ball's predicted position here
 	}else {
@@ -166,7 +166,7 @@ void ParticleFilter::update(Point ballPredictedPos) {
 	detections.clear(); // Clear the detections for the next tick
 }
 
-void ParticleFilter::generateParticles(const std::vector<Point>& corePoints) {
+void ParticleFilter::generateParticles(const std::vector<Point>& corePoints, bool smallDistribution) {
 	if(corePoints.empty()) {
 		// If there are no basepoints, spread random points across the whole field
 		for(unsigned int i = 0; i < particles.size(); i++) {
@@ -182,8 +182,17 @@ void ParticleFilter::generateParticles(const std::vector<Point>& corePoints) {
 			Point newParticle = Point();
 			count = 0;
 			do {
-				double x = distribution(generator) + basepoint.x;
-				double y = distribution(generator) + basepoint.y;
+				double x = 0.0;
+				double y = 0.0;
+
+				if(smallDistribution) {
+					x = distributionSmall(generator) + basepoint.x;
+					y = distributionLarge(generator) + basepoint.y;
+				}else {
+					x = distributionLarge(generator) + basepoint.x;
+					y = distributionLarge(generator) + basepoint.y;
+				}
+
 				newParticle = Point(x, y);
 				count++;
 			}while(!isInField(newParticle, WITHIN_FIELD_THRESHOLD) && count < 10);

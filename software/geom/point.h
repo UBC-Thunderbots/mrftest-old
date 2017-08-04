@@ -8,6 +8,7 @@
 /**
  * \brief A point or vector in 2D space
  */
+# warning make this Nullable
 class Point final {
 	public:
 		/**

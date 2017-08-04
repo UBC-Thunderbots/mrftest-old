@@ -62,7 +62,7 @@ void AI::HL::STP::Action::lone_goalie(caller_t& ca, World world, Player player) 
 		Point base = world.field().friendly_goal();
 
 		if(!intersect.empty() && world.ball().velocity().len() > ballVelocityThreshold) {
-			LOGF_INFO(u8"Test intersect: %1", intersect[0]);
+//			LOGF_INFO(u8"Test intersect: %1", intersect[0]);
 			// add 0.05 so even if the we think the ball is a bit off the net treat is as being on net just in case
 			if(std::fabs(intersect[0].y) <= std::fabs(world.field().friendly_goal_boundary().first.y) + 0.05) {
 				// ball is shot at net
