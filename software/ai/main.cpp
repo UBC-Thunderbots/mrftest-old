@@ -130,6 +130,12 @@ int app_main(int argc, char **argv) {
 	high_level_entry.set_arg_description(u8"HIGHLEVEL");
 	option_group.add_entry(high_level_entry, setup.high_level_name);
 
+	Glib::OptionEntry navigator_entry;
+	navigator_entry.set_long_name(u8"nav");
+	navigator_entry.set_description(u8"Selects which navigator should be selected at startup");
+	navigator_entry.set_arg_description(u8"NAVIGATOR");
+	option_group.add_entry(navigator_entry, setup.navigator_name);
+
 	Glib::OptionEntry minimize_entry;
 	minimize_entry.set_long_name(u8"minimize");
 	minimize_entry.set_short_name('m');
@@ -154,6 +160,14 @@ int app_main(int argc, char **argv) {
 			std::cerr << "The following high levels are available:\n";
 			typedef AI::HL::HighLevelFactory::Map Map;
 			for (const Map::value_type &i : AI::HL::HighLevelFactory::all()) {
+				std::cerr << i.second->name() << '\n';
+			}
+			std::cerr << '\n';
+		}
+		{
+			std::cerr << "The following navigators are available:\n";
+			typedef AI::Nav::NavigatorFactory::Map Map;
+			for (const Map::value_type &i : AI::Nav::NavigatorFactory::all()) {
 				std::cerr << i.second->name() << '\n';
 			}
 			std::cerr << '\n';
@@ -223,13 +237,21 @@ int app_main(int argc, char **argv) {
 	// Instantiate the AI.
 	AI::AIPackage ai(backend);
 
-	// Select the last selected high level.
+	// Select the last selected high level and navigator.
 	if (!setup.high_level_name.empty()) {
 		typedef AI::HL::HighLevelFactory::Map Map;
 		const Map &m = AI::HL::HighLevelFactory::all();
 		const Map::const_iterator &i = m.find(setup.high_level_name.collate_key());
 		if (i != m.end()) {
 			ai.high_level = i->second->create_high_level(AI::HL::W::World(backend));
+		}
+	}
+	if (!setup.navigator_name.empty()) {
+		typedef AI::Nav::NavigatorFactory::Map Map;
+		const Map &m = AI::Nav::NavigatorFactory::all();
+		const Map::const_iterator &i = m.find(setup.navigator_name.collate_key());
+		if (i != m.end()) {
+			ai.navigator = i->second->create_navigator(AI::Nav::W::World(backend));
 		}
 	}
 
