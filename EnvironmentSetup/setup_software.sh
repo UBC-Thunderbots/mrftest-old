@@ -1,10 +1,16 @@
 #!/bin/bash
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # UBC Thunderbots Linux Environment Setup
+#
+# This script must be run with sudo! root permissions are required to install
+# packages and copy files to the rules.d directory. The reason that the script
+# must be run with sudo rather than the individual commands using sudo, is that
+# when running CI within Docker, the sudo command does not exist since
+# everything is automatically run as root.
 #
 # This script will install all the required libraries and dependencies to build
 # and run the Thunderbots codebase.
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
 # First, we test whether bash supports arrays.
 # (Support for arrays was only added recently.)
@@ -32,10 +38,16 @@ host_software_packages=(
     libode-dev                  # libode-dev
     libxml++2.6-dev             # libxml++
     libgsl0-dev                 # libgsl0-dev
+    libgsl0ldbl                 # dependency for libgsl1-dev
     libusb-1.0.0-dev            # libusb-1.0.0-dev
     libcppunit-dev              # CPPUnit, the unit testing framework
+    libboost1.54-dev            # Dependency for boost
+    libboost-context1.54-dev    # Dependency for boost
     libboost-coroutine1.54-dev  # libboost-coroutine-dev, the coroutines library
     libbz2-dev                  # bzip2, used for archiving and storing our log files
+
+    doxygen                     # Used for generating documentation
+    graphviz                    # Required for generating graphs with Doxygen
 )
 
 # Update sources
@@ -77,7 +89,7 @@ else
     exit
 fi
 
-# Update sources
+# Update sources after adding repositories
 apt-get update
 
 echo Installing packages required to run HOST SOFTWARE...
