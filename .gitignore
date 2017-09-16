@@ -1,3 +1,9 @@
+# Eclipse project files
+.project
+.cproject
+.settings/
+
+# Firmware
 firmware/stm32lib/internal
 firmware/stm32lib/public
 firmware/stm32lib/stm32lib.tag
@@ -6,6 +12,8 @@ firmware/usb/internal
 firmware/usb/public
 firmware/usb/tags
 firmware/usb/usb.tag
+
+# Software
 software/.cproject
 software/.metadata
 software/.project
@@ -15,3 +23,36 @@ software/obj
 software/proto/*.cc
 software/proto/*.h
 software/tags
+
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app

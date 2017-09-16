@@ -1,9 +1,0 @@
-cflags=`ode-config --cflags`
-libs=`ode-config --libs`
-
-Name: ode
-Description: hacked ode .pc file
-Requires:
-Version: 0.0.0
-Libs: ${libs}
-Cflags: ${cflags}
