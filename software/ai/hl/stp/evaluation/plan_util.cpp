@@ -14,7 +14,8 @@ using namespace AI::Flags;
 using namespace Geom;
 
 using namespace AI::HL::STP;
-namespace Plan = AI::Nav::Plan;
+namespace Plan = AI::HL::STP::Evaluation::Plan;
+using namespace AI::HL::STP::Evaluation::Plan;
 
 namespace {
 	DoubleParam POSITION_EPS(u8"Position tolerance in destination", u8"AI/Nav", 0.05, 0.01, 0.5);
