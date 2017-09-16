@@ -23,19 +23,19 @@ namespace {
 	constexpr double EPS = 1e-9;
 
 	bool is_empty_state(Point to_check) {
-		return (to_check - Evaluation::RRT::empty_state()).lensq() < EPS;
+		return (to_check - Nav::RRT::empty_state()).lensq() < EPS;
 	}
 
 }
 
 //constexpr std::size_t Waypoints::NUM_WAYPOINTS;
 
-double Evaluation::RRT::distance(Glib::NodeTree<Point> *node, Point goal) {
+double Nav::RRT::distance(Glib::NodeTree<Point> *node, Point goal) {
 	return (node->data() - goal).len();
 }
 
 // generate a random point from the field
-Point Evaluation::RRT::random_point(World world) {
+Point Nav::RRT::random_point(World world) {
     // divides lenght and width into grid of 100 by 100
 	double random_x = ((std::rand() % static_cast<int>(world.field().length() * 100)) - (world.field().length() * 50)) / 100;
 	double random_y = ((std::rand() % static_cast<int>(world.field().width() * 100)) - (world.field().width() * 50)) / 100;
@@ -44,7 +44,7 @@ Point Evaluation::RRT::random_point(World world) {
 }
 
 // choose a target to extend toward, the goal, a waypoint or a random point
-Point Evaluation::RRT::choose_target(World world, Point goal, Player player, std::vector<Point> way_points) {
+Point Nav::RRT::choose_target(World world, Point goal, Player player, std::vector<Point> way_points) {
 	double p = std::rand() / static_cast<double>(RAND_MAX);
     
 	if (p > 0 && p <= WAYPOINT_PROB && way_points.size() > 0) {
@@ -58,7 +58,7 @@ Point Evaluation::RRT::choose_target(World world, Point goal, Player player, std
 }
 
 // finds the point in the tree that is nearest to the target point
-Glib::NodeTree<Point> * Evaluation::RRT::nearest(Glib::NodeTree<Point> *rrt_tree, Point target) {
+Glib::NodeTree<Point> * Nav::RRT::nearest(Glib::NodeTree<Point> *rrt_tree, Point target) {
 	Glib::NodeTree<Point> *nearest = rrt_tree;
 	Glib::NodeTree<Point> *curr_node;
 
@@ -83,7 +83,7 @@ Glib::NodeTree<Point> * Evaluation::RRT::nearest(Glib::NodeTree<Point> *rrt_tree
 }
 
 // extend by STEP_DISTANCE towards the target from the start
-Point Evaluation::RRT::extend(World world, Player player, Glib::NodeTree<Point> *start, Point target, MoveFlags added_flags) {
+Point Nav::RRT::extend(World world, Player player, Glib::NodeTree<Point> *start, Point target, MoveFlags added_flags) {
 	Point extend_point = start->data() + ((target - start->data()).norm() * step_distance);
 
 	if (!valid_path(start->data(), extend_point, world, player, added_flags)) {
@@ -94,7 +94,7 @@ Point Evaluation::RRT::extend(World world, Player player, Glib::NodeTree<Point> 
 }
 
 
-std::vector<Point> Evaluation::RRT::rrt_plan(World world, Player player, Point goal, std::vector<Point> way_points, bool post_process, MoveFlags added_flags) {
+std::vector<Point> Nav::RRT::rrt_plan(World world, Player player, Point goal, std::vector<Point> way_points, bool post_process, MoveFlags added_flags) {
 	Point initial = player.position();
 	Point nearest_point, extended, target;
 	Glib::NodeTree<Point> *nearest_node;
