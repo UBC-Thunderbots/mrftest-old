@@ -17,10 +17,17 @@ build_feature_branch:
 build_merged_master:
     stage: build
     script:
-        - git merge origin/master --no-commit --no-ff
+        - git merge origin/dev --no-commit --no-ff
         - cd software
         # -j: compile in parallel as much as possible
         # -l: limit load to stop us running out of virtual memory
         - make -j -l 2
+
+# Compare our branch with master and check that we pass clang-format
+check_formatting_master:
+    stage: build
+    script:
+        - git merge origin/dev --no-commit --no-ff
+        - ./clang-format/check_formatting.sh
 
 
