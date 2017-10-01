@@ -6,52 +6,56 @@
 
 #include <vector>
 
-namespace AI {
-	namespace HL {
-		namespace STP {
-			namespace Evaluation {
-				struct BallThreat final {
-					/**
-					 * Enemy robot closest to ball.
-					 */
-					AI::HL::W::Robot threat;
+namespace AI
+{
+namespace HL
+{
+namespace STP
+{
+namespace Evaluation
+{
+struct BallThreat final
+{
+    /**
+     * Enemy robot closest to ball.
+     */
+    AI::HL::W::Robot threat;
 
-					/**
-					 * Closest distance of enemy robot to ball.
-					 */
-					double threat_distance;
+    /**
+     * Closest distance of enemy robot to ball.
+     */
+    double threat_distance;
 
-					/**
-					 * Should steal mechanism be activated?
-					 */
-					bool activate_steal;
+    /**
+     * Should steal mechanism be activated?
+     */
+    bool activate_steal;
 
-					/**
-					 * Enemies sorted by distance to ball.
-					 */
-					std::vector<AI::HL::W::Robot> enemies;
-				};
+    /**
+     * Enemies sorted by distance to ball.
+     */
+    std::vector<AI::HL::W::Robot> enemies;
+};
 
-				BallThreat evaluate_ball_threat(AI::HL::W::World world);
+BallThreat evaluate_ball_threat(AI::HL::W::World world);
 
-				/**
-				 * Assesses whether a ball is heading towards our net
-				 */
-				bool ball_on_net(AI::HL::W::World world);
+/**
+ * Assesses whether a ball is heading towards our net
+ */
+bool ball_on_net(AI::HL::W::World world);
 
-				/**
-				 * Assesses whether a ball is heading towards their net
-				 */
-				bool ball_on_enemy_net(AI::HL::W::World world);
+/**
+ * Assesses whether a ball is heading towards their net
+ */
+bool ball_on_enemy_net(AI::HL::W::World world);
 
-				/**
-				 * Get where the goalie should go to block the shot
-				 */
-				Point goalie_shot_block(AI::HL::W::World world, AI::HL::W::Player player);
-			}
-		}
-	}
+/**
+ * Get where the goalie should go to block the shot
+ */
+Point goalie_shot_block(AI::HL::W::World world, AI::HL::W::Player player);
+}
+}
+}
 }
 
 #endif
-

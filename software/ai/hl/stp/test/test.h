@@ -4,8 +4,9 @@
 #include <cairomm/context.h>
 #include <cairomm/refptr.h>
 
-namespace Gtk {
-	class Widget;
+namespace Gtk
+{
+class Widget;
 }
 
 #endif

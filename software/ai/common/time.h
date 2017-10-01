@@ -3,9 +3,10 @@
 
 #include <chrono>
 
-namespace AI {
-	typedef std::chrono::steady_clock::time_point Timestamp;
-	typedef std::chrono::steady_clock::duration Timediff;
+namespace AI
+{
+typedef std::chrono::steady_clock::time_point Timestamp;
+typedef std::chrono::steady_clock::duration Timediff;
 }
 
 #endif

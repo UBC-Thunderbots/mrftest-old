@@ -12,18 +12,23 @@
 
 using namespace AI::HL::STP::GradientApproach;
 
-namespace AI {
-	namespace HL {
-		namespace STP {
-			namespace Evaluation{
-
-				
-				
-				double getRatePassEnemyRisk(PassInfo::worldSnapshot snapshot,  Point destination, double delay_time, double kickSpeed);
-				double dangerInterception(PassInfo::worldSnapshot snapshot, Point destination, double delay_time, double kickSpeed);
-			}
-		} /* namespace STP */
-	} /* namespace HL */
+namespace AI
+{
+namespace HL
+{
+namespace STP
+{
+namespace Evaluation
+{
+double getRatePassEnemyRisk(
+    PassInfo::worldSnapshot snapshot, Point destination, double delay_time,
+    double kickSpeed);
+double dangerInterception(
+    PassInfo::worldSnapshot snapshot, Point destination, double delay_time,
+    double kickSpeed);
+}
+} /* namespace STP */
+} /* namespace HL */
 } /* namespace AI */
 
 #endif /* ENEMYRISK_H_ */

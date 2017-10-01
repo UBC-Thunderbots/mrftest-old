@@ -8,19 +8,24 @@
 #ifndef DECIDEPASS_H_
 #define DECIDEPASS_H_
 
-#include "geom/util.h"
+#include "ai/hl/util.h"
+#include "ai/util.h"
 #include "geom/angle.h"
+#include "geom/util.h"
 
 using namespace AI::HL::W;
 
-namespace AI {
-namespace HL {
-namespace STP {
-namespace GradientApproach {
-
-	Point getTarget(World world);
-	double getShot_Velocity(World world);
-	double getTime_Delay(World world);
+namespace AI
+{
+namespace HL
+{
+namespace STP
+{
+namespace GradientApproach
+{
+Point getTarget(World world);
+double getShot_Velocity(World world);
+double getTime_Delay(World world);
 
 } /* namespace gradientApproach */
 } /* namespace STP */

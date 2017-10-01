@@ -6,15 +6,15 @@
 #include <gtkmm/buttonbox.h>
 #include <gtkmm/scrolledwindow.h>
 
-class ParamPanel final : public Gtk::VBox {
-	public:
-		explicit ParamPanel();
+class ParamPanel final : public Gtk::VBox
+{
+   public:
+    explicit ParamPanel();
 
-	private:
-		Gtk::ScrolledWindow scroller;
-		Gtk::HButtonBox hbb;
-		Gtk::Button load_button, clear_button, save_button;
+   private:
+    Gtk::ScrolledWindow scroller;
+    Gtk::HButtonBox hbb;
+    Gtk::Button load_button, clear_button, save_button;
 };
 
 #endif
-

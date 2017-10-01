@@ -1,183 +1,199 @@
 #ifndef UTIL_MATRIX_H
 #define UTIL_MATRIX_H
 
+#include <gsl/gsl_matrix.h>
 #include <cstddef>
 #include <ostream>
 #include <string>
 #include <utility>
-#include <gsl/gsl_matrix.h>
 
 /**
  * A rectangular matrix.
  */
-class Matrix final {
-	public:
-		/**
-		 * Flags for how to initialize new matrices.
-		 */
-		enum class InitFlag {
-			/**
-			 * Indicates that a newly-allocated matrix should be zeroed.
-			 */
-			ZEROES,
+class Matrix final
+{
+   public:
+    /**
+     * Flags for how to initialize new matrices.
+     */
+    enum class InitFlag
+    {
+        /**
+         * Indicates that a newly-allocated matrix should be zeroed.
+         */
+        ZEROES,
 
-			/**
-			 * Indicates that a newly-allocated matrix should be set to the identity matrix.
-			 */
-			IDENTITY,
-		};
+        /**
+         * Indicates that a newly-allocated matrix should be set to the identity
+         * matrix.
+         */
+        IDENTITY,
+    };
 
-		/**
-		 * Constructs a zero-by-zero matrix.
-		 */
-		explicit Matrix();
+    /**
+     * Constructs a zero-by-zero matrix.
+     */
+    explicit Matrix();
 
-		/**
-		 * Constructs a matrix.
-		 *
-		 * \param[in] num_rows the number of rows in the new matrix.
-		 *
-		 * \param[in] num_cols the number of columns in the new matrix (defaults to 1 for a column vector).
-		 *
-		 * \param[in] data the data to fill in the the matrix with, in row-major order (defaults to 0 for an uninitialized matrix).
-		 */
-		explicit Matrix(std::size_t num_rows, std::size_t num_cols = 1, const double *data = nullptr);
+    /**
+     * Constructs a matrix.
+     *
+     * \param[in] num_rows the number of rows in the new matrix.
+     *
+     * \param[in] num_cols the number of columns in the new matrix (defaults to
+     * 1 for a column vector).
+     *
+     * \param[in] data the data to fill in the the matrix with, in row-major
+     * order (defaults to 0 for an uninitialized matrix).
+     */
+    explicit Matrix(
+        std::size_t num_rows, std::size_t num_cols = 1,
+        const double *data = nullptr);
 
-		/**
-		 * Constructs a matrix initialized to a common pattern.
-		 *
-		 * \param[in] num_rows the number of rows in the new matrix.
-		 *
-		 * \param[in] num_cols the number of columns in the new matrix (defaults to 1 for a column vector).
-		 *
-		 * \param[in] flag the pattern to fill with.
-		 */
-		explicit Matrix(std::size_t num_rows, std::size_t num_cols, InitFlag flag);
+    /**
+     * Constructs a matrix initialized to a common pattern.
+     *
+     * \param[in] num_rows the number of rows in the new matrix.
+     *
+     * \param[in] num_cols the number of columns in the new matrix (defaults to
+     * 1 for a column vector).
+     *
+     * \param[in] flag the pattern to fill with.
+     */
+    explicit Matrix(std::size_t num_rows, std::size_t num_cols, InitFlag flag);
 
-		/**
-		 * Constructs a copy of an existing matrix.
-		 *
-		 * \param[in] copyref the matrix to duplicate.
-		 */
-		Matrix(const Matrix &copyref);
+    /**
+     * Constructs a copy of an existing matrix.
+     *
+     * \param[in] copyref the matrix to duplicate.
+     */
+    Matrix(const Matrix &copyref);
 
-		/**
-		 * Moves an existing matrix into a new matrix.
-		 *
-		 * \param[in] moveref the matrix to move.
-		 */
-		Matrix(Matrix &&moveref);
+    /**
+     * Moves an existing matrix into a new matrix.
+     *
+     * \param[in] moveref the matrix to move.
+     */
+    Matrix(Matrix &&moveref);
 
-		/**
-		 * Destroys a matrix.
-		 */
-		~Matrix();
+    /**
+     * Destroys a matrix.
+     */
+    ~Matrix();
 
-		/**
-		 * Returns the number of rows in the matrix.
-		 *
-		 * \return the number of rows in the matrix.
-		 */
-		std::size_t rows() const {
-			return m->size1;
-		}
+    /**
+     * Returns the number of rows in the matrix.
+     *
+     * \return the number of rows in the matrix.
+     */
+    std::size_t rows() const
+    {
+        return m->size1;
+    }
 
-		/**
-		 * Returns the number of columns in the matrix.
-		 *
-		 * \return the number of columns in the matrix.
-		 */
-		std::size_t cols() const {
-			return m->size2;
-		}
+    /**
+     * Returns the number of columns in the matrix.
+     *
+     * \return the number of columns in the matrix.
+     */
+    std::size_t cols() const
+    {
+        return m->size2;
+    }
 
-		/**
-		 * Sets this matrix to be filled with zeroes.
-		 */
-		void zero();
+    /**
+     * Sets this matrix to be filled with zeroes.
+     */
+    void zero();
 
-		/**
-		 * Sets this matrix to be the identity matrix.
-		 */
-		void identity();
+    /**
+     * Sets this matrix to be the identity matrix.
+     */
+    void identity();
 
-		/**
-		 * Sets this matrix to be its own transpose.
-		 */
-		void transpose();
+    /**
+     * Sets this matrix to be its own transpose.
+     */
+    void transpose();
 
-		/**
-		 * Sets this matrix to be its own inverse.
-		 */
-		void invert();
+    /**
+     * Sets this matrix to be its own inverse.
+     */
+    void invert();
 
-		/**
-		 * Swaps this matrix with another matrix.
-		 *
-		 * \param[in] b the matrix to swap with.
-		 */
-		void swap(Matrix &b);
+    /**
+     * Swaps this matrix with another matrix.
+     *
+     * \param[in] b the matrix to swap with.
+     */
+    void swap(Matrix &b);
 
-		/**
-		 * Accesses an element of the matrix.
-		 *
-		 * \param[in] row the row of the element to return.
-		 *
-		 * \param[in] col the column of the element to return.
-		 *
-		 * \return the element.
-		 */
-		double &operator()(std::size_t row, std::size_t col) {
-			return m->data[row * m->tda + col];
-		}
+    /**
+     * Accesses an element of the matrix.
+     *
+     * \param[in] row the row of the element to return.
+     *
+     * \param[in] col the column of the element to return.
+     *
+     * \return the element.
+     */
+    double &operator()(std::size_t row, std::size_t col)
+    {
+        return m->data[row * m->tda + col];
+    }
 
-		/**
-		 * Accesses an element of the matrix.
-		 *
-		 * \param[in] row the row of the element to return.
-		 *
-		 * \param[in] col the column of the element to return.
-		 *
-		 * \return the element.
-		 */
-		double operator()(std::size_t row, std::size_t col) const {
-			return m->data[row * m->tda + col];
-		}
+    /**
+     * Accesses an element of the matrix.
+     *
+     * \param[in] row the row of the element to return.
+     *
+     * \param[in] col the column of the element to return.
+     *
+     * \return the element.
+     */
+    double operator()(std::size_t row, std::size_t col) const
+    {
+        return m->data[row * m->tda + col];
+    }
 
-		/**
-		 * Copies data from an existing matrix into this matrix.
-		 *
-		 * \param[in] b the matrix to duplicate.
-		 *
-		 * \return this matrix.
-		 */
-		Matrix &operator=(Matrix b);
+    /**
+     * Copies data from an existing matrix into this matrix.
+     *
+     * \param[in] b the matrix to duplicate.
+     *
+     * \return this matrix.
+     */
+    Matrix &operator=(Matrix b);
 
-	private:
-		gsl_matrix *m;
+   private:
+    gsl_matrix *m;
 
-		friend Matrix &operator+=(Matrix &, const Matrix &);
-		friend Matrix &operator-=(Matrix &, const Matrix &);
-		friend Matrix &operator*=(Matrix &, double);
-		friend Matrix operator*(const Matrix &a, const Matrix &b);
-		friend Matrix operator~(const Matrix &m);
+    friend Matrix &operator+=(Matrix &, const Matrix &);
+    friend Matrix &operator-=(Matrix &, const Matrix &);
+    friend Matrix &operator*=(Matrix &, double);
+    friend Matrix operator*(const Matrix &a, const Matrix &b);
+    friend Matrix operator~(const Matrix &m);
 };
 
-inline Matrix::Matrix() : m(nullptr) {
+inline Matrix::Matrix() : m(nullptr)
+{
 }
 
-inline Matrix::Matrix(Matrix &&moveref) : m(moveref.m) {
-	moveref.m = nullptr;
+inline Matrix::Matrix(Matrix &&moveref) : m(moveref.m)
+{
+    moveref.m = nullptr;
 }
 
-inline void Matrix::swap(Matrix &b) {
-	using std::swap;
-	swap(m, b.m);
+inline void Matrix::swap(Matrix &b)
+{
+    using std::swap;
+    swap(m, b.m);
 }
 
-inline Matrix &Matrix::operator=(Matrix b) {
-	swap(b);
-	return *this;
+inline Matrix &Matrix::operator=(Matrix b)
+{
+    swap(b);
+    return *this;
 }
 
 /**
@@ -244,10 +260,11 @@ Matrix operator~(const Matrix &m);
  *
  * \return the sum of \p a and \p b.
  */
-inline Matrix operator+(const Matrix &a, const Matrix &b) {
-	Matrix temp(a);
-	temp += b;
-	return temp;
+inline Matrix operator+(const Matrix &a, const Matrix &b)
+{
+    Matrix temp(a);
+    temp += b;
+    return temp;
 }
 
 /**
@@ -259,8 +276,9 @@ inline Matrix operator+(const Matrix &a, const Matrix &b) {
  *
  * \return the sum of \p a and \p b.
  */
-inline Matrix operator+(Matrix &&a, const Matrix &b) {
-	return std::move(a += b);
+inline Matrix operator+(Matrix &&a, const Matrix &b)
+{
+    return std::move(a += b);
 }
 
 /**
@@ -272,8 +290,9 @@ inline Matrix operator+(Matrix &&a, const Matrix &b) {
  *
  * \return the sum of \p a and \p b.
  */
-inline Matrix operator+(const Matrix &a, Matrix &&b) {
-	return std::move(b += a);
+inline Matrix operator+(const Matrix &a, Matrix &&b)
+{
+    return std::move(b += a);
 }
 
 /**
@@ -285,8 +304,9 @@ inline Matrix operator+(const Matrix &a, Matrix &&b) {
  *
  * \return the sum of \p a and \p b.
  */
-inline Matrix operator+(Matrix &&a, Matrix &&b) {
-	return std::move(a += b);
+inline Matrix operator+(Matrix &&a, Matrix &&b)
+{
+    return std::move(a += b);
 }
 
 /**
@@ -298,10 +318,11 @@ inline Matrix operator+(Matrix &&a, Matrix &&b) {
  *
  * \return the difference between \p a and \p b.
  */
-inline Matrix operator-(const Matrix &a, const Matrix &b) {
-	Matrix temp(a);
-	temp -= b;
-	return temp;
+inline Matrix operator-(const Matrix &a, const Matrix &b)
+{
+    Matrix temp(a);
+    temp -= b;
+    return temp;
 }
 
 /**
@@ -313,8 +334,9 @@ inline Matrix operator-(const Matrix &a, const Matrix &b) {
  *
  * \return the difference between \p a and \p b.
  */
-inline Matrix operator-(Matrix &&a, const Matrix &b) {
-	return std::move(a -= b);
+inline Matrix operator-(Matrix &&a, const Matrix &b)
+{
+    return std::move(a -= b);
 }
 
 /**
@@ -326,10 +348,11 @@ inline Matrix operator-(Matrix &&a, const Matrix &b) {
  *
  * \return the product of \p m and \p scale.
  */
-inline Matrix operator*(const Matrix &m, double scale) {
-	Matrix temp(m);
-	temp *= scale;
-	return temp;
+inline Matrix operator*(const Matrix &m, double scale)
+{
+    Matrix temp(m);
+    temp *= scale;
+    return temp;
 }
 
 /**
@@ -341,8 +364,9 @@ inline Matrix operator*(const Matrix &m, double scale) {
  *
  * \return the product of \p m and \p scale.
  */
-inline Matrix operator*(Matrix &&m, double scale) {
-	return std::move(m *= scale);
+inline Matrix operator*(Matrix &&m, double scale)
+{
+    return std::move(m *= scale);
 }
 
 /**
@@ -354,10 +378,11 @@ inline Matrix operator*(Matrix &&m, double scale) {
  *
  * \return the product of \p m and \p scale.
  */
-inline Matrix operator*(double scale, const Matrix &m) {
-	Matrix temp(m);
-	temp *= scale;
-	return temp;
+inline Matrix operator*(double scale, const Matrix &m)
+{
+    Matrix temp(m);
+    temp *= scale;
+    return temp;
 }
 
 /**
@@ -369,8 +394,9 @@ inline Matrix operator*(double scale, const Matrix &m) {
  *
  * \return the product of \p m and \p scale.
  */
-inline Matrix operator*(double scale, Matrix &&m) {
-	return std::move(m *= scale);
+inline Matrix operator*(double scale, Matrix &&m)
+{
+    return std::move(m *= scale);
 }
 
 /**
@@ -384,10 +410,11 @@ inline Matrix operator*(double scale, Matrix &&m) {
  *
  * \pre <code>cols() == b.rows()</code>
  */
-inline Matrix &operator*=(Matrix &a, const Matrix &b) {
-	Matrix temp = a * b;
-	temp.swap(a);
-	return a;
+inline Matrix &operator*=(Matrix &a, const Matrix &b)
+{
+    Matrix temp = a * b;
+    temp.swap(a);
+    return a;
 }
 
 /**
@@ -399,8 +426,9 @@ inline Matrix &operator*=(Matrix &a, const Matrix &b) {
  *
  * \return \p m.
  */
-inline Matrix &operator/=(Matrix &m, double scale) {
-	return m *= 1.0 / scale;
+inline Matrix &operator/=(Matrix &m, double scale)
+{
+    return m *= 1.0 / scale;
 }
 
 /**
@@ -412,8 +440,9 @@ inline Matrix &operator/=(Matrix &m, double scale) {
  *
  * \return the quotient of \p m and \p scale.
  */
-inline Matrix operator/(const Matrix &m, double scale) {
-	return m * (1.0 / scale);
+inline Matrix operator/(const Matrix &m, double scale)
+{
+    return m * (1.0 / scale);
 }
 
 /**
@@ -425,8 +454,9 @@ inline Matrix operator/(const Matrix &m, double scale) {
  *
  * \return the quotient of \p m and \p scale.
  */
-inline Matrix operator/(Matrix &&m, double scale) {
-	return std::forward<Matrix>(m) * (1.0 / scale);
+inline Matrix operator/(Matrix &&m, double scale)
+{
+    return std::forward<Matrix>(m) * (1.0 / scale);
 }
 
 /**
@@ -436,10 +466,11 @@ inline Matrix operator/(Matrix &&m, double scale) {
  *
  * \return the inverse.
  */
-inline Matrix operator!(const Matrix &m) {
-	Matrix temp(m);
-	temp.invert();
-	return temp;
+inline Matrix operator!(const Matrix &m)
+{
+    Matrix temp(m);
+    temp.invert();
+    return temp;
 }
 
 /**
@@ -449,9 +480,10 @@ inline Matrix operator!(const Matrix &m) {
  *
  * \return the inverse.
  */
-inline Matrix operator!(Matrix &&m) {
-	m.invert();
-	return std::move(m);
+inline Matrix operator!(Matrix &&m)
+{
+    m.invert();
+    return std::move(m);
 }
 
 /**
@@ -472,9 +504,9 @@ std::ostream &operator<<(std::ostream &stream, const Matrix &m);
  *
  * \param[in, out] b the second matrix.
  */
-inline void swap(Matrix &a, Matrix &b) {
-	a.swap(b);
+inline void swap(Matrix &a, Matrix &b)
+{
+    a.swap(b);
 }
 
 #endif
-
