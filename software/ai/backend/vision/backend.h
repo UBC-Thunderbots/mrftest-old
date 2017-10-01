@@ -231,13 +231,16 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::Backend<
 		FriendlyTeam, EnemyTeam>::update_geometry(const SSL_GeometryData &geom) {
 	const SSL_GeometryFieldSize &fsize(geom.field());
+	const double referee_width = 400;
 	double length = fsize.field_length() / 1000.0;
 	double total_length = length
-			+ (2.0 * fsize.boundary_width())// + 2.0 * fsize.referee_width())
+			+ (2.0 * fsize.boundary_width() + 2.0 * referee_width)// + 2.0 * fsize.referee_width())
 					/ 1000.0;
+	// std::cout << "Length: " << length << std::endl;
+	// std::cout << "Total length: " << total_length << std::endl;
 	double width = fsize.field_width() / 1000.0;
 	double total_width = width
-			+ (2.0 * fsize.boundary_width()) // + 2.0 * fsize.referee_width())
+			+ (2.0 * fsize.boundary_width() + 2.0 * referee_width) // + 2.0 * fsize.referee_width())
 					/ 1000.0;
 	double goal_width = fsize.goal_width() / 1000.0;
 
@@ -266,7 +269,12 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 		// std::cout << arcName << std::endl;
 		if (arcName == "CenterCircle")
 		{
-			centre_circle_radius = arc.radius() + arc.thickness() / 2.0;
+			centre_circle_radius = (arc.radius() + arc.thickness() / 2.0) / 1000.0;
+		}
+
+		else if (arcName == "LeftFieldLeftPenaltyArc")
+		{
+			defense_area_radius = (arc.radius() + arc.thickness() / 2.0) / 1000.0;
 		}
 
 
@@ -298,14 +306,15 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 		// std::cout << lineName << std::endl;
 		if (lineName == "LeftPenaltyStretch")
 		{
-			
+			left_penalty_stretch = sqrt(pow(line.p2().x() - line.p1().x(), 2.0) + pow(line.p2().y() - line.p1().y(), 2.0)) /1000.0;
 		}
 		else if (lineName == "RightPenaltyStretch")
 		{
-			
+			right_penalty_stretch = sqrt(pow(line.p2().x() - line.p1().x(), 2.0) + pow(line.p2().y() - line.p1().y(), 2.0)) /1000.0;
 		}
 	}
-
+	defense_area_stretch  = left_penalty_stretch;
+	// std::cout << defense_area_stretch << std::endl;
 	// double centre_circle_radius = fsize.center_circle_radius() / 1000.0;
 	// double defense_area_radius = fsize.defense_radius() / 1000.0;
 	// double defense_area_stretch = fsize.defense_stretch() / 1000.0;
