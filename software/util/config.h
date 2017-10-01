@@ -3,12 +3,12 @@
 
 #include <libxml++/libxml++.h>
 
-namespace Config {
-	void load();
-	void save();
-	xmlpp::Element *params();
-	xmlpp::Element *joysticks();
+namespace Config
+{
+void load();
+void save();
+xmlpp::Element *params();
+xmlpp::Element *joysticks();
 }
 
 #endif
-

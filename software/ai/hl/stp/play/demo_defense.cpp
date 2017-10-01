@@ -1,10 +1,10 @@
 #include "ai/hl/stp/play/simple_play.h"
+#include "ai/hl/stp/tactic/block_shot_path.h"
 #include "ai/hl/stp/tactic/defend.h"
-#include "ai/hl/stp/tactic/shoot.h"
-#include "ai/hl/stp/tactic/offend.h"
 #include "ai/hl/stp/tactic/defend_solo.h"
 #include "ai/hl/stp/tactic/goal_line_defense.h"
-#include "ai/hl/stp/tactic/block_shot_path.h"
+#include "ai/hl/stp/tactic/offend.h"
+#include "ai/hl/stp/tactic/shoot.h"
 
 BEGIN_DEC(DemoDefense)
 INVARIANT(playtype(world, PlayType::PLAY))

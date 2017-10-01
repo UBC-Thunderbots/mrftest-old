@@ -3,18 +3,21 @@
 
 #include "ai/hl/stp/world.h"
 
-namespace AI {
-	namespace HL {
-		namespace STP {
-			namespace Evaluation {
-				/**
-				 * A hack that allows evaluations that update every tick.
-				 */
-				extern sigc::signal<void> signal_tick;
-			}
-		}
-	}
+namespace AI
+{
+namespace HL
+{
+namespace STP
+{
+namespace Evaluation
+{
+/**
+ * A hack that allows evaluations that update every tick.
+ */
+extern sigc::signal<void> signal_tick;
+}
+}
+}
 }
 
 #endif
-

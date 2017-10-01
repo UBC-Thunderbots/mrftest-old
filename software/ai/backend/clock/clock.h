@@ -3,22 +3,25 @@
 
 #include <sigc++/signal.h>
 
-namespace AI {
-	namespace BE {
-		namespace Clock {
-			/**
-			 * \brief A source of ticks.
-			 */
-			class Clock {
-				public:
-					/**
-					 * \brief Fired on each tick.
-					 */
-					sigc::signal<void> signal_tick;
-			};
-		}
-	}
+namespace AI
+{
+namespace BE
+{
+namespace Clock
+{
+/**
+ * \brief A source of ticks.
+ */
+class Clock
+{
+   public:
+    /**
+     * \brief Fired on each tick.
+     */
+    sigc::signal<void> signal_tick;
+};
+}
+}
 }
 
 #endif
-

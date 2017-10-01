@@ -1,6 +1,6 @@
+#include "ai/hl/stp/tactic/intercept_v2.h"
 #include "ai/hl/stp/play/simple_play.h"
 #include "ai/hl/stp/tactic/move.h"
-#include "ai/hl/stp/tactic/intercept_v2.h"
 
 BEGIN_DEC(Intercept_v2_test)
 INVARIANT(true)
