@@ -258,8 +258,8 @@ inline void AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam>::update_geometry(
     const SSL_GeometryData &geom)
 {
     const SSL_GeometryFieldSize &fsize(geom.field());
-	const double referee_width = 400;
-	
+    const double referee_width = 400;
+
     double length = fsize.field_length() / 1000.0;
     double total_length =
         length + (2.0 * fsize.boundary_width() + 2.0 * referee_width) / 1000.0;
@@ -290,9 +290,9 @@ inline void AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam>::update_geometry(
     // Get center circle radius, including line thickness
     for (int i = 0; i < fsize.field_arcs_size(); i++)
     {
-		const SSL_FieldCicularArc &arc = fsize.field_arcs(i);
-		std::string arcName = arc.name();
-		
+        const SSL_FieldCicularArc &arc = fsize.field_arcs(i);
+        std::string arcName            = arc.name();
+
         if (arcName == "CenterCircle")
         {
             centre_circle_radius =
