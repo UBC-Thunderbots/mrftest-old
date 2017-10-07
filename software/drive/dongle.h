@@ -5,65 +5,67 @@
 #include "util/noncopyable.h"
 #include "util/property.h"
 
-namespace Drive {
-	class Robot;
+namespace Drive
+{
+class Robot;
 
-	/**
-	 * \brief A radio dongle capable of communicating with robots
-	 */
-	class Dongle : public NonCopyable {
-		public:
-			/**
-			 * \brief The possible positions of the hardware run switch
-			 */
-			enum class EStopState {
-				/**
-				 * \brief The switch is not connected properly
-				 */
-				BROKEN,
+/**
+ * \brief A radio dongle capable of communicating with robots
+ */
+class Dongle : public NonCopyable
+{
+   public:
+    /**
+     * \brief The possible positions of the hardware run switch
+     */
+    enum class EStopState
+    {
+        /**
+         * \brief The switch is not connected properly
+         */
+        BROKEN,
 
-				/**
-				 * \brief The switch is in the stop state
-				 */
-				STOP,
+        /**
+         * \brief The switch is in the stop state
+         */
+        STOP,
 
-				/**
-				 * \brief The switch is in the run state
-				 */
-				RUN,
-			};
+        /**
+         * \brief The switch is in the run state
+         */
+        RUN,
+    };
 
-			/**
-			 * \brief The current state of the emergency stop switch.
-			 */
-			Property<EStopState> estop_state;
+    /**
+     * \brief The current state of the emergency stop switch.
+     */
+    Property<EStopState> estop_state;
 
-			/**
-			 * \brief Destroys a Dongle
-			 */
-			virtual ~Dongle();
+    /**
+     * \brief Destroys a Dongle
+     */
+    virtual ~Dongle();
 
-			/**
-			 * \brief Fetches an individual robot proxy
-			 *
-			 * \param[in] i the robot number
-			 *
-			 * \return the robot proxy object that allows communication with the robot
-			 */
-			virtual Robot &robot(unsigned int i) = 0;
+    /**
+     * \brief Fetches an individual robot proxy
+     *
+     * \param[in] i the robot number
+     *
+     * \return the robot proxy object that allows communication with the robot
+     */
+    virtual Robot &robot(unsigned int i) = 0;
 
-		protected:
-			/**
-			 * \brief Constructs a new Dongle
-			 */
-			explicit Dongle();
+   protected:
+    /**
+     * \brief Constructs a new Dongle
+     */
+    explicit Dongle();
 
-		private:
-			Annunciator::Message estop_broken_message;
+   private:
+    Annunciator::Message estop_broken_message;
 
-			void handle_estop_state_changed();
-	};
+    void handle_estop_state_changed();
+};
 }
 
 #endif
-

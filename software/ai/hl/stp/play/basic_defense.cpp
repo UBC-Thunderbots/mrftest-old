@@ -1,9 +1,9 @@
-#include "ai/hl/stp/play/simple_play.h"
-#include "ai/hl/stp/tactic/defend.h"
-#include "ai/hl/stp/tactic/block_shot_path.h"
-#include "ai/hl/stp/tactic/tdefend.h"
-#include "ai/hl//stp/tactic/goal_line_defense.h"
 #include "ai/hl//stp/tactic/defend_solo.h"
+#include "ai/hl//stp/tactic/goal_line_defense.h"
+#include "ai/hl/stp/play/simple_play.h"
+#include "ai/hl/stp/tactic/block_shot_path.h"
+#include "ai/hl/stp/tactic/defend.h"
+#include "ai/hl/stp/tactic/tdefend.h"
 
 BEGIN_DEC(BasicDefense)
 INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 1))

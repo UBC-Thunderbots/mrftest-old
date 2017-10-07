@@ -3,13 +3,15 @@
 
 #include "ai/backend/backend.h"
 
-namespace AI {
-	namespace BE {
-		namespace RO {
-			AI::BE::BackendFactory &get_factory();
-		}
-	}
+namespace AI
+{
+namespace BE
+{
+namespace RO
+{
+AI::BE::BackendFactory &get_factory();
+}
+}
 }
 
 #endif
-

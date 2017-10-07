@@ -1,68 +1,71 @@
 #ifndef AI_HL_STP_PLAYEXECUTOR_H
 #define AI_HL_STP_PLAYEXECUTOR_H
 
-#include "ai/hl/stp/world.h"
-#include "ai/hl/stp/play/play.h"
 #include <string>
 #include "ai/hl/stp/gradient_approach/PassInfo.h"
+#include "ai/hl/stp/play/play.h"
+#include "ai/hl/stp/world.h"
 
-namespace AI {
-	namespace HL {
-		namespace STP {
-			/**
-			 * A play executor.
-			 * See STP paper section 5.3.
-			 */
-			 
-			class PlayExecutor : public sigc::trackable {
-				public:
-					explicit PlayExecutor(World w);
-					~PlayExecutor();
+namespace AI
+{
+namespace HL
+{
+namespace STP
+{
+/**
+ * A play executor.
+ * See STP paper section 5.3.
+ */
 
-					/**
-					 * Runs every time step.
-					 */
-					void tick();
+class PlayExecutor : public sigc::trackable
+{
+   public:
+    explicit PlayExecutor(World w);
+    ~PlayExecutor();
 
-					/**
-					 * Get a text string about the executor.
-					 */
-					Glib::ustring info() const;
+    /**
+     * Runs every time step.
+     */
+    void tick();
 
-				protected:
-					World world;
+    /**
+     * Get a text string about the executor.
+     */
+    Glib::ustring info() const;
 
-					/**
-					 * If index of i is true, then the robot of pattern index i is enabled. 
-					 * If a robot is enabled it is considered by the play executor to be 
-					 * within the pool of available players. 
-					 */
-					std::vector<bool> players_enabled;
+   protected:
+    World world;
 
-					/**
-					 * The play in use currently.
-					 */
-					std::unique_ptr<Play::Play> curr_play;
+    /**
+     * If index of i is true, then the robot of pattern index i is enabled.
+     * If a robot is enabled it is considered by the play executor to be
+     * within the pool of available players.
+     */
+    std::vector<bool> players_enabled;
 
-					/**
-					 * List of all the available plays
-					 */
-					std::vector<Play::PlayFactory*> plays;
+    /**
+     * The play in use currently.
+     */
+    std::unique_ptr<Play::Play> curr_play;
 
-					/**
-					 * Calculates a NEW play to be used.
-					 */
-					virtual void calc_play();
+    /**
+     * List of all the available plays
+     */
+    std::vector<Play::PlayFactory*> plays;
 
-					void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx);
+    /**
+     * Calculates a NEW play to be used.
+     */
+    virtual void calc_play();
 
-					void clear_assignments();
+    void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx);
 
-					void enable_players();
-			};
-		};
-	}
+    void clear_assignments();
+
+    void enable_players();
+};
+};
+}
 }
 
 #endif
-

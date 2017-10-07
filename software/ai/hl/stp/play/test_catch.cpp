@@ -11,7 +11,7 @@ DONE(false)
 FAIL(false)
 EXECUTE()
 
-tactics[0] = Tactic::move_test_orientation(world, Point(1,  1));
+tactics[0] = Tactic::move_test_orientation(world, Point(1, 1));
 tactics[1] = Tactic::catch_test(world);
 /*
 tactics[2] = Tactic::move_test_orientation(world, Point(1, -1));
@@ -20,7 +20,7 @@ tactics[4] = Tactic::move_test_orientation(world, Point(2, 0.5));
 tactics[5] = Tactic::move_test_orientation(world, Point(1, 0));
 */
 wait(caller, tactics[0].get());
-//wait(caller, tactics[1].get());
-//wait(caller, tactics[2].get());
+// wait(caller, tactics[1].get());
+// wait(caller, tactics[2].get());
 
 END_DEF(TESTCATCH)

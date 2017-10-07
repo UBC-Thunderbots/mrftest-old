@@ -1,16 +1,15 @@
 #include "ai/hl/stp/play/simple_play.h"
 #include "ai/hl/stp/tactic/ball.h"
-#include "ai/hl/stp/tactic/defend.h"
 #include "ai/hl/stp/tactic/block.h"
+#include "ai/hl/stp/tactic/defend.h"
 #include "ai/hl/stp/tactic/offend.h"
 #include "ai/hl/stp/tactic/shadow_enemy.h"
 #include "ai/hl/stp/tactic/shoot.h"
 
 BEGIN_DEC(OffensiveBlock)
-INVARIANT(playtype(world, PlayType::PLAY)
-		&& our_team_size_at_least(world, 3)
-		&& !enemy_baller_can_shoot(world)
-		&& enemy_baller_can_pass(world))
+INVARIANT(
+    playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 3) &&
+    !enemy_baller_can_shoot(world) && enemy_baller_can_pass(world))
 APPLICABLE(their_ball(world))
 END_DEC(OffensiveBlock)
 

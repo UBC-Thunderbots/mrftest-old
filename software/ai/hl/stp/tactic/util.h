@@ -3,19 +3,24 @@
 
 #include "ai/hl/stp/tactic/tactic.h"
 
-namespace AI {
-	namespace HL {
-		namespace STP {
-			namespace Tactic {
-				/**
-				 * Selects a baller for active tactics.
-				 *
-				 * use a hysterisis
-				 */
-				Player select_baller(World world, const std::set<Player> &players, Player previous);
-			}
-		}
-	}
+namespace AI
+{
+namespace HL
+{
+namespace STP
+{
+namespace Tactic
+{
+/**
+ * Selects a baller for active tactics.
+ *
+ * use a hysterisis
+ */
+Player select_baller(
+    World world, const std::set<Player> &players, Player previous);
+}
+}
+}
 }
 
 #endif

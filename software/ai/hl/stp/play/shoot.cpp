@@ -1,7 +1,7 @@
+#include "ai/hl/stp/tactic/shoot.h"
 #include "ai/hl/stp/play/simple_play.h"
 #include "ai/hl/stp/tactic/idle.h"
 #include "ai/hl/stp/tactic/move.h"
-#include "ai/hl/stp/tactic/shoot.h"
 
 BEGIN_DEC(Shoot)
 INVARIANT(true)

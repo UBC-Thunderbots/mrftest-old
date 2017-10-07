@@ -1,6 +1,6 @@
 #include "ai/hl/stp/play/simple_play.h"
-#include "ai/hl/stp/tactic/test_tactics.h"
 #include "ai/hl/stp/tactic/shoot.h"
+#include "ai/hl/stp/tactic/test_tactics.h"
 
 BEGIN_DEC(TESTSHOOT)
 INVARIANT(true)

@@ -24,6 +24,7 @@ software/proto/*.cc
 software/proto/*.h
 software/tags
 
+# C++ default ignores
 # Prerequisites
 *.d
 

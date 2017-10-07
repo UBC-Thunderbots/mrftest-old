@@ -1,12 +1,14 @@
 #include "ai/hl/stp/play/simple_play.h"
 #include "ai/hl/stp/tactic/defend.h"
-#include "ai/hl/stp/tactic/free_kick_to_goal.h"
-#include "ai/hl/stp/tactic/shoot.h"
-#include "ai/hl/stp/tactic/offend.h"
 #include "ai/hl/stp/tactic/defend_solo.h"
+#include "ai/hl/stp/tactic/free_kick_to_goal.h"
+#include "ai/hl/stp/tactic/offend.h"
+#include "ai/hl/stp/tactic/shoot.h"
 
 BEGIN_DEC(FreeKickFriendly)
-INVARIANT(playtype(world, PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) || playtype(world, PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY))
+INVARIANT(
+    playtype(world, PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) ||
+    playtype(world, PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY))
 APPLICABLE(true)
 END_DEC(FreeKickFriendly)
 
@@ -21,5 +23,6 @@ tactics[3] = Tactic::offend(world);
 tactics[4] = Tactic::offend_secondary(world);
 tactics[5] = Tactic::defend_duo_extra1(world);
 
-while (1) yield(caller);
+while (1)
+    yield(caller);
 END_DEF(FreeKickFriendly)

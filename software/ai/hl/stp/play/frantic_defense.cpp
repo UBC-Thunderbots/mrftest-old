@@ -1,15 +1,17 @@
 #include "../tactic/ball.h"
 #include "../tactic/defend.h"
 #include "ai/hl/stp/play/simple_play.h"
+#include "ai/hl/stp/tactic/block_shot_path.h"
+#include "ai/hl/stp/tactic/goal_line_defense.h"
 #include "ai/hl/stp/tactic/offend.h"
 #include "ai/hl/stp/tactic/shadow_enemy.h"
 #include "ai/hl/stp/tactic/shoot.h"
-#include "ai/hl/stp/tactic/block_shot_path.h"
-#include "ai/hl/stp/tactic/goal_line_defense.h"
 
 BEGIN_DEC(FranticDefense)
 INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 3))
-APPLICABLE(num_of_enemies_on_our_side_at_least(world, 4) && (enemy_baller_can_shoot(world) || ball_near_friendly_goal(world)))
+APPLICABLE(
+    num_of_enemies_on_our_side_at_least(world, 4) &&
+    (enemy_baller_can_shoot(world) || ball_near_friendly_goal(world)))
 END_DEC(FranticDefense)
 
 BEGIN_DEF(FranticDefense)
