@@ -62,7 +62,7 @@ fi
 
 echo "Installing vartypes..."
 cd $vartypes_location
-git clone https://github.com/roboime/vartypes
+git clone https://github.com/szi/vartypes
 cd vartypes
 make
 make install
@@ -83,15 +83,10 @@ fi
 
 echo "Installing grSim..."
 cd $grSim_location
-git clone https://github.com/roboime/grSim
+git clone https://github.com/RoboCup-SSL/grSim
 cd grSim
-#revert grSim to AI working version
-git reset --hard 68b322d085a84690b965815b1e035a908ebc75ee
-if [ $? -eq 0 ]; then
-    echo grSim reverted to working version
-else
-    echo grSim revert failed
-fi
+
+# Build grSim
 mkdir build
 cd build
 cmake ..
