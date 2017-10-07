@@ -233,15 +233,13 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 	const SSL_GeometryFieldSize &fsize(geom.field());
 	const double referee_width = 400;
 	double length = fsize.field_length() / 1000.0;
-	double total_length = length
-			+ (2.0 * fsize.boundary_width() + 2.0 * referee_width)// + 2.0 * fsize.referee_width())
+	double total_length = length + (2.0 * fsize.boundary_width() + 2.0 * referee_width)
 					/ 1000.0;
-	// std::cout << "Length: " << length << std::endl;
-	// std::cout << "Total length: " << total_length << std::endl;
+
 	double width = fsize.field_width() / 1000.0;
-	double total_width = width
-			+ (2.0 * fsize.boundary_width() + 2.0 * referee_width) // + 2.0 * fsize.referee_width())
+	double total_width = width + (2.0 * fsize.boundary_width() + 2.0 * referee_width)
 					/ 1000.0;
+
 	double goal_width = fsize.goal_width() / 1000.0;
 
 	// Circular arcs
@@ -266,7 +264,6 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 	{
 		const SSL_FieldCicularArc& arc = fsize.field_arcs(i);
 		std::string arcName = arc.name();
-		// std::cout << arcName << std::endl;
 		if (arcName == "CenterCircle")
 		{
 			centre_circle_radius = (arc.radius() + arc.thickness() / 2.0) / 1000.0;
@@ -306,11 +303,12 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 		// std::cout << lineName << std::endl;
 		if (lineName == "LeftPenaltyStretch")
 		{
-			left_penalty_stretch = sqrt(pow(line.p2().x() - line.p1().x(), 2.0) + pow(line.p2().y() - line.p1().y(), 2.0)) /1000.0;
+			left_penalty_stretch = (Point(line.p2().x(), line.p2().y()) - Point(line.p1().x(), line.p1().y())).len() / 1000;
 		}
+		
 		else if (lineName == "RightPenaltyStretch")
 		{
-			right_penalty_stretch = sqrt(pow(line.p2().x() - line.p1().x(), 2.0) + pow(line.p2().y() - line.p1().y(), 2.0)) /1000.0;
+			right_penalty_stretch = (Point(line.p2().x(), line.p2().y()) - Point(line.p1().x(), line.p1().y())).len() / 1000;
 		}
 	}
 	defense_area_stretch  = left_penalty_stretch;
@@ -364,7 +362,7 @@ template<typename FriendlyTeam, typename EnemyTeam> inline void AI::BE::Vision::
 				if (defending_end() == FieldEnd::EAST) {
 					detection_position = -detection_position;
 				}
-
+				std::cout << "Ball detected: " << detection_position << std::endl;
 				if (AI::BE::Vision::USE_PARTICLE_FILTER) {
 					/* PARTICLE FILTER */
 					pFilter_->add(detection_position);
