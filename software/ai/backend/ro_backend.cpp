@@ -23,7 +23,7 @@ const char *vision_port()
     else
     {
         // return "10005"; // 10005 is the legacy port
-		return "10006";
+        return "10006";
     }
 }
 

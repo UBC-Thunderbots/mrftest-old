@@ -257,89 +257,99 @@ template <typename FriendlyTeam, typename EnemyTeam>
 inline void AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam>::update_geometry(
     const SSL_GeometryData &geom)
 {
-	const SSL_GeometryFieldSize &fsize(geom.field());
+    const SSL_GeometryFieldSize &fsize(geom.field());
 	const double referee_width = 400;
-	double length = fsize.field_length() / 1000.0;
-	double total_length = length + (2.0 * fsize.boundary_width() + 2.0 * referee_width) / 1000.0;
+	
+    double length = fsize.field_length() / 1000.0;
+    double total_length =
+        length + (2.0 * fsize.boundary_width() + 2.0 * referee_width) / 1000.0;
 
-	double width = fsize.field_width() / 1000.0;
-	double total_width = width + (2.0 * fsize.boundary_width() + 2.0 * referee_width) / 1000.0;
+    double width = fsize.field_width() / 1000.0;
+    double total_width =
+        width + (2.0 * fsize.boundary_width() + 2.0 * referee_width) / 1000.0;
 
-	double goal_width = fsize.goal_width() / 1000.0;
+    double goal_width = fsize.goal_width() / 1000.0;
 
-	// Circular arcs
-	/*
-	Names:
-	LeftFieldLeftPenaltyArc
-	LeftFieldRightPenaltyArc
-	RightFieldLeftPenaltyArc
-	RightFieldRightPenaltyArc
-	CenterCircle
+    // Circular arcs
+    /*
+    Names:
+    LeftFieldLeftPenaltyArc
+    LeftFieldRightPenaltyArc
+    RightFieldLeftPenaltyArc
+    RightFieldRightPenaltyArc
+    CenterCircle
 
-	*/
-	double centre_circle_radius;
-	double defense_area_radius;
+    */
+    double centre_circle_radius;
+    double defense_area_radius;
 
-	double left_penalty_stretch;
-	double right_penalty_stretch;
-	double defense_area_stretch;
+    double left_penalty_stretch;
+    double right_penalty_stretch;
+    double defense_area_stretch;
 
-	// Get center circle radius, including line thickness
-	for (int i = 0; i < fsize.field_arcs_size(); i++)
-	{
-		const SSL_FieldCicularArc& arc = fsize.field_arcs(i);
+    // Get center circle radius, including line thickness
+    for (int i = 0; i < fsize.field_arcs_size(); i++)
+    {
+		const SSL_FieldCicularArc &arc = fsize.field_arcs(i);
 		std::string arcName = arc.name();
-		if (arcName == "CenterCircle")
-		{
-			centre_circle_radius = (arc.radius() + arc.thickness() / 2.0) / 1000.0;
-		}
-
-		else if (arcName == "LeftFieldLeftPenaltyArc")
-		{
-			defense_area_radius = (arc.radius() + arc.thickness() / 2.0) / 1000.0;
-		}
-
-
-	}
-
-	// Defense stretch
-	/*
-	Line names:
-	TopTouchLine
-	BottomTouchLine
-	LeftGoalLine
-	RightGoalLine
-	HalfwayLine
-	CenterLine
-	LeftPenaltyStretch
-	RightPenaltyStretch
-	RightGoalTopLine
-	RightGoalBottomLine
-	RightGoalDepthLine
-	LeftGoalTopLine
-	LeftGoalBottomLine
-	LeftGoalDepthLine
-
-	*/
-	for (int i = 0; i < fsize.field_lines_size(); i++)
-	{
-		const SSL_FieldLineSegment& line = fsize.field_lines(i);
-		std::string lineName = line.name();
-		if (lineName == "LeftPenaltyStretch")
-		{
-			left_penalty_stretch = (Point(line.p2().x(), line.p2().y()) - Point(line.p1().x(), line.p1().y())).len() / 1000;
-		}
 		
-		else if (lineName == "RightPenaltyStretch")
-		{
-			right_penalty_stretch = (Point(line.p2().x(), line.p2().y()) - Point(line.p1().x(), line.p1().y())).len() / 1000;
-		}
-	}
-	defense_area_stretch  = left_penalty_stretch;
+        if (arcName == "CenterCircle")
+        {
+            centre_circle_radius =
+                (arc.radius() + arc.thickness() / 2.0) / 1000.0;
+        }
 
-	field_.update(length, total_length, width, total_width, goal_width,
-			centre_circle_radius, defense_area_radius,
-			defense_area_stretch);
+        else if (arcName == "LeftFieldLeftPenaltyArc")
+        {
+            defense_area_radius =
+                (arc.radius() + arc.thickness() / 2.0) / 1000.0;
+        }
+    }
+
+    // Defense stretch
+    /*
+    Line names:
+    TopTouchLine
+    BottomTouchLine
+    LeftGoalLine
+    RightGoalLine
+    HalfwayLine
+    CenterLine
+    LeftPenaltyStretch
+    RightPenaltyStretch
+    RightGoalTopLine
+    RightGoalBottomLine
+    RightGoalDepthLine
+    LeftGoalTopLine
+    LeftGoalBottomLine
+    LeftGoalDepthLine
+
+    */
+    for (int i = 0; i < fsize.field_lines_size(); i++)
+    {
+        const SSL_FieldLineSegment &line = fsize.field_lines(i);
+        std::string lineName             = line.name();
+        if (lineName == "LeftPenaltyStretch")
+        {
+            left_penalty_stretch = (Point(line.p2().x(), line.p2().y()) -
+                                    Point(line.p1().x(), line.p1().y()))
+                                       .len() /
+                                   1000;
+        }
+
+        else if (lineName == "RightPenaltyStretch")
+        {
+            right_penalty_stretch = (Point(line.p2().x(), line.p2().y()) -
+                                     Point(line.p1().x(), line.p1().y()))
+                                        .len() /
+                                    1000;
+        }
+    }
+    defense_area_stretch = left_penalty_stretch;
+
+    field_.update(
+        length, total_length, width, total_width, goal_width,
+        centre_circle_radius, defense_area_radius, defense_area_stretch);
 }
 
 template <typename FriendlyTeam, typename EnemyTeam>
