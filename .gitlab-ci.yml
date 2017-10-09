@@ -13,7 +13,7 @@ build_feature_branch:
         # -l: limit load to stop us running out of virtual memory
         - make -j -l 2
 
-# Check that master will build when we merge our feature branch in
+# Check that dev will build when we merge our feature branch in
 build_merged_master:
     stage: build
     script:
@@ -23,11 +23,11 @@ build_merged_master:
         # -l: limit load to stop us running out of virtual memory
         - make -j -l 2
 
-# Compare our branch with master and check that we pass clang-format
+# Merge our branch into dev and check that we still pass clang-format
 check_formatting_master:
     stage: build
     script:
         - git merge origin/dev --no-commit --no-ff
-        - ./clang-format/check_formatting.sh
+        - ./clang-format/fix_formatting.sh dev
 
 
