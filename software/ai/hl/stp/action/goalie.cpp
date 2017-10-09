@@ -25,6 +25,7 @@ DoubleParam lone_goalie_dist(
     0.5, 0.05, 1.0);
 DoubleParam goalie_repel_dist(
     u8"Distance the goalie should repel the ball in robot radius",
+
     u8"AI/HL/STP/Action/Goalie", 4.0, 1.0, 6.0);
 DoubleParam goalieChipPower(
     u8"How far the goalie chips when it clears the ball",
