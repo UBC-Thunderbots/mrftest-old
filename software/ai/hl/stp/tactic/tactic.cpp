@@ -1,6 +1,5 @@
 #include "ai/hl/stp/tactic/tactic.h"
 #include <stdexcept>
-#include "ai/hl/stp/action/action.h"
 #include "util/dprint.h"
 #include "util/param.h"
 
@@ -68,12 +67,7 @@ void Tactic::player_changed()
 #pragma GCC diagnostic pop
 }
 
-void Tactic::wait(caller_t& ca, const AI::BE::Primitives::Primitive& prim)
-{
-    Action::wait(ca, prim);
-}
-
 void Tactic::yield(caller_t& ca)
 {
-    Action::yield(ca);
+    yield(ca);
 }

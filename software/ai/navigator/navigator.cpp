@@ -4,18 +4,22 @@ using AI::Nav::Navigator;
 using AI::Nav::NavigatorFactory;
 using namespace AI::Nav::W;
 
-Gtk::Widget *Navigator::ui_controls() {
-	return nullptr;
+Gtk::Widget *Navigator::ui_controls()
+{
+    return nullptr;
 }
 
-void Navigator::draw_overlay(Cairo::RefPtr<Cairo::Context>) {
+void Navigator::draw_overlay(Cairo::RefPtr<Cairo::Context>)
+{
 }
 
-Navigator::Navigator(World world) : world(world) {
+Navigator::Navigator(World world) : world(world)
+{
 }
 
 Navigator::~Navigator() = default;
 
-NavigatorFactory::NavigatorFactory(const char *name) : Registerable<NavigatorFactory>(name) {
+NavigatorFactory::NavigatorFactory(const char *name)
+    : Registerable<NavigatorFactory>(name)
+{
 }
-

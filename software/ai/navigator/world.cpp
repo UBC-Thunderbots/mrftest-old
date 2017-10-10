@@ -8,4 +8,3 @@ constexpr double Player::MAX_LINEAR_VELOCITY;
 constexpr double Player::MAX_LINEAR_ACCELERATION;
 constexpr Angle Player::MAX_ANGULAR_VELOCITY;
 constexpr Angle Player::MAX_ANGULAR_ACCELERATION;
-

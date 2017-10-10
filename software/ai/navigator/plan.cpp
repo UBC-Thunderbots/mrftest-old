@@ -2,6 +2,6 @@
 
 using namespace AI::Nav;
 
-Plan::Plan(AI::Nav::W::World world) : world(world) {
+Plan::Plan(AI::Nav::W::World world) : world(world)
+{
 }
-
