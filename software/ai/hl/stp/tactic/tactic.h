@@ -118,12 +118,6 @@ class Tactic : public NonCopyable
      */
     virtual void player_changed();
 
-/**
- * \brief Yields and waits for the primitive to complete.
- */
-#warning remove this is we no longer use the primitive wrapper
-    static void wait(caller_t& ca, const AI::BE::Primitives::Primitive& prim);
-
     /**
      * \brief Yields for one tick.
      */
