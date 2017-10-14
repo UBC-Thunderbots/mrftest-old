@@ -258,6 +258,10 @@ inline void AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam>::update_geometry(
     const SSL_GeometryData &geom)
 {
     const SSL_GeometryFieldSize &fsize(geom.field());
+    std::map<std::string, SSL_FieldCicularArc> circular_arcs;
+    std::map<std::string, SSL_FieldLineSegment> field_lines;
+
+    // Specified in the rules, unfortunately not in the new protocol
     const double referee_width = 400;
 
     double length = fsize.field_length() / 1000.0;
@@ -278,35 +282,30 @@ inline void AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam>::update_geometry(
     RightFieldLeftPenaltyArc
     RightFieldRightPenaltyArc
     CenterCircle
-
     */
-    double centre_circle_radius;
-    double defense_area_radius;
-
-    double left_penalty_stretch;
-    double right_penalty_stretch;
-    double defense_area_stretch;
-
-    // Get center circle radius, including line thickness
+    // Add all circular arcs to a map
     for (int i = 0; i < fsize.field_arcs_size(); i++)
     {
         const SSL_FieldCicularArc &arc = fsize.field_arcs(i);
         std::string arcName            = arc.name();
-
-        if (arcName == "CenterCircle")
-        {
-            centre_circle_radius =
-                (arc.radius() + arc.thickness() / 2.0) / 1000.0;
-        }
-
-        else if (arcName == "LeftFieldLeftPenaltyArc")
-        {
-            defense_area_radius =
-                (arc.radius() + arc.thickness() / 2.0) / 1000.0;
-        }
+        circular_arcs[arcName]         = arc;
     }
 
-    // Defense stretch
+    // Get center circle radius, including line thickness
+    const SSL_FieldCicularArc &center_circle_arc =
+        circular_arcs["CenterCircle"];
+    double centre_circle_radius =
+        (center_circle_arc.radius() + center_circle_arc.thickness() / 2.0) /
+        1000.0;
+
+    // Get defense area radius, including line thickness
+    const SSL_FieldCicularArc &left_penalty_arc =
+        circular_arcs["LeftFieldLeftPenaltyArc"];
+    double defense_area_radius =
+        (left_penalty_arc.radius() + left_penalty_arc.thickness() / 2.0) /
+        1000.0;
+
+    // Field Lines
     /*
     Line names:
     TopTouchLine
@@ -323,29 +322,26 @@ inline void AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam>::update_geometry(
     LeftGoalTopLine
     LeftGoalBottomLine
     LeftGoalDepthLine
-
     */
+    // Add field line segments to map
     for (int i = 0; i < fsize.field_lines_size(); i++)
     {
         const SSL_FieldLineSegment &line = fsize.field_lines(i);
         std::string lineName             = line.name();
-        if (lineName == "LeftPenaltyStretch")
-        {
-            left_penalty_stretch = (Point(line.p2().x(), line.p2().y()) -
-                                    Point(line.p1().x(), line.p1().y()))
-                                       .len() /
-                                   1000;
-        }
-
-        else if (lineName == "RightPenaltyStretch")
-        {
-            right_penalty_stretch = (Point(line.p2().x(), line.p2().y()) -
-                                     Point(line.p1().x(), line.p1().y()))
-                                        .len() /
-                                    1000;
-        }
+        field_lines[lineName]            = line;
     }
-    defense_area_stretch = left_penalty_stretch;
+
+    // Get defense stretch, based on left side
+    const SSL_FieldLineSegment &left_penalty_stretch_line =
+        field_lines["LeftPenaltyStretch"];
+    double defense_area_stretch = (Point(
+                                       left_penalty_stretch_line.p2().x(),
+                                       left_penalty_stretch_line.p2().y()) -
+                                   Point(
+                                       left_penalty_stretch_line.p1().x(),
+                                       left_penalty_stretch_line.p1().y()))
+                                      .len() /
+                                  1000.0;
 
     field_.update(
         length, total_length, width, total_width, goal_width,
