@@ -9,8 +9,8 @@
  * \brief The available devices.
  */
 typedef enum {
-	CHICKER_KICK, ///< Performs a straight, flat kick.
-	CHICKER_CHIP, ///< Performs a chip kick up into the air.
+    CHICKER_KICK, ///< Performs a straight, flat kick.
+    CHICKER_CHIP, ///< Performs a chip kick up into the air.
 } chicker_device_t;
 
 /**
@@ -35,4 +35,3 @@ void chicker_tick(void);
 void chicker_tick_fast(void);
 
 #endif
-

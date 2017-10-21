@@ -15,6 +15,41 @@
 #define TIME_HORIZON 0.05f //s
 
 static float destination[3], major_vec[2], minor_vec[2];
+
+const float minor_disp_limit = 0;
+const float rotation_limit = 0;
+
+void set_displacement(float *dx, float *dy, dr_data_t states) {
+	// relative distances to destination
+	*dx = destination[0] - states.x; // along major axis
+	*dy = destination[1] - states.y; // along minor axis
+}
+
+// gets distance along a vector
+float vector_displacement(float vec[], float x, float y) {
+	float vec2[2] = {x, y};
+	return dot_product(vec, vec2); 
+}
+
+void plan_move(float *accel, float *time, float disp, float vel, float p[3]) {
+	BBProfile profile;
+	PrepareBBTrajectoryMaxV(&profile, disp, vel, p[0], p[1], p[2]); 
+	PlanBBTrajectory(&profile);
+	*accel = BBComputeAvgAccel(&profile, TIME_HORIZON);
+	*time = GetBBTime(&profile);
+
+}
+
+void to_log(log_record_t *log, float timeTarget, float accel[3]) {
+	log->tick.primitive_data[0] = destination[0];//accel[0];
+	log->tick.primitive_data[1] = destination[1];//accel[1];
+	log->tick.primitive_data[2] = destination[2];//accel[2];
+	log->tick.primitive_data[3] = accel[0];//timeX;
+	log->tick.primitive_data[4] = accel[1];//timeY;
+	log->tick.primitive_data[5] = accel[2];
+	log->tick.primitive_data[6] = timeTarget;
+}
+
 // Only need two data points to form major axis vector.
 
 /**
@@ -60,19 +95,21 @@ static void shoot_start(const primitive_params_t *params) {
 
 
 	// Convert into m/s and rad/s because physics is in m and s
-	destination[0] = ((float)(params->params[0])/1000.0f);
-	destination[1] = ((float)(params->params[1])/1000.0f);
-	destination[2] = ((float)(params->params[2])/100.0f);
+	destination[0] = ((float) (params->params[0]) / 1000.0f);
+	destination[1] = ((float) (params->params[1]) / 1000.0f);
+	destination[2] = ((float) (params->params[2]) / 100.0f);
 	
 
+	// cosine and sine of orientation angle to global x axis
 	major_vec[0] = cosf(destination[2]); 
 	major_vec[1] = sinf(destination[2]);
 	minor_vec[0] = major_vec[0];
 	minor_vec[1] = major_vec[1];
-	rotate(minor_vec, M_PI/2);	
+	rotate(minor_vec, M_PI / 2);	
 
 	// arm the chicker
-	chicker_auto_arm((params->extra & 1) ? CHICKER_CHIP : CHICKER_KICK, params->params[3]);
+	chicker_auto_arm((params->extra & 1) ? CHICKER_CHIP : CHICKER_KICK, 
+		params->params[3]);
 	if (!(params->extra & 1)) {
 		dribbler_set_speed(8000);
 	}
@@ -98,81 +135,76 @@ static void shoot_end(void) {
  * \c NULL if no record is to be filled
  */
 static void shoot_tick(log_record_t *log) {
-	//TODO: what would you like to log?
+    //TODO: what would you like to log?
+    // get the states
+    dr_data_t current_states;
+    dr_get(&current_states);
+    // create velocity array
+    float vel[3] = {current_states.vx, current_states.vy, current_states.avel};
+    float angle = current_states.angle;
+    // calculate global displacement
+    float dx, dy;
+    set_displacement(&dx, &dy, current_states);
+    // get min angle between current angle relative to global x and 
+    // destination angle relative to global x
+    float to_rotate = min_angle_delta(angle, destination[2]);
+    printf("Current Angle %f, Final Angle %f, To Rotate %f\n", angle, destination[2], to_rotate);
+    // get displacement along major and minor axes
+    float major_disp = vector_displacement(major_vec, dx, dy);
+    float minor_disp = vector_displacement(minor_vec, dx, dy);
+    //TODO: tune further: experimental
+    float major_vel = vector_displacement(major_vec, vel[0], vel[1]);
+    float minor_vel = vector_displacement(minor_vec, vel[0], vel[1]);
+    float major_accel = 0, minor_accel = 0;
+    float time_major = 0, time_minor = 0;
+    if (abs(major_disp) > 0) {
+        // haven't reached the ball yet
+        // TODO: change hard coded numbers here
+        float major_par[3] = { 1.0f, 1.0f, 1.0f };
+        plan_move(&major_accel, &time_major, major_disp, major_vel, major_par);
+    } 
+    float minor_par[3] = {0, MAX_Y_A, MAX_Y_V};
+    plan_move(&minor_accel, &time_minor, minor_disp, minor_vel, minor_par);
+    float timeTarget = (time_minor > TIME_HORIZON) ? time_minor : TIME_HORIZON;
+    // target rotation speed
+    // float targetVel = 1.6f * to_rotate / timeTarget; 
+    float targetVel = 1.6f * to_rotate / timeTarget; 
+    // rotation acceleration
+    float rot_accel = (targetVel - vel[2]) / TIME_HORIZON;
+    // limit the rotation acceleration 
+    Clamp(&rot_accel, MAX_T_A);
+    float accel[3] = {0, 0, rot_accel};
 
-	dr_data_t current_states;
-	dr_get(&current_states);
+    float local_x_norm_vec[2] = { cosf(angle), sinf(angle) }; 
+    float local_y_norm_vec[2] = { -sinf(angle), cosf(angle) };
 
-	float vel[3] = {current_states.vx, current_states.vy, current_states.avel};
+    float r = sqrtf(pow(major_disp, 2) + pow(major_disp, 2));
+    float scale = 0.75;
+    if (abs(minor_accel) < abs(major_accel) && r > 0.5) {
+        if (dy > 0) {
+            if (dx > 0) {
+                major_accel = minor_accel * scale;
+            } else {
+                major_accel = -minor_accel * scale; 
+            } 
+        } else {
+            if (dx > 0) {
+                major_accel = -minor_accel * scale;
+            } else {
+                major_accel = minor_accel * scale; 
+            } 
+        }
+    }
 
-	float relative_destination[3];
+    accel[0] =  minor_accel * dot_product(local_x_norm_vec, minor_vec);
+    accel[0] += major_accel * dot_product(local_x_norm_vec, major_vec); 
+    accel[1] =  minor_accel * dot_product(local_y_norm_vec, minor_vec);
+    accel[1] += major_accel * dot_product(local_y_norm_vec, major_vec); 
 
-	relative_destination[0] = destination[0] - current_states.x;
-	relative_destination[1] = destination[1] - current_states.y;
-
-
-	relative_destination[2] = min_angle_delta(current_states.angle, destination[2]);
-
-	BBProfile major_profile;
-	BBProfile minor_profile;
-	
-	float major_disp = relative_destination[0]*major_vec[0] + relative_destination[1]*major_vec[1]; 
-	float minor_disp = minor_vec[0]*relative_destination[0] + minor_vec[1]*relative_destination[1];
-	
-	//TODO: tune further: experimental
-	float major_vel = major_vec[0]*vel[0] + major_vec[1]*vel[1];
-	float major_accel;
-	float time_major;
-	if(major_disp > 0){
-		//haven't reached the ball yet
-		PrepareBBTrajectoryMaxV(&major_profile, major_disp, major_vel, 1.0, 1.5, 1.5); 
-		PlanBBTrajectory(&major_profile);
-		major_accel = BBComputeAvgAccel(&major_profile, TIME_HORIZON);
-		time_major = GetBBTime(&major_profile);
-	}else{
-		//past the ball- just coast
-		major_accel = 0;
-		time_major = 0;
-	}
-	float minor_vel = minor_vec[0]*vel[0] + minor_vec[1]*vel[1];
-	PrepareBBTrajectoryMaxV(&minor_profile, minor_disp, minor_vel, 0, MAX_X_A, MAX_X_V); 
-	PlanBBTrajectory(&minor_profile);
-	float minor_accel = BBComputeAvgAccel(&minor_profile, TIME_HORIZON);
-	float time_minor = GetBBTime(&minor_profile);
-
-	float timeTarget = (time_minor > TIME_HORIZON) ? time_minor : TIME_HORIZON;
-	
-	float accel[3] = {0};
-
-	float targetVel = 1.6*relative_destination[2]/timeTarget; 
-	accel[2] = (targetVel - vel[2])/TIME_HORIZON;
-	Clamp(&accel[2], MAX_T_A);
-
-    float len_accel = sqrtf((accel[0] * accel[0])+(accel[1] * accel[1]));
-    accel[0] = accel[0]/len_accel; 
-    accel[1] = accel[1]/len_accel;
-
-	if (log) {
-		log->tick.primitive_data[0] = destination[0];//accel[0];
-		log->tick.primitive_data[1] = destination[1];//accel[1];
-		log->tick.primitive_data[2] = destination[2];//accel[2];
-		log->tick.primitive_data[3] = accel[0];//timeX;
-		log->tick.primitive_data[4] = accel[1];//timeY;
-		log->tick.primitive_data[5] = accel[2];
-		log->tick.primitive_data[6] = timeTarget;
-	}
-
-	float local_x_norm_vec[2] = {cosf(current_states.angle), sinf(current_states.angle)}; 
-	float local_y_norm_vec[2] = {cosf(current_states.angle + M_PI/2), sinf(current_states.angle + M_PI/2)}; 
-	
-	accel[0] = minor_accel*(local_x_norm_vec[0]*minor_vec[0] + local_x_norm_vec[1]*minor_vec[1] );
-	accel[0] += major_accel*(local_x_norm_vec[0]*major_vec[0] + local_x_norm_vec[1]*major_vec[1] );
-	accel[1] = minor_accel*(local_y_norm_vec[0]*minor_vec[0] + local_y_norm_vec[1]*minor_vec[1] );
-	accel[1] += major_accel*(local_y_norm_vec[0]*major_vec[0] + local_y_norm_vec[1]*major_vec[1] );
-
-	apply_accel(accel, accel[2]); // accel is already in local coords
-
+    apply_accel(accel, accel[2]); // accel is already in local coords
 }
+
+
 
 /**
  * \brief The shoot movement primitive.
