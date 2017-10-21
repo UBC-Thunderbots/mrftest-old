@@ -519,3 +519,13 @@ void decompose_radial(const float speed, float* vf, const float* init_pos,
 	vf[0] = cosf(angle) * speed;
 	vf[1] = sinf(angle) * speed;
 }
+
+
+float dot_product(float vec1[], float vec2[]) {
+    float result = 0;
+    int size = sizeof(vec1) / sizeof(*vec1);
+    for (int i = 0; i < size; i++) {
+        result += (vec1[i] * vec2[i]);
+    }
+    return result;
+}
