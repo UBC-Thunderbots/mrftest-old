@@ -57,3 +57,9 @@ software/tags
 *.exe
 *.out
 *.app
+
+# Tools
+*.csv
+*.elf
+*.bin
+*.map

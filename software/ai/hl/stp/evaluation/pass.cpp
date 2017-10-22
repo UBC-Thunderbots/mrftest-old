@@ -1,6 +1,5 @@
 #include "ai/hl/stp/evaluation/pass.h"
 #include "ai/hl/stp/evaluation/ball.h"
-#include "ai/hl/stp/evaluation/plan_util.h"
 #include "ai/hl/stp/evaluation/player.h"
 #include "ai/hl/stp/param.h"
 #include "ai/hl/util.h"

@@ -42,7 +42,7 @@ PROJECT_LIBS := -lbz2 -lboost_coroutine -lboost_context
 # The flags to pass to the C++ compiler.
 #
 # Use C++11 (can be kicked up to a higher level when ready).
-PROJECT_CXXFLAGS := -std=c++11
+PROJECT_CXXFLAGS := -std=c++14
 # Enable threading and thread-safe functions.
 PROJECT_CXXFLAGS += -pthread
 # Enable lots of warnings.

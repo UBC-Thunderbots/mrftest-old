@@ -1,9 +1,9 @@
 #include "physics.h"
-#include "adc.h"
+//#include "adc.h"
 #include "encoder.h"
 #include <math.h>
 #include <stdint.h>
-
+#include <stdio.h>
 
 //Wheel angles for these matricies are (55, 135, 225, 305) degrees
 //these matrices may be derived as per omnidrive_kiart paper
@@ -42,6 +42,9 @@ const float MAX_ACC[3] = {MAX_X_A, MAX_Y_A, MAX_T_A*ROBOT_RADIUS};
 static const float contention_vector[4] = {-0.4621, 0.5353, -0.5353, 0.4621};
 
 
+float norm2(float a1, float a2){
+	return(sqrtf(a1*a1 + a2*a2) );
+}
 
 // return the minimum angle from angle1 to angle2
 // test with angle2 increased or decreased by 2pi
@@ -269,6 +272,9 @@ void speed4_to_speed3(const float speed4[4], float speed3[3]) {
 	matrix_mult(speed3,3,speed4,4, speed4_to_speed3_mat);
 }
 
+void force4_to_force3(const float force4[4], float force3[3]) {
+	matrix_mult(force3,3,force4,4, force4_to_force3_mat);
+}
 /**
  * \ingroup Physics
  *
@@ -414,10 +420,10 @@ void PolAcc2Cart(float const loc[2], float const vel[2], float const Pacc[2], fl
  * \param[in,out] the speed to rotate
  * \param[in] amount in radian to rotate
  */
-void rotate(float speed[2], float angle) {
-	float temp = cosf(angle)*speed[0] - sinf(angle)*speed[1];
-	speed[1] = sinf(angle)*speed[0] + cosf(angle)*speed[1];
-	speed[0]=temp;
+void rotate(float vec[2], float angle) {
+	float temp = cosf(angle)*vec[0] - sinf(angle)*vec[1];
+	vec[1] = sinf(angle)*vec[0] + cosf(angle)*vec[1];
+	vec[0]=temp;
 }
 
 /**
@@ -447,7 +453,7 @@ void force3_to_force4(float force3[3], float force4[4]) {
  *
  * \return the amount by which to scale the torque vector to max it out
  */
-
+/*
 float get_maximal_torque_scaling(const float torque[4]) {
 	float acc_max = -INFINITY;
 	float vapp_max = -INFINITY;
@@ -469,7 +475,7 @@ float get_maximal_torque_scaling(const float torque[4]) {
 
 	return (emf_ratio > slip_ratio)?slip_ratio:emf_ratio; 
 }
-
+*/
 
 /**
  * \ingroup Physics
@@ -481,7 +487,7 @@ float get_maximal_torque_scaling(const float torque[4]) {
  *
  * \return amount by which to scale acceleration
  */
-
+/*
 float get_maximal_accel_scaling(const float linear_accel[2], float angular_accel) {
 	//first convert accelerations into consistent units
 	//choose units of Force (N)
@@ -496,7 +502,7 @@ float get_maximal_accel_scaling(const float linear_accel[2], float angular_accel
 		wheel_force[i] *= WHEEL_RADIUS*GEAR_RATIO; //convert to motor torque
 	}
 	return get_maximal_torque_scaling(wheel_force);
-}
+}*/
 
 /**
  * \ingroup Physics
@@ -519,7 +525,6 @@ void decompose_radial(const float speed, float* vf, const float* init_pos,
 	vf[0] = cosf(angle) * speed;
 	vf[1] = sinf(angle) * speed;
 }
-
 
 float dot_product(float vec1[], float vec2[]) {
     float result = 0;

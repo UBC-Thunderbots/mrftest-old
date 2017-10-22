@@ -22,7 +22,6 @@
 #define ROBOT_POINT_MASS 2.48f
 #define DELTA_VOLTAGE_LIMIT 4.25f  //Voltage where wheel slips (acceleration cap)
 
-
 //all the interial components of the robot
 //This one is a little strange as it is the effective rotational mass
 //The rotational mass * (ROBOT_RADIUS)^2 will give the conventional interia
@@ -39,11 +38,6 @@
 #define GEAR_RATIO 0.5143f //define as speed multiplication from motor to wheel
 #define WHEEL_RADIUS 0.0254f
 
-// constants for radial bangbang controller
-#define MAX_R_V 2.0f
-#define MAX_R_A 3.0f
-
-
 #define MAX_X_V 2.0f //maximal linear velocity in the X direction
 #define MAX_Y_V 1.0f //maximum linear velocity in the Y direction
 #define MAX_T_V 0.1f //max robot rotation rate in radians per second
@@ -54,6 +48,7 @@ extern const float MAX_VEL[3];
 #define MAX_X_A 3.0f
 #define MAX_Y_A 3.0f
 #define MAX_T_A 30.0f
+#define MAX_R_A 2.0f
 
 //#define SLOW_MAX_X_A 1.2f
 //#define SLOW_MAX_Y_A 1.2f
@@ -78,19 +73,17 @@ extern const float MAX_ACC[3];
 extern const float ROBOT_MASS[3];
 extern const float MAX_VEL[3];
 
-
 //transformation matricies to convert speeds in the
 //two different domains commonly used by the robot
 //speed4 which is the listing of wheel speeds 
 //and speed3 which is a speed in x,y,rotation in 
 //robot relative coordinates
 void speed4_to_speed3(const float speed4[4], float speed3[3]);
+void force4_to_force3(const float force4[4], float force3[3]);
 void speed3_to_speed4(const float speed3[3], float speed4[4]);
 
 float min_angle_delta(float,float);
-inline float norm2(float a1, float a2){
-	return(sqrtf(a1*a1 + a2*a2) );
-}
+float norm2(float a1, float a2);
 
 //rotate a velocity vector through angle
 void rotate(float speed3[2], float angle);

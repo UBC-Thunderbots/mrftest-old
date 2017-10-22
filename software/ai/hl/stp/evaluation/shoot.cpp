@@ -1,5 +1,4 @@
 #include "ai/hl/stp/evaluation/shoot.h"
-#include "ai/hl/stp/evaluation/plan_util.h"
 #include "ai/hl/stp/param.h"
 #include "ai/hl/util.h"
 #include "geom/angle.h"
