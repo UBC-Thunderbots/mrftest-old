@@ -83,6 +83,7 @@ void force4_to_force3(const float force4[4], float force3[3]);
 void speed3_to_speed4(const float speed3[3], float speed4[4]);
 
 float min_angle_delta(float,float);
+float min_angle_delta_alt(float, float);
 float norm2(float a1, float a2);
 
 //rotate a velocity vector through angle

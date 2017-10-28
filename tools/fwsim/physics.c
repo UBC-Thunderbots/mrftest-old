@@ -66,6 +66,32 @@ float min_angle_delta(float angle1, float angle2){
 			return(angle2 - angle1);                                                                                 
 		}                                                                                                                      
 	}                                                                                                                       
+}
+
+// adds a check for the angles so that we are ALWAYS returning the
+// smallest angle of rotation
+float min_angle_delta_alt(float angle1, float angle2) {
+    if (angle1 > 2 * M_PI) {
+        angle1 = fmod(angle1, 2 * M_PI);
+    } 
+    if (angle2 > 2 * M_PI) {
+        angle2 = fmod(angle2, 2 * M_PI);
+    }
+    if (angle2 >= angle1) {                                                                                                        
+        float ang_sub = angle2 - 2*M_PI;                                                                                        
+        if ((ang_sub - angle1) * (ang_sub - angle1) <= (angle2 - angle1) * (angle2 - angle1)){                             
+            return (ang_sub - angle1);                                                              
+        } else {                                                                                                                 
+            return (angle2 - angle1);                                                                                 
+        }                                                                                                                      
+    } else {                                                                                                                       
+        float ang_plus = angle2 + 2*M_PI;                                                                                       
+        if ((ang_plus - angle1) * (ang_plus - angle1) <= (angle2 - angle1) * (angle2 - angle1)){                           
+            return (ang_plus - angle1);                                                              
+        } else {                                                                                                                 
+            return (angle2 - angle1);                                                                                 
+        }                                                                                                                      
+    }  
 
 }
 

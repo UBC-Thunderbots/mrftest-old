@@ -17,6 +17,9 @@ static float destination[3], major_vec[2], minor_vec[2];
 const float minor_disp_limit = 0;
 const float rotation_limit = 0;
 
+void print(float f) {
+    printf("%f\n", f);
+}
 void set_displacement(float *dx, float *dy, dr_data_t states) {
     // relative distances to destination
     *dx = destination[0] - states.x; // along major axis
@@ -144,7 +147,7 @@ void shoot_tick() {
     set_displacement(&dx, &dy, current_states);
     // get min angle between current angle relative to global x and 
     // destination angle relative to global x
-    float to_rotate = min_angle_delta(angle, destination[2]);
+    float to_rotate = min_angle_delta_alt(angle, destination[2]);
     // get displacement along major and minor axes
     float major_disp = vector_displacement(major_vec, dx, dy);
     float minor_disp = vector_displacement(minor_vec, dx, dy);
@@ -156,7 +159,7 @@ void shoot_tick() {
     if (abs(major_disp) > 0) {
         // haven't reached the ball yet
         // TODO: change hard coded numbers here
-        float major_par[3] = { 1.0f, 1.0f, 1.0f };
+        float major_par[3] = { 1.5f, 1.5f, 1.0f };
         plan_move(&major_accel, &time_major, major_disp, major_vel, major_par);
     } 
     float minor_par[3] = {0, MAX_Y_A, MAX_Y_V};
@@ -173,26 +176,16 @@ void shoot_tick() {
     float local_x_norm_vec[2] = { cosf(angle), sinf(angle) }; 
     float local_y_norm_vec[2] = { -sinf(angle), cosf(angle) };
 
-    float r = sqrtf(pow(major_disp, 2) + pow(major_disp, 2));
-    float scale = 0.75;
-    // if (abs(minor_accel) < abs(major_accel) && r > 0.5) {
-    //     if (dy > 0) {
-    //         if (dx > 0) {
-    //             major_accel = minor_accel * scale;
-    //         } else {
-    //             major_accel = -minor_accel * scale; 
-    //         } 
-    //     } else {
-    //         if (dx > 0) {
-    //             major_accel = -minor_accel * scale;
-    //         } else {
-    //             major_accel = minor_accel * scale; 
-    //         } 
-    //     }
-    // }
-    //if (r > 1) {
-    major_accel *= 0.05;
-    //}
+    if (angle >= 0) {
+        local_x_norm_vec[1] *= -1;
+        local_y_norm_vec[0] *= -1;
+    } 
+
+    float r = sqrtf(pow(major_disp, 2) + pow(minor_disp, 2));
+    float abs_factor = abs(minor_disp * 1000) / (r * 1000.0f);
+    // scales major acceleration so that it grows a function of time
+    // up to a maxmimum possible accel determine by bangbang
+    major_accel *= (1 - abs_factor);
 
     accel[0] =  minor_accel * dot_product(local_x_norm_vec, minor_vec);
     accel[0] += major_accel * dot_product(local_x_norm_vec, major_vec); 
