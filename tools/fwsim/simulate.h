@@ -67,5 +67,6 @@ void sim_tick(float delta_t);
 void sim_log_tick(float time);
 void sim_log_start();
 void sim_reset();
+float get_pos_x();
 
 #endif//
