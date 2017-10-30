@@ -4,6 +4,7 @@
 #include "primitive.h"
 #include "physics.h"
 
-extern const primitive_t SPIN_PRIMITIVE;
-
 #endif
+
+void spin_start(primitive_params_t *p);
+void spin_tick();

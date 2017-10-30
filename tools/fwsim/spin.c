@@ -1,8 +1,8 @@
 #include "spin.h"
-#include "../bangbang.h"
-#include "../control.h"
-#include "../dr.h"
-#include "../physics.h"
+#include "bangbang.h"
+#include "control.h"
+#include "simulate.h"
+#include "physics.h"
 #include <math.h>
 #include <stdio.h>
 
@@ -18,14 +18,6 @@ static float minor_vec[2];
 static float major_angle;
 
 /**
- * \brief Initializes the spin primitive.
- *
- * This function runs once at system startup.
- */
-static void spin_init(void) {
-}
-
-/**
  * \brief Starts a movement of this type.
  *
  * This function runs each time the host computer requests to start a spin
@@ -37,7 +29,7 @@ static void spin_init(void) {
 // input to 3->4 matrix is quarter-degrees per 5 ms, matrix is dimensionless
 // linear ramp up for velocity and linear fall as robot approaches point
 // constant angular velocity
-static void spin_start(const primitive_params_t *p) {
+void spin_start(primitive_params_t *p) {
 	// Parameters:  param[0]: g_destination_x   [mm]
     //              param[1]: g_destination_y   [mm]
     //              param[2]: g_angular_v_final [centi-rad/s]
@@ -69,25 +61,7 @@ static void spin_start(const primitive_params_t *p) {
     major_angle = atan2f(major_vec[1], major_vec[0]);
 }
 
-/**
- * \brief Ends a movement of this type.
- *
- * This function runs when the host computer requests a new movement while a
- * spin movement is already in progress.
- */
-static void spin_end(void) {
-}
-
-/**
- * \brief Ticks a movement of this type.
- *
- * This function runs at the system tick rate while this primitive is active.
- *
- * \param[out] log the log record to fill with information about the tick, or
- * \c NULL if no record is to be filled
- */
-
-static void spin_tick(log_record_t *log) {
+void spin_tick() {
 dr_data_t now;
     dr_get(&now);
 
@@ -156,14 +130,3 @@ dr_data_t now;
     };
     apply_accel(linear_acc, a_accel);
 }
-
-/**
- * \brief The spin movement primitive.
- */
-const primitive_t SPIN_PRIMITIVE = {
-	.direct = false,
-	.init = &spin_init,
-	.start = &spin_start,
-	.end = &spin_end,
-	.tick = &spin_tick,
-};

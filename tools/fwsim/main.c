@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "simulate.h"
-//#include "spline.h"
+// #include "spline.h"
 #include "shoot.h"
 // #include "move.h"
+// #include "spin.h"
 #include "primitive.h"
 #include <stdint.h>
 #include <stdlib.h>
@@ -18,8 +19,8 @@
 #define NUM_ATTEMPTS 1
 
 static const unsigned HIST_SIZE = MAX_SIM_T/HIST_TICK_T + 1;
-const float X_BALL = 1.0;
-const float Y_BALL = 2.0;
+const float X_BALL = 5.0;
+const float Y_BALL = 5.0;
 
 double metric(dr_data_t hist[HIST_SIZE], unsigned histPos){
 	float cost;
@@ -35,10 +36,10 @@ unsigned runSim(double params[NUM_PARAMS], dr_data_t hist[HIST_SIZE]){
 	primitive_params_t p;
 	p.params[0] = (int16_t)(X_BALL * 1000); // final x position
 	p.params[1] = (int16_t)(Y_BALL * 1000); // final y position 
-	p.params[2] = (int16_t)(0.0 * 100);  // final rotation angle
+	p.params[2] = (int16_t)(0.0 * 100);  	// final angular velocity
 	p.params[3] = (int16_t)(0.0 * 1000);
 	shoot_start(&p);
-	//move_start(&p);
+	// move_start(&p);
 	sim_log_start();	
 
 	float time = 0.0;

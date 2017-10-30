@@ -67,28 +67,28 @@ void sim_tick(float delta_t){
 
 void sim_log_tick(float time){
 	printf("SIM, ");
-	printf("%f, ", time);
-	printf("%f, ", pos[0]);
-	printf("%f, ", pos[1]);
-	printf("%f, ", pos[2]);
-	printf("%f, ", vel[0]);
-	printf("%f, ", vel[1]);
+	printf("%f,", time);
+	printf("%f,", pos[0]);
+	printf("%f,", pos[1]);
+	printf("%f,", pos[2]);
+	printf("%f,", vel[0]);
+	printf("%f,", vel[1]);
 	printf("%f\n", vel[2]);
 }
 void sim_log_start(){
-	printf("TYPE, ");
-	printf("TIME, ");
-	printf("X, ");
-	printf("Y, ");
-	printf("THETA, ");
-	printf("VX, ");
-	printf("VY, ");
+	printf("TYPE,");
+	printf("TIME,");
+	printf("X,");
+	printf("Y,");
+	printf("THETA,");
+	printf("VX,");
+	printf("VY,");
 	printf("VA\n");
 }
 
 void sim_reset(){
-	pos[0] = 0.0;
-	pos[1] = 5.0;
+	pos[0] = -4.0;
+	pos[1] = -2.0;
 	pos[2] = M_PI / 2.0;
 	for(unsigned i=0; i < 3; i++){
 		vel[i] = 0.0;
@@ -97,6 +97,7 @@ void sim_reset(){
 		slip[i] = 0.0;
 		accel[i] = 0.0;
 	}
+	vel[2] = 1;
 	force4[3] = 0.0;
 	slip[3] = 0.0;
 }
