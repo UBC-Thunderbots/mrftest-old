@@ -63,3 +63,4 @@ software/tags
 *.elf
 *.bin
 *.map
+software/.vscode/launch.json

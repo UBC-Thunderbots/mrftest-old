@@ -17,6 +17,9 @@ build_feature_branch:
 build_merged_master:
     stage: build
     script:
+        # Make runners have git config
+        - git config --global user.email "chead@chead.com"
+        - git config --global user.name "Christopher Head"
         - git merge origin/dev --no-commit --no-ff
         - cd software
         # -j: compile in parallel as much as possible
