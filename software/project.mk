@@ -1,12 +1,12 @@
 #
 # The executables to compile.
 #
-EXECUTABLES := ai buildid cppunit getcore hall2phase log mrfcap mrftest nulltest sdutil
+EXECUTABLES := ai buildid test getcore hall2phase log mrfcap mrftest nulltest sdutil
 
 #
 # The subset of the above that should not be built by the world target.
 #
-EXECUTABLES_EXCLUDE_WORLD := cppunit
+EXECUTABLES_EXCLUDE_WORLD := test
 
 #
 # The source files for each executable.
@@ -14,7 +14,7 @@ EXECUTABLES_EXCLUDE_WORLD := cppunit
 #
 SOURCES_ai := ai drive geom log/shared main.cpp mrf proto uicomponents util
 SOURCES_buildid := build_id.cpp main.cpp util
-SOURCES_cppunit := cppunit geom util
+SOURCES_test := test/unit-tests geom util/param.* util/string.* util/config.* util/exception.* util/misc.* util/dprint.* util/hungarian.* util/matrix.* util/codec.*
 SOURCES_getcore := getcore.cpp main.cpp util
 SOURCES_hall2phase := hall2phase
 SOURCES_log := ai/common/playtype.* ai/common/colour.h log main.cpp proto uicomponents util
@@ -36,13 +36,13 @@ PROJECT_LDFLAGS := -pthread -Wl,--as-needed -Wl,-O2 -ggdb3
 #
 # The library flags to pass to the linker after all object files.
 #
-PROJECT_LIBS := -lbz2 -lboost_coroutine -lboost_context
+PROJECT_LIBS := -lbz2 -lboost_coroutine -lboost_context -lgtest -lgtest_main
 
 #
 # The flags to pass to the C++ compiler.
 #
 # Use C++11 (can be kicked up to a higher level when ready).
-PROJECT_CXXFLAGS := -std=c++14
+PROJECT_CXXFLAGS := -std=c++11
 # Enable threading and thread-safe functions.
 PROJECT_CXXFLAGS += -pthread
 # Enable lots of warnings.
@@ -89,14 +89,8 @@ PROJECT_CXXFLAGS += -DHAVE_INLINE
 PROJECT_CXXFLAGS += -I.
 
 #
-# Custom pkg-config packages to use only for the cppunit target.
-# This will only apply during linking, because a single compilation step can be shared between multiple executable targets.
-#
-PACKAGES_cppunit := cppunit
-
-#
 # Runs the unit tests.
 #
-.PHONY : check
-check : bin/cppunit
-	bin/cppunit
+.PHONY : test
+test : bin/test
+	bin/test

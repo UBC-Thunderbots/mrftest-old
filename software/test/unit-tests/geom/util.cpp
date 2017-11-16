@@ -1,6 +1,5 @@
 #include "geom/util.h"
-#include <cppunit/TestFixture.h>
-#include <cppunit/extensions/HelperMacros.h>
+#include <gtest/gtest.h>
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
@@ -10,7 +9,7 @@
 #include "geom/point.h"
 
 // Set this to 1 to enable debug output.
-#define DEBUG 1
+#define DEBUG 0
 using namespace Geom;
 
 namespace
@@ -21,88 +20,7 @@ namespace
 std::ostringstream dbgout;
 #endif
 
-class GeomUtilTest final : public CppUnit::TestFixture
-{
-    CPPUNIT_TEST_SUITE(GeomUtilTest);
-    CPPUNIT_TEST(test_collinear);
-    CPPUNIT_TEST(test_line_intersect);
-    CPPUNIT_TEST(test_seg_crosses_seg);
-    CPPUNIT_TEST(test_vector_crosses_seg);
-    CPPUNIT_TEST(test_vector_rect_intersect);
-    CPPUNIT_TEST(test_proj_len);
-    CPPUNIT_TEST(test_point_in_rectangle);
-    CPPUNIT_TEST(test_calc_block_cone_defender);
-    CPPUNIT_TEST(test_circle_boundaries);
-    CPPUNIT_TEST(test_reflect);
-    CPPUNIT_TEST(test_reflect2);
-    CPPUNIT_TEST(test_calc_block_other_ray);
-    CPPUNIT_TEST(test_calc_goalie_block_goal_post);
-    CPPUNIT_TEST(test_unique_line_intersect);
-    CPPUNIT_TEST(test_line_circle_intersect);
-    CPPUNIT_TEST(test_closest_lineseg_point);
-    CPPUNIT_TEST(test_line_rect_intersect);
-    CPPUNIT_TEST(test_clip_point);
-    CPPUNIT_TEST(test_contains_triangle_point);
-    CPPUNIT_TEST(test_intersects_triangle_circle);
-    CPPUNIT_TEST(test_calc_block_cone);
-    CPPUNIT_TEST(test_calc_block_cone2);
-    CPPUNIT_TEST(test_offset_to_line);
-    CPPUNIT_TEST(test_offset_along_line);
-    CPPUNIT_TEST(test_segment_near_line);
-    CPPUNIT_TEST(test_intersection);
-    CPPUNIT_TEST(test_vertex_angle);
-    CPPUNIT_TEST(test_closest_point_time);
-    CPPUNIT_TEST(test_dist_line_vector2);
-    CPPUNIT_TEST(test_seg_buffer_boundaries);
-    CPPUNIT_TEST(test_angle_sweep_circles);
-    CPPUNIT_TEST(test_angle_sweep_circles_all);
-    CPPUNIT_TEST(test_dist_matching);
-    CPPUNIT_TEST(test_clip_point2);
-    CPPUNIT_TEST(test_dist_point_seg);
-    CPPUNIT_TEST_SUITE_END();
-
-   public:
-    void test_dist_point_seg();
-    void test_proj_len();
-    void test_contains_triangle_point();
-    void test_collinear();
-    void test_intersects_triangle_circle();
-    void test_dist_matching();
-    void test_angle_sweep_circles();
-    void test_angle_sweep_circles_all();
-    void test_line_seg_intersect_rectangle();
-    void test_point_in_rectangle();
-    void test_seg_buffer_boundaries();
-    void test_circle_boundaries();
-    void test_closest_lineseg_point();
-    void test_line_circle_intersect();
-    void test_line_rect_intersect();
-    void test_vector_rect_intersect();
-    void test_clip_point();
-    void test_unique_line_intersect();
-    void test_line_intersect();
-    void test_dist_line_vector2();
-    void test_seg_crosses_seg();
-    void test_vector_crosses_seg();
-    void test_reflect();
-    void test_reflect2();
-    void test_calc_block_cone();
-    void test_calc_block_cone2();
-    void test_calc_block_other_ray();
-    void test_calc_goalie_block_goal_post();
-    void test_calc_block_cone_defender();
-    void test_offset_to_line();
-    void test_offset_along_line();
-    void test_segment_near_line();
-    void test_intersection();
-    void test_vertex_angle();
-    void test_closest_point_time();
-    void test_clip_point2();
-};
-CPPUNIT_TEST_SUITE_REGISTRATION(GeomUtilTest);
-}
-
-void GeomUtilTest::test_dist_line_vector2()
+TEST(GeomUtilTest, dist_line_vector2)
 {
     double calculated_val, expected_val;
 
@@ -111,35 +29,35 @@ void GeomUtilTest::test_dist_line_vector2()
     Vector2 test1p(2, 0);
     calculated_val = dist(test1line, test1p);
     expected_val   = 2;
-    CPPUNIT_ASSERT_EQUAL(expected_val, calculated_val);
+    EXPECT_EQ(expected_val, calculated_val);
 
     // case 2
     Line test2line(Vector2(2, 0), Vector2(0, 2));
     Vector2 test2p(0, 0);
     calculated_val = dist(test2line, test2p);
     expected_val   = sqrt(2);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(expected_val, calculated_val, 0.00001);
+    EXPECT_DOUBLE_EQ(expected_val, calculated_val);
 
     // case 3
     Line test3line(Vector2(0, 0), Vector2(0, 0));
     Point test3p(1, 0);
     calculated_val = dist(test3line, test3p);
     expected_val   = 1;
-    CPPUNIT_ASSERT_EQUAL(expected_val, calculated_val);
+    EXPECT_EQ(expected_val, calculated_val);
 
     Line line(Vector2(1, -1), Vector2(5, -2));
     Point p(2, -3);
 
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(1.69775, dist(line, p), 0.0001);
+    EXPECT_NEAR(1.69775, dist(line, p), 1e-5);
 
     p = Point(2, 1);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(2.18282, dist(line, p), 0.0001);
+    EXPECT_NEAR(2.18282, dist(line, p), 1e-5);
 
     p = Point(2, 0);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(1.21268, dist(line, p), 0.0001);
+    EXPECT_NEAR(1.21268, dist(line, p), 1e-5);
 }
 
-void GeomUtilTest::test_proj_len()
+TEST(GeomUtilTest, test_proj_len)
 {
     double calculated_val, expected_val;
     // test case 1
@@ -148,7 +66,7 @@ void GeomUtilTest::test_proj_len()
     Point test1p3(4, 0);
     calculated_val = proj_len(Seg(test1p1, test1p2), test1p3);
     expected_val   = 2 * sqrt(2);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(expected_val, calculated_val, 0.000001);
+    EXPECT_DOUBLE_EQ(expected_val, calculated_val);
 
     // test case 2
     Point test2p1(0, 0);
@@ -156,7 +74,7 @@ void GeomUtilTest::test_proj_len()
     Point test2p3(4, 4);
     calculated_val = proj_len(Seg(test2p1, test2p2), test2p3);
     expected_val   = 4;
-    CPPUNIT_ASSERT_EQUAL(expected_val, calculated_val);
+    EXPECT_EQ(expected_val, calculated_val);
 
     // test case 3
     Point test3p1(0, 0);
@@ -164,7 +82,7 @@ void GeomUtilTest::test_proj_len()
     Point test3p3(-4, -4);
     calculated_val = proj_len(Seg(test3p1, test3p2), test3p3);
     expected_val   = -4 * sqrt(2);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(expected_val, calculated_val, 0.000001);
+    EXPECT_DOUBLE_EQ(expected_val, calculated_val);
 
     // test case 4
     Point test4p1(0, 0);
@@ -172,10 +90,10 @@ void GeomUtilTest::test_proj_len()
     Point test4p3(-4, -4);
     calculated_val = proj_len(Seg(test4p1, test4p2), test4p3);
     expected_val   = -sqrt(32) * (cos((M_PI / 4.0f) - atan(1.0f / 4.0f)));
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(expected_val, calculated_val, 0.000001);
+    EXPECT_DOUBLE_EQ(expected_val, calculated_val);
 }
 
-void GeomUtilTest::test_contains_triangle_point()
+TEST(GeomUtilTest, test_contains_triangle_point)
 {
     // this triangle lies in the first quatren of the field, we can rota
     Point p1(0, 0);
@@ -212,10 +130,10 @@ void GeomUtilTest::test_contains_triangle_point()
         expected_val = false;
 
     bool calculated_val = contains(triangle(p1, p2, p3), p);
-    CPPUNIT_ASSERT_EQUAL(expected_val, calculated_val);
+    EXPECT_EQ(expected_val, calculated_val);
 }
 
-void GeomUtilTest::test_collinear()
+TEST(GeomUtilTest, test_collinear)
 {
     for (unsigned int i = 0; i < 10; ++i)
     {
@@ -225,18 +143,18 @@ void GeomUtilTest::test_collinear()
         Point pointB = pointA + v * (std::rand() % 100) / 100.0;
         Point pointC = pointA - v * (std::rand() % 100) / 100.0;
         bool val     = collinear(pointA, pointB, pointC);
-        CPPUNIT_ASSERT(val);
+        EXPECT_TRUE(val);
     }
 }
 
-void GeomUtilTest::test_intersects_triangle_circle()
+TEST(GeomUtilTest, test_intersects_triangle_circle)
 {
     Point test1p1(-5, 0);
     Point test1p2(5, 0);
     Point test1p3(2, 5);
     Point test1c(0, -1);
     double test1radius = 1;
-    CPPUNIT_ASSERT(!intersects(
+    EXPECT_TRUE(!intersects(
         triangle(test1p1, test1p2, test1p3),
         Circle(
             test1c,
@@ -247,7 +165,7 @@ void GeomUtilTest::test_intersects_triangle_circle()
     Point test2p3(0, 15);
     Point test2c(0, 5);
     double test2radius = 1;
-    CPPUNIT_ASSERT(intersects(
+    EXPECT_TRUE(intersects(
         triangle(test2p1, test2p2, test2p3),
         Circle(
             test2c,
@@ -258,7 +176,7 @@ void GeomUtilTest::test_intersects_triangle_circle()
     Point test3p3(0, 0);
     Point test3c(0, 1);
     double test3radius = 1;
-    CPPUNIT_ASSERT(!intersects(
+    EXPECT_TRUE(!intersects(
         triangle(test3p1, test3p2, test3p3),
         Circle(
             test3c,
@@ -269,7 +187,7 @@ void GeomUtilTest::test_intersects_triangle_circle()
     Point test4p3(-3, -2);
     Point test4c(5, 5);
     double test4radius = 2;
-    CPPUNIT_ASSERT(!intersects(
+    EXPECT_TRUE(!intersects(
         triangle(test4p1, test4p2, test4p3), Circle(test4c, test4radius)));
 
     Point test5p1(-2, -2);
@@ -277,11 +195,11 @@ void GeomUtilTest::test_intersects_triangle_circle()
     Point test5p3(0, 1);
     Point test5c(0, -1);
     double test5radius = 1;
-    CPPUNIT_ASSERT(intersects(
+    EXPECT_TRUE(intersects(
         triangle(test5p1, test5p2, test5p3), Circle(test5c, test5radius)));
 }
 
-void GeomUtilTest::test_dist_matching()
+TEST(GeomUtilTest, test_dist_matching)
 {
     std::vector<Point> v1;
     std::vector<Point> v2;
@@ -297,10 +215,10 @@ void GeomUtilTest::test_dist_matching()
 
     std::vector<std::size_t> match = dist_matching(v1, v2);
 
-    CPPUNIT_ASSERT(match[0] == 0);
-    CPPUNIT_ASSERT(match[1] == 1);
-    CPPUNIT_ASSERT(match[2] == 2);
-    CPPUNIT_ASSERT(match[3] == 3);
+    EXPECT_TRUE(match[0] == 0);
+    EXPECT_TRUE(match[1] == 1);
+    EXPECT_TRUE(match[2] == 2);
+    EXPECT_TRUE(match[3] == 3);
 
     match.clear();
     v1.clear();
@@ -317,13 +235,13 @@ void GeomUtilTest::test_dist_matching()
 
     match = dist_matching(v1, v2);
 
-    CPPUNIT_ASSERT(match[0] == 0);
-    CPPUNIT_ASSERT(match[1] == 2);
-    CPPUNIT_ASSERT(match[2] == 1);
-    CPPUNIT_ASSERT(match[3] == 3);
+    EXPECT_TRUE(match[0] == 0);
+    EXPECT_TRUE(match[1] == 2);
+    EXPECT_TRUE(match[2] == 1);
+    EXPECT_TRUE(match[3] == 3);
 }
 
-void GeomUtilTest::test_angle_sweep_circles()
+TEST(GeomUtilTest, test_angle_sweep_circles)
 {
     std::vector<Point> obs;
     obs.clear();
@@ -333,8 +251,8 @@ void GeomUtilTest::test_angle_sweep_circles()
     std::pair<Point, Angle> testpair = angle_sweep_circles(
         Point(0, 0), Point(10, 10), Point(-10, 10), obs, 1.0);
 
-    CPPUNIT_ASSERT((testpair.first.norm() - Point(0, 1)).len() < 0.0001);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(75.449, testpair.second.to_degrees(), 0.001);
+    EXPECT_TRUE((testpair.first.norm() - Point(0, 1)).len() < 0.0001);
+    EXPECT_NEAR(75.449, testpair.second.to_degrees(), 1e-4);
 
     obs.clear();
     obs.push_back(Point(-4, 6));
@@ -344,12 +262,12 @@ void GeomUtilTest::test_angle_sweep_circles()
     testpair = angle_sweep_circles(
         Point(0, 0), Point(10, 10), Point(-10, 10), obs, 1.0);
 
-    CPPUNIT_ASSERT(
+    EXPECT_TRUE(
         (testpair.first.norm() - Point(-0.0805897, 0.996747)).len() < 0.0001);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(42.1928, testpair.second.to_degrees(), 0.001);
+    EXPECT_NEAR(42.1928, testpair.second.to_degrees(), 1e-4);
 }
 
-void GeomUtilTest::test_angle_sweep_circles_all()
+TEST(GeomUtilTest, test_angle_sweep_circles_all)
 {
     std::vector<Point> obs;
     obs.clear();
@@ -366,151 +284,153 @@ void GeomUtilTest::test_angle_sweep_circles_all()
 
     testpairs = angle_sweep_circles_all(
         Point(0, 0), Point(10, 10), Point(-10, 10), obs, 1.0);
+
+    // TODO: Add assert statement
 }
 
-void GeomUtilTest::test_point_in_rectangle()
+TEST(GeomUtilTest, test_point_in_rectangle)
 {
     // Point in 1st quadrant, rectangle in the 3rd quadrant. Should fail!
-    CPPUNIT_ASSERT(!contains(Rect(Point(0, 0), Point(-2, -2)), Point(1, 1)));
+    EXPECT_TRUE(!contains(Rect(Point(0, 0), Point(-2, -2)), Point(1, 1)));
 
     // Point in 3rd quadrant, rectangle in the 3rd quadrant. Pass!
-    CPPUNIT_ASSERT(contains(Rect(Point(0, 0), Point(-2, -2)), Point(-1, -1)));
+    EXPECT_TRUE(contains(Rect(Point(0, 0), Point(-2, -2)), Point(-1, -1)));
 
     // Point is one of the corners of the rectangle. Pass
-    CPPUNIT_ASSERT(contains(Rect(Point(0, 0), Point(2, 2)), Point(2, 2)));
+    EXPECT_TRUE(contains(Rect(Point(0, 0), Point(2, 2)), Point(2, 2)));
 
     // Point is on the edge of the rectangle. Pass
-    CPPUNIT_ASSERT(contains(Rect(Point(0, 0), Point(3, 3)), Point(0, 1)));
+    EXPECT_TRUE(contains(Rect(Point(0, 0), Point(3, 3)), Point(0, 1)));
 
     // Point in the 1st quadrant, rectangle in the 1st quadrant. Pass
-    CPPUNIT_ASSERT(contains(Rect(Point(0, 0), Point(3, 3)), Point(1, 2)));
+    EXPECT_TRUE(contains(Rect(Point(0, 0), Point(3, 3)), Point(1, 2)));
 
     // Point in the 2nd quadrant, rectangle in the 2nd quadrant. Point is off
     // above, Fail.
-    CPPUNIT_ASSERT(!contains(Rect(Point(0, 0), Point(-4, 4)), Point(-2, 5)));
+    EXPECT_TRUE(!contains(Rect(Point(0, 0), Point(-4, 4)), Point(-2, 5)));
 
     // Point in the 2nd quadrant, rectangle in the 4th quadrant. Point is off to
     // the left, Fail.
-    CPPUNIT_ASSERT(!contains(Rect(Point(0, 0), Point(-4, 4)), Point(-7, 2)));
+    EXPECT_TRUE(!contains(Rect(Point(0, 0), Point(-4, 4)), Point(-7, 2)));
 
     // Point in the 2nd quadrant, rectangle centered at origin. Point is off
     // above, Fail.
-    CPPUNIT_ASSERT(contains(Rect(Point(1, 1), Point(-1, -1)), Point(0.5, 0.5)));
+    EXPECT_TRUE(contains(Rect(Point(1, 1), Point(-1, -1)), Point(0.5, 0.5)));
 
     // Point in the 2nd quadrant, rectangle centered at origin. Point is off to
     // the left, Fail.
-    CPPUNIT_ASSERT(!contains(Rect(Point(1, 1), Point(-1, -1)), Point(2, 2)));
+    EXPECT_TRUE(!contains(Rect(Point(1, 1), Point(-1, -1)), Point(2, 2)));
 }
 
-void GeomUtilTest::test_seg_buffer_boundaries()
+TEST(GeomUtilTest, test_seg_buffer_boundaries)
 {
     Point a = Point(0, 0);
     Point b = Point(1, 0);
     for (Point i : seg_buffer_boundaries(a, b, 1.0, 10))
-        CPPUNIT_ASSERT_DOUBLES_EQUAL(1.0, dist(i, Seg(a, b)), 0.0001);
+        EXPECT_DOUBLE_EQ(1.0, dist(i, Seg(a, b)));
 
     a = Point(5, 2);
     b = Point(2, 7);
 
     for (Point i : seg_buffer_boundaries(a, b, 4.0, 10))
-        CPPUNIT_ASSERT_DOUBLES_EQUAL(4.0, dist(i, Seg(a, b)), 0.0001);
+        EXPECT_DOUBLE_EQ(4.0, dist(i, Seg(a, b)));
 }
 
-void GeomUtilTest::test_circle_boundaries()
+TEST(GeomUtilTest, test_circle_boundaries)
 {
     std::vector<Point> test_circle = circle_boundaries(Point(0, 0), 1, 6);
 
     for (Point i : test_circle)
-        CPPUNIT_ASSERT_DOUBLES_EQUAL(1.0, (i - Point(0, 0)).len(), 0.0001);
+        EXPECT_DOUBLE_EQ(1.0, (i - Point(0, 0)).len());
 }
 
-void GeomUtilTest::test_closest_lineseg_point()
+TEST(GeomUtilTest, test_closest_lineseg_point)
 {
     Point l1(-1, 1);
     Point l2(1, 1);
 
-    CPPUNIT_ASSERT(
+    EXPECT_TRUE(
         (closest_lineseg_point(Point(0, 2), l1, l2) - Point(0, 1)).len() <
         0.00001);
-    CPPUNIT_ASSERT(
+    EXPECT_TRUE(
         (closest_lineseg_point(Point(-2, 1.5), l1, l2) - Point(-1, 1)).len() <
         0.00001);
 
     l1 = Point(-2, 1);
     l2 = Point(1, 2);
 
-    CPPUNIT_ASSERT(
+    EXPECT_TRUE(
         (closest_lineseg_point(Point(1, 0), l1, l2) - Point(0.4, 1.8)).len() <
         0.00001);
-    CPPUNIT_ASSERT(
+    EXPECT_TRUE(
         (closest_lineseg_point(Point(-1.4, 1.2), l1, l2) - Point(-1.4, 1.2))
             .len() < 0.00001);
 }
 
-void GeomUtilTest::test_line_circle_intersect()
+TEST(GeomUtilTest, test_line_circle_intersect)
 {
     std::vector<Point> intersections =
         line_circle_intersect(Point(0, 0), 1.0, Point(0, 3), Point(1, 3));
-    CPPUNIT_ASSERT(intersections.size() == 0);
+    EXPECT_TRUE(intersections.size() == 0);
 
     intersections =
         line_circle_intersect(Point(0, 0), 1.0, Point(-1, 1), Point(1, 1));
-    CPPUNIT_ASSERT(intersections.size() == 1);
-    CPPUNIT_ASSERT((intersections[0] - Point(0, 1)).len() < 0.00001);
+    EXPECT_TRUE(intersections.size() == 1);
+    EXPECT_TRUE((intersections[0] - Point(0, 1)).len() < 0.00001);
 
     // i don't know which intersections will come in which order
     intersections =
         line_circle_intersect(Point(0, 0), 1.0, Point(-1, -1), Point(1, 1));
-    CPPUNIT_ASSERT(intersections.size() == 2);
-    CPPUNIT_ASSERT(
+    EXPECT_TRUE(intersections.size() == 2);
+    EXPECT_TRUE(
         (intersections[0] - Point(1.0 / sqrt(2.0), 1.0 / sqrt(2.0))).len() <
             0.00001 ||
         (intersections[0] - Point(-1.0 / sqrt(2.0), -1.0 / sqrt(2.0))).len() <
             0.00001);
-    CPPUNIT_ASSERT(
+    EXPECT_TRUE(
         (intersections[1] - Point(1.0 / sqrt(2.0), 1.0 / sqrt(2.0))).len() <
             0.00001 ||
         (intersections[1] - Point(-1.0 / sqrt(2.0), -1.0 / sqrt(2.0))).len() <
             0.00001);
 }
 
-void GeomUtilTest::test_line_rect_intersect()
+TEST(GeomUtilTest, test_line_rect_intersect)
 {
     std::vector<Point> intersections = line_rect_intersect(
         Rect(Point(-1, -1), Point(1, 1)), Point(-1, -2), Point(1, 2));
 
-    CPPUNIT_ASSERT(intersections.size() == 2);
-    CPPUNIT_ASSERT(
+    EXPECT_TRUE(intersections.size() == 2);
+    EXPECT_TRUE(
         (intersections[0] - Point(0.5, 1)).len() < 0.00001 ||
         (intersections[0] - Point(-0.5, -1)).len() < 0.00001);
-    CPPUNIT_ASSERT(
+    EXPECT_TRUE(
         (intersections[1] - Point(0.5, 1)).len() < 0.00001 ||
         (intersections[1] - Point(-0.5, -1)).len() < 0.00001);
 
     intersections = line_rect_intersect(
         Rect(Point(0, 0), Point(1, 2)), Point(-1, 0), Point(4, 2));
 
-    CPPUNIT_ASSERT(intersections.size() == 2);
-    CPPUNIT_ASSERT(
+    EXPECT_TRUE(intersections.size() == 2);
+    EXPECT_TRUE(
         (intersections[0] - Point(0, 0.4)).len() < 0.00001 ||
         (intersections[0] - Point(1, 0.8)).len() < 0.00001);
-    CPPUNIT_ASSERT(
+    EXPECT_TRUE(
         (intersections[1] - Point(0, 0.4)).len() < 0.00001 ||
         (intersections[1] - Point(1, 0.8)).len() < 0.00001);
 
     intersections = line_rect_intersect(
         Rect(Point(-1, -1), Point(1, 1)), Point(0, 0), Point(1, 2));
 
-    CPPUNIT_ASSERT(intersections.size() == 1);
-    CPPUNIT_ASSERT((intersections[0] - Point(0.5, 1)).len() < 0.00001);
+    EXPECT_TRUE(intersections.size() == 1);
+    EXPECT_TRUE((intersections[0] - Point(0.5, 1)).len() < 0.00001);
 
     intersections = line_rect_intersect(
         Rect(Point(-1, -1), Point(1, 1)), Point(-0.5, -0.5), Point(0.5, 0.5));
 
-    CPPUNIT_ASSERT(intersections.size() == 0);
+    EXPECT_TRUE(intersections.size() == 0);
 }
 
-void GeomUtilTest::test_vector_rect_intersect()
+TEST(GeomUtilTest, test_vector_rect_intersect)
 {
     dbgout << "========= Enter vector_rect_intersect Test ========="
            << std::endl;
@@ -546,43 +466,43 @@ void GeomUtilTest::test_vector_rect_intersect()
     dbgout << " vectorB3 (" << pe3.x << ", " << pe3.y << ") " << std::endl;
     dbgout << " vectorB4 (" << pe4.x << ", " << pe4.y << ") " << std::endl;
 
-    CPPUNIT_ASSERT((found1 - pr1).len() < 0.001);
-    CPPUNIT_ASSERT((found2 - pr2).len() < 0.001);
-    CPPUNIT_ASSERT((found3 - pr3).len() < 0.001);
-    CPPUNIT_ASSERT((found4 - pr4).len() < 0.001);
+    EXPECT_TRUE((found1 - pr1).len() < 0.001);
+    EXPECT_TRUE((found2 - pr2).len() < 0.001);
+    EXPECT_TRUE((found3 - pr3).len() < 0.001);
+    EXPECT_TRUE((found4 - pr4).len() < 0.001);
 }
 
-void GeomUtilTest::test_clip_point()
+TEST(GeomUtilTest, test_clip_point)
 {
     Point rect1(-2, -1);
     Point rect2(2, 1);
 
-    CPPUNIT_ASSERT(
+    EXPECT_TRUE(
         (clip_point(Point(1, 1), rect1, rect2) - Point(1, 1)).len() < 0.00001);
-    CPPUNIT_ASSERT(
+    EXPECT_TRUE(
         (clip_point(Point(3, 1), rect1, rect2) - Point(2, 1)).len() < 0.00001);
-    CPPUNIT_ASSERT(
+    EXPECT_TRUE(
         (clip_point(Point(3, 2), rect1, rect2) - Point(2, 1)).len() < 0.00001);
 }
 
-void GeomUtilTest::test_clip_point2()
+TEST(GeomUtilTest, test_clip_point2)
 {
     Rect r(Point(-2, -1), Point(2, 1));
 
-    CPPUNIT_ASSERT((clip_point(Point(1, 1), r) - Point(1, 1)).len() < 0.00001);
-    CPPUNIT_ASSERT((clip_point(Point(3, 1), r) - Point(2, 1)).len() < 0.00001);
-    CPPUNIT_ASSERT((clip_point(Point(3, 2), r) - Point(2, 1)).len() < 0.00001);
+    EXPECT_TRUE((clip_point(Point(1, 1), r) - Point(1, 1)).len() < 0.00001);
+    EXPECT_TRUE((clip_point(Point(3, 1), r) - Point(2, 1)).len() < 0.00001);
+    EXPECT_TRUE((clip_point(Point(3, 2), r) - Point(2, 1)).len() < 0.00001);
 }
 
-void GeomUtilTest::test_unique_line_intersect()
+TEST(GeomUtilTest, test_unique_line_intersect)
 {
-    CPPUNIT_ASSERT(unique_line_intersect(
+    EXPECT_TRUE(unique_line_intersect(
         Point(0, 0), Point(2, 2), Point(1, 0), Point(0, 1)));
-    CPPUNIT_ASSERT(!unique_line_intersect(
+    EXPECT_TRUE(!unique_line_intersect(
         Point(0, 0), Point(1, 1), Point(-1, 0), Point(0, 1)));
 }
 
-void GeomUtilTest::test_line_intersect()
+TEST(GeomUtilTest, test_line_intersect)
 {
     dbgout << "========= Enter line_intersect Test ========" << std::endl;
 
@@ -612,11 +532,11 @@ void GeomUtilTest::test_line_intersect()
                << std::endl;
         dbgout << "found (" << found.x << ", " << found.y << ") " << std::endl;
 
-        CPPUNIT_ASSERT((expected - found).len() < 0.0001);
+        EXPECT_TRUE((expected - found).len() < 0.0001);
     }
 }
 
-void GeomUtilTest::test_seg_crosses_seg()
+TEST(GeomUtilTest, test_seg_crosses_seg)
 {
     dbgout << "========= Enter seg_crosses_seg Test ========" << std::endl;
 
@@ -663,11 +583,11 @@ void GeomUtilTest::test_seg_crosses_seg()
         dbgout << "expecting " << (expected ? "true" : "false") << " found "
                << (found ? "true" : "false") << std::endl;
 
-        CPPUNIT_ASSERT_EQUAL(expected, found);
+        EXPECT_EQ(expected, found);
     }
 }
 
-void GeomUtilTest::test_vector_crosses_seg()
+TEST(GeomUtilTest, test_vector_crosses_seg)
 {
     dbgout << "========= Enter vector_crosses_seg Test ========" << std::endl;
 
@@ -704,7 +624,7 @@ void GeomUtilTest::test_vector_crosses_seg()
         dbgout << "expecting " << (expected ? "true" : "false") << " found "
                << (found ? "true" : "false") << std::endl;
 
-        CPPUNIT_ASSERT_EQUAL(expected, found);
+        EXPECT_EQ(expected, found);
     }
 
     // case where vector does not face segment
@@ -738,229 +658,224 @@ void GeomUtilTest::test_vector_crosses_seg()
         dbgout << "expecting " << (expected ? "true" : "false") << " found "
                << (found ? "true" : "false") << std::endl;
 
-        CPPUNIT_ASSERT_EQUAL(expected, found);
+        EXPECT_EQ(expected, found);
     }
 }
 
-void GeomUtilTest::test_reflect()
+TEST(GeomUtilTest, test_reflect)
 {
     Point ray0(2, 4);
     Point normal(-1, 1);
     Point reflected = reflect(ray0, normal);
 
-    CPPUNIT_ASSERT((reflected - Point(4, 2)).len() < 0.0001);
+    EXPECT_TRUE((reflected - Point(4, 2)).len() < 0.0001);
 }
 
-void GeomUtilTest::test_reflect2()
+TEST(GeomUtilTest, test_reflect2)
 {
     Point ray0(2, 4);
     Point line0(0, 0);
     Point line1(1, 1);
     Point reflected = reflect(line0, line1, ray0);
 
-    CPPUNIT_ASSERT((reflected - Point(4, 2)).len() < 0.0001);
+    EXPECT_TRUE((reflected - Point(4, 2)).len() < 0.0001);
 }
 
-void GeomUtilTest::test_calc_block_cone()
+TEST(GeomUtilTest, test_calc_block_cone)
 {
     Point a(5, 10);
     Point b(-5, 10);
 
-    CPPUNIT_ASSERT(
-        (calc_block_cone(a, b, 1) - Point(0, sqrt(5))).len() < 0.00001);
+    EXPECT_TRUE((calc_block_cone(a, b, 1) - Point(0, sqrt(5))).len() < 0.00001);
 
     a = Point(0, 8);
     b = Point(4, 4);
 
-    CPPUNIT_ASSERT(
+    EXPECT_TRUE(
         (calc_block_cone(a, b, 1) - Point(1, 1.0 + sqrt(2))).len() < 0.00001);
 
     a = Point(2, -4);
     b = Point(6, -2);
 
-    CPPUNIT_ASSERT(
+    EXPECT_TRUE(
         (calc_block_cone(a, b, 1) - Point(1.9741, -1.71212)).len() < 0.00001);
 }
 
-void GeomUtilTest::test_calc_block_cone2()
+TEST(GeomUtilTest, test_calc_block_cone2)
 {
     Point a(5, 10);
     Point b(-5, 10);
     Point o(0, 0);
 
-    CPPUNIT_ASSERT(
+    EXPECT_TRUE(
         (calc_block_cone(a, b, o, 1) - Point(0, sqrt(5))).len() < 0.00001);
 
     a = Point(6, 11);
     b = Point(-4, 11);
     o = Point(1, 1);
 
-    CPPUNIT_ASSERT(
+    EXPECT_TRUE(
         (calc_block_cone(a, b, o, 1) - Point(0, sqrt(5)) - o).len() < 0.00001);
 
     a = Point(-2, 6);
     b = Point(2, 2);
     o = Point(-2, -2);
 
-    CPPUNIT_ASSERT(
+    EXPECT_TRUE(
         (calc_block_cone(a, b, o, 1) - Point(1, 1.0 + sqrt(2)) - o).len() <
         0.0001);
 }
 
-void GeomUtilTest::test_calc_block_other_ray()
+TEST(GeomUtilTest, test_calc_block_other_ray)
 {
     // I don't know what the function is supposed to return, so I just set the
     // test value to the return value of the function for now.
     Point p(-0.301176, -1.24471);
     Point a = calc_block_other_ray(Point(1, 0), Point(0.2, 1), Point(0.4, 0.1));
 
-    CPPUNIT_ASSERT((a - p).len() < 0.00001);
+    EXPECT_TRUE((a - p).len() < 0.00001);
 }
 
-void GeomUtilTest::test_calc_goalie_block_goal_post()
+TEST(GeomUtilTest, test_calc_goalie_block_goal_post)
 {
     Point a(-1, 0);
     Point b(1.5, -0.5);
     Point c(0, 1);
     Point g(0, 0.5);
 
-    CPPUNIT_ASSERT(goalie_block_goal_post(a, b, c, g));
+    EXPECT_TRUE(goalie_block_goal_post(a, b, c, g));
 }
 
-void GeomUtilTest::test_calc_block_cone_defender()
+TEST(GeomUtilTest, test_calc_block_cone_defender)
 {
     Point p(-0.353553, -0.0606602);
     Point a = calc_block_cone_defender(
         Point(1, 0), Point(-1, 0), Point(0, 1), Point(0.25, 0.5), 0.5);
-    CPPUNIT_ASSERT((a - p).len() < 0.00001);
+    EXPECT_TRUE((a - p).len() < 0.00001);
 }
 
-void GeomUtilTest::test_offset_to_line()
+TEST(GeomUtilTest, test_offset_to_line)
 {
     Point x0(1, -1);
     Point x1(5, -2);
     Point p(2, -3);
 
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(-1.69775, offset_to_line(x0, x1, p), 0.0001);
+    EXPECT_NEAR(-1.69775, offset_to_line(x0, x1, p), 1e-5);
 
     p = Point(2, 1);
 
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(2.18282, offset_to_line(x0, x1, p), 0.0001);
+    EXPECT_NEAR(2.18282, offset_to_line(x0, x1, p), 1e-5);
 
     p = Point(2, 0);
 
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(1.21268, offset_to_line(x0, x1, p), 0.0001);
+    EXPECT_NEAR(1.21268, offset_to_line(x0, x1, p), 1e-5);
 }
 
-void GeomUtilTest::test_offset_along_line()
+TEST(GeomUtilTest, test_offset_along_line)
 {
     Point x0(1, -1);
     Point x1(5, -2);
     Point p(2, 1);
 
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(
-        0.485071, offset_along_line(x0, x1, p), 0.0001);
+    EXPECT_NEAR(0.485071, offset_along_line(x0, x1, p), 1e-5);
 
     p = Point(3, 1);
 
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(1.45521, offset_along_line(x0, x1, p), 0.0001);
+    EXPECT_NEAR(1.45521, offset_along_line(x0, x1, p), 1e-5);
 
     p = Point(2, -2);
 
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(1.21268, offset_along_line(x0, x1, p), 0.0001);
+    EXPECT_NEAR(1.21268, offset_along_line(x0, x1, p), 1e-5);
 }
 
-void GeomUtilTest::test_segment_near_line()
+TEST(GeomUtilTest, test_segment_near_line)
 {
     Point seg0(0, 3);
     Point seg1(3, 2);
     Point line0(-1, 0);
     Point line1(3, 5);
 
-    CPPUNIT_ASSERT(
+    EXPECT_TRUE(
         (segment_near_line(seg0, seg1, line0, line1) - Point(1.105263, 2.63158))
             .len() < 0.0001);
 
     seg0 = Point(0, 3);
     seg1 = Point(0, 4);
 
-    CPPUNIT_ASSERT(
+    EXPECT_TRUE(
         (segment_near_line(seg0, seg1, line0, line1) - Point(0, 3)).len() <
         0.001);
 }
 
-void GeomUtilTest::test_intersection()
+TEST(GeomUtilTest, test_intersection)
 {
     Point a1(-1, 0);
     Point a2(4, 1);
     Point b1(0, -1);
     Point b2(1, 4);
 
-    CPPUNIT_ASSERT(
+    EXPECT_TRUE(
         (intersection(a1, a2, b1, b2) - Point(0.25, 0.25)).len() < 0.0001);
 
     a2 = Point(4, 2);
 
-    CPPUNIT_ASSERT(
+    EXPECT_TRUE(
         (intersection(a1, a2, b1, b2) - Point(0.30435, 0.52174)).len() <
         0.0001);
 }
 
-void GeomUtilTest::test_vertex_angle()
+TEST(GeomUtilTest, test_vertex_angle)
 {
     Point a(6, 2);
     Point b(0, 0);
     Point c(1, 5);
 
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(
-        -60.2551, vertex_angle(a, b, c).to_degrees(), 0.0001);
+    EXPECT_NEAR(-60.2551, vertex_angle(a, b, c).to_degrees(), 1e-4);
 
     a = Point(6, 1);
 
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(
-        -69.2277, vertex_angle(a, b, c).to_degrees(), 0.0001);
+    EXPECT_NEAR(-69.2277, vertex_angle(a, b, c).to_degrees(), 1e-4);
 }
 
-void GeomUtilTest::test_closest_point_time()
+TEST(GeomUtilTest, test_closest_point_time)
 {
     Point x1(0, 0);
     Point v1(1, 1);
     Point x2(2, 0);
     Point v2(-1, 1);
 
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(
-        1.0, closest_point_time(x1, v1, x2, v2), 0.0001);
+    EXPECT_DOUBLE_EQ(1.0, closest_point_time(x1, v1, x2, v2));
 
     x1 = Point(0, 0);
     v1 = Point(0, 0);
     x2 = Point(-1, 1);
     v2 = Point(1, 0);
 
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(
-        1.0, closest_point_time(x1, v1, x2, v2), 0.0001);
+    EXPECT_DOUBLE_EQ(1.0, closest_point_time(x1, v1, x2, v2));
 
     x1 = Point(0, 0);
     v1 = Point(1, 1);
     x2 = Point(6, 0);
     v2 = Point(-2, 2);
 
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(
-        1.8, closest_point_time(x1, v1, x2, v2), 0.0001);
+    EXPECT_DOUBLE_EQ(1.8, closest_point_time(x1, v1, x2, v2));
 }
 
-void GeomUtilTest::test_dist_point_seg()
+TEST(GeomUtilTest, test_dist_point_seg)
 {
     Point a1(0, 0);
     Point b1(1, 0);
 
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(1.0, dist(Point(0, 1), Seg(a1, b1)), 0.0001);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(1.0, dist(Point(2, 0), Seg(a1, b1)), 0.0001);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(1.0, dist(Point(1, -1), Seg(a1, b1)), 0.0001);
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(1.0, dist(Point(-1, 0), Seg(a1, b1)), 0.0001);
+    EXPECT_DOUBLE_EQ(1.0, dist(Point(0, 1), Seg(a1, b1)));
+    EXPECT_DOUBLE_EQ(1.0, dist(Point(2, 0), Seg(a1, b1)));
+    EXPECT_DOUBLE_EQ(1.0, dist(Point(1, -1), Seg(a1, b1)));
+    EXPECT_DOUBLE_EQ(1.0, dist(Point(-1, 0), Seg(a1, b1)));
 
     Point a2(5, 2);
     Point b2(2, 7);
     Point c2(6.5369, 7.2131);
 
-    CPPUNIT_ASSERT_DOUBLES_EQUAL(4.0, dist(c2, Seg(a2, b2)), 0.001);
+    EXPECT_NEAR(4.0, dist(c2, Seg(a2, b2)), 1e-5);
 }
+
+}  // namespace
