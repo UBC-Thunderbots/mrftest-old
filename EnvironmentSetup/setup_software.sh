@@ -40,9 +40,6 @@ host_software_packages=(
     libgsl0-dev                 # libgsl0-dev
     libgsl0ldbl                 # dependency for libgsl1-dev
     libusb-1.0.0-dev            # libusb-1.0.0-dev
-    libboost1.54-dev            # Dependency for boost
-    libboost-context1.54-dev    # Dependency for boost
-    libboost-coroutine1.54-dev  # libboost-coroutine-dev, the coroutines library
     libbz2-dev                  # bzip2, used for archiving and storing our log files
 
     doxygen                     # Used for generating documentation
