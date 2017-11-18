@@ -36,7 +36,7 @@ PROJECT_LDFLAGS := -pthread -Wl,--as-needed -Wl,-O2 -ggdb3
 #
 # The library flags to pass to the linker after all object files.
 #
-PROJECT_LIBS := -lbz2 -lboost_coroutine -lboost_context -lgtest -lgtest_main
+PROJECT_LIBS := -lbz2 -L./boost_1_54_0/stage/lib -lboost_coroutine -lboost_context -lgtest -lgtest_main
 
 #
 # The flags to pass to the C++ compiler.
@@ -85,6 +85,9 @@ PROJECT_CXXFLAGS += -D_FILE_OFFSET_BITS=64
 PROJECT_CXXFLAGS += -D__STDC_CONSTANT_MACROS=1
 # Use inline functions where available from GNU Scientific Library.
 PROJECT_CXXFLAGS += -DHAVE_INLINE
+# Use boost includes from the local directory, rather then from a system 
+# directory, as we use a depreceated version of boost
+PROJECT_CXXFLAGS += -I ./boost_1_54_0
 # Take include files from the project root directory rather than relative to the source file.
 PROJECT_CXXFLAGS += -I.
 
