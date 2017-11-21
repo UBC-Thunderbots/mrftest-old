@@ -139,5 +139,9 @@ void mm_inv(int n, float a[n][n]);
 void decompose_radial(const float speed, float* vf, const float* init_pos, 
 	const float* final_pos);
 
-float dot_product(float vec1[], float vec2[]);
+float dot_product(float vec1[], float vec2[], int size);
+
+float dot2D(float vec1[2], float vec2[2]);
+
+float dot3D(float vec1[3], float vec2[3]);
 #endif

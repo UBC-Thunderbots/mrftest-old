@@ -17,7 +17,6 @@ The CSV should be fed in through sys.argv[1];
 You will need to adjust X_BALL and Y_BALL to match the ball position that you
 specified in your simulation parameters.
 """
-
 # parses constants from x and y position of the ball from the main.c file
 f = open("main.c")
 txt = f.readlines()
@@ -231,7 +230,6 @@ class Animate():
         if (e.key == 'r'):
             self.index = 0
             self.update(self.index, True)
-
 
     def update(self, i, is_slider=False):
         """

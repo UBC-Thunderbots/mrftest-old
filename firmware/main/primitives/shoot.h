@@ -5,5 +5,25 @@
 
 extern const primitive_t SHOOT_PRIMITIVE;
 
+/**
+ * component to build information along major axis, minor axis, or rotation
+ */
+typedef struct {
+    float disp;
+    float vel;
+    float accel;
+    float time;  
+} Component;
+
+
+/**
+ * data container for components of the robot
+ */
+typedef struct {
+    Component min;
+    Component maj;
+    Component rot;
+} PhysBot;
+
 #endif
 
