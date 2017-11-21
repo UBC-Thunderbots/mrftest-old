@@ -49,7 +49,7 @@ void sim_apply_wheel_force(const float new_wheel_force[4]){
 	
 	//printf("sim local y accel: %f", locaccel[1]);	
 
-	rotate(locaccel, -pos[2]); //put it back in global coords
+	rotate(locaccel, pos[2]); //put it back in global coords
 	accel[0] = locaccel[0];
 	accel[1] = locaccel[1];
 	accel[2] = locaccel[2];
@@ -88,7 +88,7 @@ void sim_log_start(){
 
 void sim_reset(){
 	pos[0] = -4.0;
-	pos[1] = -2.0;
+	pos[1] = -4.0;
 	pos[2] = M_PI / 2.0;
 	for(unsigned i=0; i < 3; i++){
 		vel[i] = 0.0;

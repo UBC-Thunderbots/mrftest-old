@@ -13,14 +13,14 @@
 
 #define DELTA_T 0.0001
 #define ROBOT_TICK_T 0.005
-#define MAX_SIM_T 15.0
+#define MAX_SIM_T 15.0f
 #define HIST_TICK_T 0.03
 #define NUM_PARAMS 3
 #define NUM_ATTEMPTS 1
 
 static const unsigned HIST_SIZE = MAX_SIM_T/HIST_TICK_T + 1;
-const float X_BALL = 5.0;
-const float Y_BALL = 5.0;
+const float X_BALL = -1.0;
+const float Y_BALL = -2.0;
 
 double metric(dr_data_t hist[HIST_SIZE], unsigned histPos){
 	float cost;
@@ -54,7 +54,6 @@ unsigned runSim(double params[NUM_PARAMS], dr_data_t hist[HIST_SIZE]){
 		
 		if(time - last_robot_tick >= ROBOT_TICK_T){
 			shoot_tick();
-			// move_tick();
 			last_robot_tick = time;
 		}
 
@@ -68,11 +67,11 @@ unsigned runSim(double params[NUM_PARAMS], dr_data_t hist[HIST_SIZE]){
 			last_hist_tick = time;
 		}
 
-		x = get_pos_x();
-		float end = abs((int) (p.params[0] / 1000));
-		if (abs(x * 1000) / 1000.0f >= end) {
-			break;
-		}
+		// x = get_pos_x();
+		// float end = abs((int) (p.params[0] / 1000));
+		// if (abs(x * 1000) / 1000.0f >= end) {
+		// 	break;
+		// }
 
 
 	}
