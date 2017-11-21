@@ -12,6 +12,7 @@ build_feature_branch:
         # -j: compile in parallel as much as possible
         # -l: limit load to stop us running out of virtual memory
         - make -j -l 2
+        - make test
 
 # Check that dev will build when we merge our feature branch in
 build_merged_master:
@@ -25,6 +26,7 @@ build_merged_master:
         # -j: compile in parallel as much as possible
         # -l: limit load to stop us running out of virtual memory
         - make -j -l 2
+        - make test
 
 # Merge our branch into dev and check that we still pass clang-format
 check_formatting_master:
