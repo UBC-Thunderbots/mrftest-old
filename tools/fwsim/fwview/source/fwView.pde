@@ -15,7 +15,7 @@ Robot robot;
 
 // global states
 boolean PLAYING = true;
-boolean REAL_SPEED = true;
+boolean REAL_SPEED = false;
 
 boolean DRAW_ORIGIN = true;
 boolean DRAW_VEL_IND = true;
@@ -72,7 +72,7 @@ void drawTestAxes() {
     stroke(255, 0, 0);
     line(0, 0, 0, meterToPx(1), 0, 0);
     stroke(0, 255, 0);
-    line(0, 0, 0, 0, meterToPx(1), 0);
+    line(0, 0, 0, 0, meterToPx(-1), 0);
     stroke(0, 0, 255);
     line(0, 0, 0, 0, 0, meterToPx(1));
 }

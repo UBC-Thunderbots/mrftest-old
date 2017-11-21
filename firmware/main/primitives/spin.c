@@ -38,13 +38,13 @@ static void spin_init(void) {
 // linear ramp up for velocity and linear fall as robot approaches point
 // constant angular velocity
 static void spin_start(const primitive_params_t *p) {
-	// Parameters:  param[0]: g_destination_x   [mm]
+    // Parameters:  param[0]: g_destination_x   [mm]
     //              param[1]: g_destination_y   [mm]
     //              param[2]: g_angular_v_final [centi-rad/s]
     //              extra:    g_end_speed       [millimeter/s]
 
     // Parse the parameters with the standard units
-	x_final = (float)p->params[0] / 1000.0f;
+    x_final = (float)p->params[0] / 1000.0f;
     y_final = (float)p->params[1] / 1000.0f;
     avel_final = (float)p->params[2] / 100.0f;
     slow = p->slow;
@@ -134,22 +134,21 @@ dr_data_t now;
         sinf(now.angle)
     };
     float local_y_vec[2] = {
-        cosf((now.angle + M_PI) / 2),
-        sinf((now.angle + M_PI) / 2)
+        -sinf(now.angle),
+        cosf(now.angle)
     };
 
     // Get local x acceleration
-    float major_dot_x = major_vec[0]*local_x_vec[0] + major_vec[1]*local_x_vec[1];
-    float minor_dot_x = minor_vec[0]*local_x_vec[0] + minor_vec[1]*local_x_vec[1];
+    float major_dot_x = dot_product(local_x_vec, major_vec, 2);
+    float minor_dot_x = dot_product(local_x_vec, minor_vec, 2);
     float x_accel = major_accel*major_dot_x + minor_accel*minor_dot_x;
 
     // Get local y acceleration
-    float major_dot_y = major_vec[0]*local_y_vec[0] + major_vec[1]*local_y_vec[1];
-    float minor_dot_y = minor_vec[0]*local_y_vec[0] + minor_vec[1]*local_y_vec[1];
+    float major_dot_y = dot_product(local_y_vec, major_vec, 2);
+    float minor_dot_y = dot_product(local_y_vec, minor_vec, 2);
     float y_accel = major_accel*major_dot_y + minor_accel*minor_dot_y;
 
     // Apply acceleration in robot's coordinates
-    float distance = norm2(x_final-now.x, y_final-now.y);
     float linear_acc[2] = {
         x_accel,
         y_accel,
@@ -161,9 +160,9 @@ dr_data_t now;
  * \brief The spin movement primitive.
  */
 const primitive_t SPIN_PRIMITIVE = {
-	.direct = false,
-	.init = &spin_init,
-	.start = &spin_start,
-	.end = &spin_end,
-	.tick = &spin_tick,
+    .direct = false,
+    .init   = &spin_init,
+    .start  = &spin_start,
+    .end    = &spin_end,
+    .tick   = &spin_tick,
 };

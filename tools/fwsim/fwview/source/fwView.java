@@ -37,7 +37,7 @@ Robot robot;
 
 // global states
 boolean PLAYING = true;
-boolean REAL_SPEED = true;
+boolean REAL_SPEED = false;
 
 boolean DRAW_ORIGIN = true;
 boolean DRAW_VEL_IND = true;
@@ -94,7 +94,7 @@ public void drawTestAxes() {
     stroke(255, 0, 0);
     line(0, 0, 0, meterToPx(1), 0, 0);
     stroke(0, 255, 0);
-    line(0, 0, 0, 0, meterToPx(1), 0);
+    line(0, 0, 0, 0, meterToPx(-1), 0);
     stroke(0, 0, 255);
     line(0, 0, 0, 0, 0, meterToPx(1));
 }
@@ -173,7 +173,7 @@ public void createGUI() {
         py += 18;
         playbackCheckbox = cp5.addCheckBox("playbackCheckboxes").setGroup(group_replay)
         .setPosition(px, py).setSize(16, 16).setItemsPerRow(1).setSpacingRow(2)
-        .addItem("Real speed", 0).activate(0);
+        .addItem("Real speed", 0);
 
         // cp5.addSlider("Playback").setGroup(group_replay).setSize(sx, sy).setPosition(px, py).setRange(0, 1).setValue(0).plugTo(this, "pbSetPlayback");
     }
@@ -325,7 +325,7 @@ public class Robot {
         pushMatrix();
         
         // x and y are in meters
-        translate(meterToPx(this.x), meterToPx(this.y), meterToPx(0.1f));
+        translate(meterToPx(this.x), -meterToPx(this.y), meterToPx(0.1f));
         rotateZ(this.heading);
         drawRobot();
         popMatrix();
@@ -374,8 +374,8 @@ public class Robot {
         stroke(150);
         for (int i = 0; i < frame; i++) {
             if (i > 0) {
-                line(meterToPx(this.positionXs[i - 1]), meterToPx(this.positionYs[i - 1]), 0,
-                meterToPx(this.positionXs[i]), meterToPx(this.positionYs[i]), 0);
+                line(meterToPx(this.positionXs[i - 1]), -meterToPx(this.positionYs[i - 1]), 0,
+                meterToPx(this.positionXs[i]), -meterToPx(this.positionYs[i]), 0);
             }
         }
     }
@@ -383,18 +383,18 @@ public class Robot {
     // Draw vectors such as speed or rotation
     public void drawSpeedVector() {
         pushMatrix();
-        translate(meterToPx(this.x), meterToPx(this.y), meterToPx(0.1f));
+        translate(meterToPx(this.x), -meterToPx(this.y), meterToPx(0.1f));
         strokeWeight(5);
         stroke(0xff4499FF);
         
         int lastFrame = frame >= this.frames ? this.frames-1: frame;
-        line(0, 0, 0, meterToPx(this.velocityXs[lastFrame]), meterToPx(this.velocityYs[lastFrame]), 0);
+        line(0, 0, 0, meterToPx(this.velocityXs[lastFrame]), -meterToPx(this.velocityYs[lastFrame]), 0);
         popMatrix();
     }
     
     public void drawAngularVector() {
         pushMatrix();
-        translate(meterToPx(this.x), meterToPx(this.y), meterToPx(0.12f));
+        translate(meterToPx(this.x), -meterToPx(this.y), meterToPx(0.12f));
         rotateZ(this.heading);
         strokeWeight(5);
         stroke(0xff66FF66);

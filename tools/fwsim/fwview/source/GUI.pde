@@ -43,7 +43,7 @@ public void createGUI() {
         py += 18;
         playbackCheckbox = cp5.addCheckBox("playbackCheckboxes").setGroup(group_replay)
         .setPosition(px, py).setSize(16, 16).setItemsPerRow(1).setSpacingRow(2)
-        .addItem("Real speed", 0).activate(0);
+        .addItem("Real speed", 0);
 
         // cp5.addSlider("Playback").setGroup(group_replay).setSize(sx, sy).setPosition(px, py).setRange(0, 1).setValue(0).plugTo(this, "pbSetPlayback");
     }
