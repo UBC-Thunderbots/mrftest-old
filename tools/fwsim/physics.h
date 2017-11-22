@@ -83,6 +83,7 @@ void force4_to_force3(const float force4[4], float force3[3]);
 void speed3_to_speed4(const float speed3[3], float speed4[4]);
 
 float min_angle_delta(float,float);
+float min_angle_delta_alt(float, float);
 float norm2(float a1, float a2);
 
 //rotate a velocity vector through angle
@@ -132,5 +133,9 @@ void mm_inv(int n, float a[n][n]);
 void decompose_radial(const float speed, float* vf, const float* init_pos, 
 	const float* final_pos);
 
-float dot_product(float vec1[], float vec2[]);
+float dot_product(float vec1[], float vec2[], int size);
+
+float dot2D(float vec1[2], float vec2[2]);
+
+float dot3D(float vec1[3], float vec2[3]);
 #endif

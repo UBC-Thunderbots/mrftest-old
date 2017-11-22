@@ -8,36 +8,102 @@
 #include "../bangbang.h"
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 // these are set to decouple the 3 axis from each other
 // the idea is to clamp the maximum velocity and acceleration
 // so that the axes would never have to compete for resources
 #define TIME_HORIZON 0.05f //s
 
-static float destination[3], major_vec[2], minor_vec[2];
+static float destination[3], major_vec[2], minor_vec[2], total_rot;
 
-const float minor_disp_limit = 0;
-const float rotation_limit = 0;
-
-void set_displacement(float *dx, float *dy, dr_data_t states) {
-	// relative distances to destination
-	*dx = destination[0] - states.x; // along major axis
-	*dy = destination[1] - states.y; // along minor axis
+// sets up the PhysBot container with all of its info
+PhysBot setup_bot(dr_data_t states) {
+    float v[2] = {states.vx, states.vy};
+    float dr[2] = {destination[0] - states.x, destination[1] - states.y};
+    PhysBot pb = {
+        .rot = {
+            .disp = min_angle_delta(states.angle, destination[2])
+        },
+        .maj = {
+            .disp = dot2D(major_vec, dr),
+            .vel = dot2D(major_vec, v),
+            .accel = 0,
+            .time = 0
+        },
+        .min = {
+            .disp = dot2D(minor_vec, dr),
+            .vel = dot2D(minor_vec, v),
+            .accel = 0,
+            .time = 0
+        }
+    };
+    return pb;
 }
 
-// gets distance along a vector
-float vector_displacement(float vec[], float x, float y) {
-	float vec2[2] = {x, y};
-	return dot_product(vec, vec2); 
+
+/**
+ * Creates the BBProfile for a component. It is assumed that the displacement, 
+ * velocity, and acceleration lie along the major or minor axis (i.e. the 
+ * Component given is a major or minor axis component). 
+ */
+void plan_move(Component *c, float p[3]) {
+    BBProfile profile;
+    PrepareBBTrajectoryMaxV(&profile, c->disp, c->vel, p[0], p[1], p[2]); 
+    PlanBBTrajectory(&profile);
+    c->accel = BBComputeAvgAccel(&profile, TIME_HORIZON);
+    c->time = GetBBTime(&profile);
 }
 
-void plan_move(float *accel, float *time, float disp, float vel, float p[3]) {
-	BBProfile profile;
-	PrepareBBTrajectoryMaxV(&profile, disp, vel, p[0], p[1], p[2]); 
-	PlanBBTrajectory(&profile);
-	*accel = BBComputeAvgAccel(&profile, TIME_HORIZON);
-	*time = GetBBTime(&profile);
+/**
+ * Scales the major acceleration by the distance from the major axis and the
+ * amount required left to rotate. Total roation and the distance vector should
+ * not be zero so as to avoid divide by zero errors.
+ */
+void scale(PhysBot *pb) {
+    float maj_disp = (float) fabs(pb->maj.disp) - ROBOT_RADIUS;
+    float distance_vector = sqrtf(pow(maj_disp, 2) + pow(pb->min.disp, 2));
+    if (distance_vector != 0) {
+        float abs_factor = ((float) fabs(pb->min.disp)) / distance_vector;
+        float minor_axis_factor = 1 - abs_factor;
+        pb->maj.accel *= minor_axis_factor;
+    }
 
+    if (total_rot != 0) {
+        float rot_factor = 1 - ((float) fabs(pb->rot.disp / total_rot));
+        pb->maj.accel *= rot_factor;
+    }
+}
+
+
+/**
+ * Determines the rotation acceleration after setup_bot has been used and
+ * plan_move has been done along the minor axis. The minor time from bangbang
+ * is used to determine the rotation time, and thus the rotation velocity and
+ * acceleration. The rotational acceleration is clamped under the MAX_T_A.
+ */ 
+void plan_rotation(PhysBot *pb, dr_data_t states) {
+    pb->rot.time = (pb->min.time > TIME_HORIZON) ? pb->min.time : TIME_HORIZON;
+    // 1.6f is a magic constant
+    pb->rot.vel = 1.6f * pb->rot.disp / pb->rot.time; 
+    pb->rot.accel = (pb->rot.vel - states.avel) / TIME_HORIZON;
+    Clamp(&pb->rot.accel, MAX_T_A);
+}
+
+/**
+ * Uses a rotaion matrix to rotate the acceleration vectors of the given 
+ * PhysBot back to local xy coordinates and store them in a separate array. The
+ * given angle should be the bot's angle relative to the global x-axis.
+ */
+void to_local_coords(float accel[3], PhysBot pb, float angle) {
+    float local_norm_vec[2][2] = {
+        {cosf(angle), sinf(angle)}, 
+        {cosf(angle + M_PI / 2), sinf(angle + M_PI / 2)}
+    };
+    for (int i = 0; i < 2; i++) {
+        accel[i] =  pb.min.accel * dot2D(local_norm_vec[i], minor_vec);
+        accel[i] += pb.maj.accel * dot2D(local_norm_vec[i], major_vec); 
+    }
 }
 
 void to_log(log_record_t *log, float timeTarget, float accel[3]) {
@@ -105,14 +171,14 @@ static void shoot_start(const primitive_params_t *params) {
 	major_vec[1] = sinf(destination[2]);
 	minor_vec[0] = major_vec[0];
 	minor_vec[1] = major_vec[1];
-	rotate(minor_vec, M_PI / 2);	
+	rotate(minor_vec, M_PI / 2);
+
+    dr_data_t states;
+    dr_get(&states);
+    total_rot = min_angle_delta(destination[2], states.angle);	
 
 	// arm the chicker
-	chicker_auto_arm((params->extra & 1) ? CHICKER_CHIP : CHICKER_KICK, 
-		params->params[3]);
-	if (!(params->extra & 1)) {
-		dribbler_set_speed(8000);
-	}
+	chicker_auto_arm((params->extra & 1) ? CHICKER_CHIP : CHICKER_KICK, params->params[3]);
 	
 }
 
@@ -135,77 +201,25 @@ static void shoot_end(void) {
  * \c NULL if no record is to be filled
  */
 static void shoot_tick(log_record_t *log) {
-    //TODO: what would you like to log?
-    // get the states
-    dr_data_t current_states;
-    dr_get(&current_states);
-    // create velocity array
-    float vel[3] = {current_states.vx, current_states.vy, current_states.avel};
-    float angle = current_states.angle;
-    // calculate global displacement
-    float dx, dy;
-    set_displacement(&dx, &dy, current_states);
-    // get min angle between current angle relative to global x and 
-    // destination angle relative to global x
-    float to_rotate = min_angle_delta(angle, destination[2]);
-    printf("Current Angle %f, Final Angle %f, To Rotate %f\n", angle, destination[2], to_rotate);
-    // get displacement along major and minor axes
-    float major_disp = vector_displacement(major_vec, dx, dy);
-    float minor_disp = vector_displacement(minor_vec, dx, dy);
-    //TODO: tune further: experimental
-    float major_vel = vector_displacement(major_vec, vel[0], vel[1]);
-    float minor_vel = vector_displacement(minor_vec, vel[0], vel[1]);
-    float major_accel = 0, minor_accel = 0;
-    float time_major = 0, time_minor = 0;
-    if (abs(major_disp) > 0) {
-        // haven't reached the ball yet
-        // TODO: change hard coded numbers here
-        float major_par[3] = { 1.0f, 1.0f, 1.0f };
-        plan_move(&major_accel, &time_major, major_disp, major_vel, major_par);
+    dr_data_t states;
+    dr_get(&states);
+    PhysBot pb = setup_bot(states);
+    if (pb.maj.disp > 0) {
+        // tuned constants from testing
+        float major_par[3] = { 1.0f, MAX_X_A * 0.75f, MAX_X_V };
+        plan_move(&pb.maj, major_par);
     } 
-    float minor_par[3] = {0, MAX_Y_A, MAX_Y_V};
-    plan_move(&minor_accel, &time_minor, minor_disp, minor_vel, minor_par);
-    float timeTarget = (time_minor > TIME_HORIZON) ? time_minor : TIME_HORIZON;
-    // target rotation speed
-    // float targetVel = 1.6f * to_rotate / timeTarget; 
-    float targetVel = 1.6f * to_rotate / timeTarget; 
-    // rotation acceleration
-    float rot_accel = (targetVel - vel[2]) / TIME_HORIZON;
-    // limit the rotation acceleration 
-    Clamp(&rot_accel, MAX_T_A);
-    float accel[3] = {0, 0, rot_accel};
+    // tuned constants from testing
+    float minor_par[3] = {0, MAX_Y_A, MAX_Y_V * 2};
+    plan_move(&pb.min, minor_par);
+    plan_rotation(&pb, states);
+    float accel[3] = {0, 0, pb.rot.accel};
+    scale(&pb);
+    to_local_coords(accel, pb, states.angle);
+    apply_accel(accel, accel[2]);
 
-    float local_x_norm_vec[2] = { cosf(angle), sinf(angle) }; 
-    float local_y_norm_vec[2] = { -sinf(angle), cosf(angle) };
-
-    float r = sqrtf(pow(major_disp, 2) + pow(major_disp, 2));
-    float scale = 0.75;
-    if (abs(minor_accel) < abs(major_accel) && r > 0.5) {
-        if (dy > 0) {
-            if (dx > 0) {
-                major_accel = minor_accel * scale;
-            } else {
-                major_accel = -minor_accel * scale; 
-            } 
-        } else {
-            if (dx > 0) {
-                major_accel = -minor_accel * scale;
-            } else {
-                major_accel = minor_accel * scale; 
-            } 
-        }
-    }
-
-    accel[0] =  minor_accel * dot_product(local_x_norm_vec, minor_vec);
-    accel[0] += major_accel * dot_product(local_x_norm_vec, major_vec); 
-    accel[1] =  minor_accel * dot_product(local_y_norm_vec, minor_vec);
-    accel[1] += major_accel * dot_product(local_y_norm_vec, major_vec); 
-
-    apply_accel(accel, accel[2]); // accel is already in local coords
+    if (log) { to_log(log, pb.rot.time, accel); }
 }
-
-
-
 
 
 /**
@@ -218,4 +232,3 @@ const primitive_t SHOOT_PRIMITIVE = {
 	.end = &shoot_end,
 	.tick = &shoot_tick,
 };
-

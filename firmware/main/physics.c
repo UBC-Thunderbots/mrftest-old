@@ -46,8 +46,17 @@ static const float contention_vector[4] = {-0.4621, 0.5353, -0.5353, 0.4621};
 // return the minimum angle from angle1 to angle2
 // test with angle2 increased or decreased by 2pi
 float min_angle_delta(float angle1, float angle2){
-	angle1 = fmod(angle1, 2*M_PI);
-	angle2 = fmod(angle2, 2*M_PI);
+	// angle1 = fmod(angle1, 2*M_PI);
+	// angle2 = fmod(angle2, 2*M_PI);
+
+    // Added this to account for errors made by fmod when angle
+    // is less than 2pi
+    if (angle1 > 2 * M_PI) {
+        angle1 = fmod(angle1, 2 * M_PI);
+    } 
+    if (angle2 > 2 * M_PI) {
+        angle2 = fmod(angle2, 2 * M_PI);
+    }
 	if(angle2 >= angle1 ){                                                                                                        
 		float ang_sub = angle2 - 2*M_PI;                                                                                        
 		if((ang_sub - angle1)*(ang_sub - angle1) <= (angle2 - angle1)*(angle2 - angle1)){                             
@@ -520,12 +529,27 @@ void decompose_radial(const float speed, float* vf, const float* init_pos,
 	vf[1] = sinf(angle) * speed;
 }
 
-
-float dot_product(float vec1[], float vec2[]) {
+/**
+ * Use for dot product on arbitrarily large arrays.
+ */
+float dot_product(float vec1[], float vec2[], int size) {
     float result = 0;
-    int size = sizeof(vec1) / sizeof(*vec1);
     for (int i = 0; i < size; i++) {
         result += (vec1[i] * vec2[i]);
     }
     return result;
+}
+
+/**
+ * DOt product for 2D vectors.
+ */
+float dot2D(float vec1[2], float vec2[2]) {
+    return vec1[0] * vec2[0] + vec1[1] * vec2[1];
+}
+
+/**
+ * DOt product for 3D vectors.
+ */
+float dot3D(float vec1[3], float vec2[3]) {
+    return vec1[0] * vec2[0] + vec1[1] * vec2[1] + vec1[2] * vec2[2];
 }

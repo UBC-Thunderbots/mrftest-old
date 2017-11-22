@@ -4,6 +4,7 @@
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 //Wheel angles for these matricies are (55, 135, 225, 305) degrees
 //these matrices may be derived as per omnidrive_kiart paper
@@ -49,8 +50,12 @@ float norm2(float a1, float a2){
 // return the minimum angle from angle1 to angle2
 // test with angle2 increased or decreased by 2pi
 float min_angle_delta(float angle1, float angle2){
-	angle1 = fmod(angle1, 2*M_PI);
-	angle2 = fmod(angle2, 2*M_PI);
+    if (angle1 > 2 * M_PI) {
+        angle1 = fmod(angle1, 2 * M_PI);
+    } 
+    if (angle2 > 2 * M_PI) {
+        angle2 = fmod(angle2, 2 * M_PI);
+    }
 	if(angle2 >= angle1 ){                                                                                                        
 		float ang_sub = angle2 - 2*M_PI;                                                                                        
 		if((ang_sub - angle1)*(ang_sub - angle1) <= (angle2 - angle1)*(angle2 - angle1)){                             
@@ -66,7 +71,6 @@ float min_angle_delta(float angle1, float angle2){
 			return(angle2 - angle1);                                                                                 
 		}                                                                                                                      
 	}                                                                                                                       
-
 }
 
 /**
@@ -526,11 +530,22 @@ void decompose_radial(const float speed, float* vf, const float* init_pos,
 	vf[1] = sinf(angle) * speed;
 }
 
-float dot_product(float vec1[], float vec2[]) {
+/**
+ * Use for dot product on arbitrarily large arrays.
+ */
+float dot_product(float vec1[], float vec2[], int size) {
     float result = 0;
-    int size = sizeof(vec1) / sizeof(*vec1);
     for (int i = 0; i < size; i++) {
         result += (vec1[i] * vec2[i]);
     }
     return result;
+}
+
+
+float dot2D(float vec1[2], float vec2[2]) {
+    return (vec1[0] * vec2[0]) + (vec1[1] * vec2[1]);
+}
+
+float dot3D(float vec1[3], float vec2[3]) {
+    return (vec1[0] * vec2[0]) + (vec1[1] * vec2[1]) + (vec1[2] * vec2[2]);
 }

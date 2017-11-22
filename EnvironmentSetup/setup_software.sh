@@ -40,14 +40,13 @@ host_software_packages=(
     libgsl0-dev                 # libgsl0-dev
     libgsl0ldbl                 # dependency for libgsl1-dev
     libusb-1.0.0-dev            # libusb-1.0.0-dev
-    libcppunit-dev              # CPPUnit, the unit testing framework
-    libboost1.54-dev            # Dependency for boost
-    libboost-context1.54-dev    # Dependency for boost
-    libboost-coroutine1.54-dev  # libboost-coroutine-dev, the coroutines library
     libbz2-dev                  # bzip2, used for archiving and storing our log files
 
     doxygen                     # Used for generating documentation
     graphviz                    # Required for generating graphs with Doxygen
+
+    libgtest-dev                # The source files for the Google Test framework
+    cmake                       # Required to build the Google Test libraries
 )
 
 # Update sources
@@ -95,6 +94,19 @@ apt-get update
 echo Installing packages required to run HOST SOFTWARE...
 apt-get install ${host_software_packages[@]} -y --force-yes
 echo Done installing packages required to run HOST SOFTWARE
+
+# Build and install Google Test
+echo "Installing Google Test..."
+cd /usr/src/gtest
+cmake CMakeLists.txt
+make
+if [ ! -f /usr/lib/libgtest.a ]; then
+    ln -s /usr/src/gtest/libgtest.a /usr/lib
+fi
+if [ ! -f /usr/lib/libgtest_main.a ]; then
+    ln -s /usr/src/gtest/libgtest_main.a /usr/lib
+fi
+echo "Done..."
 
 # Copy the thunderbots.rules file to /etc/udev/rules.d to get usb/dongle access
 cp $parent_path/99-thunderbots.rules /etc/udev/rules.d
