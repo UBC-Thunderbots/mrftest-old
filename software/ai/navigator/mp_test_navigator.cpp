@@ -1,10 +1,10 @@
 #include "mp_test_navigator.h"
-#include "test_primitives/catch_test.h"
-#include "test_primitives/dribble_test.h"
+// #include "test_primitives/catch_test.h"
+// #include "test_primitives/dribble_test.h"
 #include "test_primitives/move_test.h"
-#include "test_primitives/pivot_test.h"
-#include "test_primitives/shoot_test.h"
-#include "test_primitives/spin_test.h"
+// #include "test_primitives/pivot_test.h"
+// #include "test_primitives/shoot_test.h"
+// #include "test_primitives/spin_test.h"
 
 using AI::Nav::Navigator;
 using AI::Nav::NavigatorFactory;
@@ -30,14 +30,16 @@ MPTest::MPTest(AI::Nav::W::World world) : Navigator(world)
 */
 void MPTest::build_gui()
 {
-    combo.append(CHOOSE_PLAY_TEXT);
+    // combo.append(CHOOSE_PLAY_TEXT);
 
-    primitives["MoveSpin"]    = new SpinTest(world);
-    primitives["MoveMove"]    = new MoveTest(world);
-    primitives["MoveShoot"]   = new ShootTest(world);
-    primitives["MoveDribble"] = new DribbleTest(world);
-    primitives["MoveCatch"]   = new CatchTest(world);
-    primitives["MovePivot"]   = new PivotTest(world);
+    // primitives["MoveSpin"]    = new SpinTest(world);
+    primitives["MoveMove"]    = std::shared_ptr<PrimTest>(new MoveTest(world));
+    primitives[CHOOSE_PLAY_TEXT]    = std::shared_ptr<PrimTest>(new PrimTest(world));
+
+    // primitives["MoveShoot"]   = new ShootTest(world);
+    // primitives["MoveDribble"] = new DribbleTest(world);
+    // primitives["MoveCatch"]   = new CatchTest(world);
+    // primitives["MovePivot"]   = new PivotTest(world);
 
     for (auto const &i : primitives)
     {

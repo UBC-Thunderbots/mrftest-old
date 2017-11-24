@@ -2,6 +2,7 @@
 #include <glibmm/ustring.h>
 #include <gtkmm.h>
 #include <functional>
+#include <memory>
 #include <iostream>
 #include "ai/hl/stp/param.h"
 #include "ai/navigator/navigator.h"
@@ -26,7 +27,87 @@ namespace TestNavigator
 /**
  * \brief Default text shown when no test is selected.
  */
-static const std::string CHOOSE_TEST_TEXT = "<CHOOSE_TEST>";
+static const std::string CHOOSE_TEST_TEXT = "<CHOOSE TEST>";
+
+
+class ControlElement
+{
+    public:
+
+    std::shared_ptr<Gtk::Widget> control_widget;
+    Gtk::Label label;
+    protected:
+        // Callback when change occurs.
+        void callback_func();
+
+};
+
+class SliderControlElement : public ControlElement
+{
+    public:
+        SliderControlElement(std::string lbl, double range_min, double range_max)
+        {
+            control_widget = std::shared_ptr<Gtk::HScale>(new Gtk::HScale());
+            std::shared_ptr<Gtk::HScale> hScale = this->GetHScale();
+            label.set_label(lbl);
+
+            hScale->set_range(range_min, range_max);
+            hScale->signal_value_changed().connect(
+                sigc::mem_fun(this, &SliderControlElement::callback_func));
+        }
+
+        double GetValue()
+        {
+            return slider_value;
+        }
+
+        std::shared_ptr<Gtk::HScale> GetHScale()
+        {
+            return std::dynamic_pointer_cast<Gtk::HScale>(control_widget);
+        }
+
+
+    private:
+        double slider_value;
+
+        void callback_func()
+        {
+            slider_value = this->GetHScale()->get_value();
+        }
+    
+};
+
+class CheckbuttonControlElement : public ControlElement
+{
+    public:
+        CheckbuttonControlElement(std::string lbl)
+        {
+            control_widget = std::shared_ptr<Gtk::CheckButton>(new Gtk::CheckButton());
+            Gtk::CheckButton* check_button = this->GetCheckbutton();
+            check_button->set_label(lbl);
+            
+            check_button->signal_clicked().connect(
+                sigc::mem_fun(this, &CheckbuttonControlElement::callback_func));
+        }
+
+        bool GetValue()
+        {
+            return checkbutton_value;
+        }
+
+        Gtk::CheckButton* GetCheckbutton()
+        {
+            return dynamic_cast<Gtk::CheckButton*>(control_widget.get());
+        }
+
+    private:
+        bool checkbutton_value;
+        void callback_func()
+        {
+            checkbutton_value = this->GetCheckbutton()->get_active();
+        }
+        
+};
 
 // Forward declaration
 class PrimTest;
@@ -35,7 +116,6 @@ class PrimTest;
 * \brief Function pointer definition for a test function
 */
 typedef void (PrimTest::*testfun_t)(Player);
-
 /**
 * \brief Class for a primitive test. All tests are subclasses of this class.
 */
@@ -56,10 +136,13 @@ class PrimTest
     */
     Gtk::VBox box;
 
+    std::vector<std::shared_ptr<ControlElement>> control_elements;
     /**
     * \brief The button that starts the test
     */
     Gtk::Button activate;
+
+    World world;
     /**
     * \brief The player that will do the movement primitive
     */
@@ -70,7 +153,11 @@ class PrimTest
     */
     bool looping_test_fun = false;
 
-    PrimTest()
+    // Called just before test function to update
+    // member fields
+    virtual void update_params() {}
+    
+    PrimTest(World w):world(w)
     {
         current_test_fun        = &PrimTest::do_nothing;
         tests[CHOOSE_TEST_TEXT] = &PrimTest::do_nothing;
@@ -85,11 +172,21 @@ class PrimTest
         return box;
     }
 
+    void build_widget()
+    {
+        for (auto &i : control_elements)
+        {
+            box.add(i->label);
+            box.add(*(i->control_widget));
+        }
+        box.show_all();
+    }
     /**
     * \brief Calls the test function.
     */
     void call_test_fun()
     {
+        update_params();
         if (current_test_fun)
         {
             (this->*current_test_fun)(player);
@@ -103,15 +200,17 @@ class PrimTest
 
 /*
 * A navigator that tests the functions of movement primitives.
+* Experimental! 
 */
 class MPTest final : public Navigator
 {
    public:
+    explicit MPTest(AI::Nav::W::World world);
     void tick() override;
+    
     void on_combo_changed();
     void on_test_combo_changed();
 
-    explicit MPTest(World world);
     NavigatorFactory &factory() const override;
 
     Gtk::Widget *ui_controls() override;
@@ -121,15 +220,16 @@ class MPTest final : public Navigator
     void build_gui();
 
     // The current active movement primitive test set
-    PrimTest *current_test = new PrimTest();
+    std::shared_ptr<PrimTest> current_test = std::shared_ptr<PrimTest>(new PrimTest(world));
 
     // A map of displayed names to primitive test sets
-    std::map<std::string, PrimTest *> primitives;
+    std::map<std::string, std::shared_ptr<PrimTest>> primitives;
 
     Gtk::VBox vbox;
     Gtk::ComboBoxText combo;
     Gtk::ComboBoxText test_combo;
 };
+
 }
 }
 }
