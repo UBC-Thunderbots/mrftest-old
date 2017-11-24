@@ -7,10 +7,9 @@ namespace Nav
 {
 namespace TestNavigator
 {
-
 class MoveTest : public PrimTest
 {
-    public:
+   public:
     Point dest;
     Angle orient;
     double time_delta;
@@ -36,10 +35,7 @@ class MoveTest : public PrimTest
     void test_move_to_ball(Player player);
 
     void on_goto_ball_coords_changed();
-
-    
 };
-
 }
 }
 }

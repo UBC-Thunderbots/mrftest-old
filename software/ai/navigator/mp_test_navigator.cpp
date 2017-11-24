@@ -33,8 +33,9 @@ void MPTest::build_gui()
     // combo.append(CHOOSE_PLAY_TEXT);
 
     // primitives["MoveSpin"]    = new SpinTest(world);
-    primitives["MoveMove"]    = std::shared_ptr<PrimTest>(new MoveTest(world));
-    primitives[CHOOSE_PLAY_TEXT]    = std::shared_ptr<PrimTest>(new PrimTest(world));
+    primitives["MoveMove"] = std::shared_ptr<PrimTest>(new MoveTest(world));
+    primitives[CHOOSE_PLAY_TEXT] =
+        std::shared_ptr<PrimTest>(new PrimTest(world));
 
     // primitives["MoveShoot"]   = new ShootTest(world);
     // primitives["MoveDribble"] = new DribbleTest(world);

@@ -21,12 +21,21 @@ MoveTest::MoveTest(World w)
     tests["MoveOrientTimeDelta"] =
         static_cast<testfun_t>(&MoveTest::test_move_ori_tdelta_dest);
     tests["MoveToBall"] = static_cast<testfun_t>(&MoveTest::test_move_to_ball);
-    double t = world.field().length();
-    x_coord_slider = std::shared_ptr<SliderControlElement>(new SliderControlElement("X Coordinate", -world.field().length() / 2, world.field().length() / 2));
-    y_coord_slider= std::shared_ptr<SliderControlElement>(new SliderControlElement("Y Coordinate", -world.field().width() / 2, world.field().width() / 2));
-    angle_slider = std::shared_ptr<SliderControlElement>(new SliderControlElement("Angle (degrees)", -180, 180));
-    time_delta_slider = std::shared_ptr<SliderControlElement>(new SliderControlElement("Time Delta", 0, 10));
-    goto_ball_checkbutton = std::shared_ptr<CheckbuttonControlElement>(new CheckbuttonControlElement("Use ball coordinates"));
+    double t            = world.field().length();
+    x_coord_slider =
+        std::shared_ptr<SliderControlElement>(new SliderControlElement(
+            "X Coordinate", -world.field().length() / 2,
+            world.field().length() / 2));
+    y_coord_slider =
+        std::shared_ptr<SliderControlElement>(new SliderControlElement(
+            "Y Coordinate", -world.field().width() / 2,
+            world.field().width() / 2));
+    angle_slider = std::shared_ptr<SliderControlElement>(
+        new SliderControlElement("Angle (degrees)", -180, 180));
+    time_delta_slider = std::shared_ptr<SliderControlElement>(
+        new SliderControlElement("Time Delta", 0, 10));
+    goto_ball_checkbutton = std::shared_ptr<CheckbuttonControlElement>(
+        new CheckbuttonControlElement("Use ball coordinates"));
     make_widget();
 }
 
@@ -41,7 +50,7 @@ void MoveTest::make_widget()
     control_elements.push_back(angle_slider);
     control_elements.push_back(time_delta_slider);
     build_widget();
-} 
+}
 
 void MoveTest::test_move_dest(Player player)
 {
@@ -80,10 +89,9 @@ void MoveTest::test_move_to_ball(Player player)
 
 void MoveTest::update_params()
 {
-    dest = Point(x_coord_slider->GetValue(), y_coord_slider->GetValue());
-    orient = Angle::of_degrees(angle_slider->GetValue());
+    dest       = Point(x_coord_slider->GetValue(), y_coord_slider->GetValue());
+    orient     = Angle::of_degrees(angle_slider->GetValue());
     time_delta = time_delta_slider->GetValue();
-
 }
 
 void MoveTest::on_goto_ball_coords_changed()
@@ -102,7 +110,6 @@ void MoveTest::on_goto_ball_coords_changed()
         goto_ball = false;
     }
 }
-
 }
 }
 }
