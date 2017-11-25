@@ -1,7 +1,6 @@
 #ifndef GEOM_PARTICLE_PARTICLE_FILTER_H
 #define GEOM_PARTICLE_PARTICLE_FILTER_H
 
-//#include <vector>
 #include "geom/point.h"
 #include "util/param.h"
 
@@ -14,11 +13,9 @@ namespace Vision
 namespace Particle
 {
 const unsigned int PARTICLE_FILTER_NUM_PARTICLES = 500;
-const double PARTICLE_GENERATION_VARIANCE_LARGE  = 0.05;
-const double PARTICLE_GENERATION_VARIANCE_SMALL  = 0.01;
-const double WITHIN_FIELD_THRESHOLD =
-    0.05;  // How close points must be to the field to be valid
 const double MAX_BALL_CONFIDENCE = 100.0;
+const double MAX_PARTICLE_STANDARD_DEV           = 0.05;
+const double MIN_PARTICLE_STANDARD_DEV           = 0.001;
 
 extern IntParam PARTICLE_FILTER_NUM_CONDENSATIONS;
 extern DoubleParam TOP_PERCENTAGE_OF_PARTICLES;
@@ -37,19 +34,22 @@ const Point TMP_POINT = Point(-99.99, -99.99);
 /**
  * Defines a particle used by the particle filter.
  *
- * A particle is a point with an associated confidence value of how good the
- * particle filter thinks it is.
+ * A particle is a point with an associated confidence value that indicates how
+ * likely
+ * the particle is to be object you are tracking
  */
 struct Particle
 {
     Particle(Point p = Point(), double c = 0.0) : position(p), confidence(c)
     {
-    }  // Default values for Particles
+    }
+
     Point position;
     double confidence;
 
     /**
-     * Overrides the < (less-than) operator.
+     * Overrides the less-than operator so that it compares the confidence of
+     * the particles
      *
      * Used with std::sort to sort a vector of Particles by their confidence
      * values
@@ -61,7 +61,7 @@ struct Particle
 };
 
 /**
- * \brief Implements the basic mathematics of a Particle filter.
+ * Implements the basic mathematics of a Particle filter.
  */
 class ParticleFilter final
 {
@@ -77,9 +77,9 @@ class ParticleFilter final
     /**
      * Adds a point to the Particle Filter
      *
-     * Adds a particle with the given position to the Particle Filter. These
-     * points are used as the
-     * basepoints when generating new particles.
+     * Adds a particle with the given position to the Particle Filter.
+     * The particle filter uses these points that are added
+     * as the basepoints for generating more particles
      *
      * @param pos the position of the particle to be added
      */
@@ -90,19 +90,21 @@ class ParticleFilter final
      * re-evaluating them.
      *
      * Steps:
-     * - Generate new particles around the given basepoints
+     * - Generate new particles around the given basepoints (points added with
+     * the add() function)
      * - Evaluate each new particle and update its confidence value
      * - Select new basepoints from the particles with the highest confidence
      * - Repeat the above steps for the number of condensations. This should
-     * cause the particles and basepoints
-     *   to converge to the most confident position (the ball).
-     * - Finally, average the final basepoints to get the ball's position
+     *   cause the particles and basepoints to converge to the most confident
+     * position (the real ball).
+     * - Finally, take the mean of the final, most confident basepoints and use
+     * that as the ball location
      *
      * @param ballPredictedPos an optional parameter for the ball's predicted
-     * position. The Particle Filter
-     *                         uses this Point to help evaluate the particles,
-     * since particles that are closer
-     *                         to the ball's predicted position are more likely
+     * position. The Particle Filter uses this Point to help evaluate the
+     * particles,
+     * since particles that are closer to the ball's predicted position are more
+     * likely
      * to be the ball
      */
     void update(Point ballPredictedPos = TMP_POINT);
@@ -122,37 +124,43 @@ class ParticleFilter final
     double getEstimateVariance();
 
    private:
-    std::vector<Particle>
-        particles;  // Holds the list of particles the filter uses
+    // Holds the list of particles the filter uses
+    std::vector<Particle> particles;
 
-    unsigned int seed;  // The seed for the random number generators
-    std::default_random_engine generator;  // The generator used with the
-                                           // normal_distrubution to generate
-                                           // values with a gaussian
-                                           // distribution
-    std::minstd_rand0
-        linearGenerator;  // The generator used to generate random linear values
-    std::normal_distribution<double> distributionLarge;  // Used with the
-                                                         // generator to
-                                                         // generate values with
-                                                         // a gaussian
-                                                         // distrubution
-    std::normal_distribution<double> distributionSmall;  // Used with the
-                                                         // generator to
-                                                         // generate values with
-                                                         // a gaussian
-                                                         // distrubution
+    // The seed for the random number generators
+    unsigned int seed;
 
-    std::vector<Point> detections;  // detections by vision
-    std::vector<Point>
-        basepoints;  // The points around which new particles are generated
+    // The generator used with the normal_distrubution to generate
+    // values with a gaussian distribution
+    std::default_random_engine generator;
+
+    // The generator used to generate random linear values. This is used to
+    // generate Particles spread across the whole field
+    std::minstd_rand0 linearGenerator;
+
+    // Holds the list of points that are added with the add() function. We can
+    // expect these
+    // to be any ball positions detected by vision. Essentially, these are all
+    // the places the
+    // ball "could" be
+    std::vector<Point> detections;
+
+    // The points we are the most confident in, and the ones we will use to
+    // generate the
+    // next set of particles
+    std::vector<Point> basepoints;
 
     // These maintain some state for the ball
     Point ballPosition;
     Point ballPredictedPosition;
     double ballPositionVariance;
 
-    // The confidence we have in the ball, from 0 to 100
+    // How confident the filter is that the position it's reporting is the
+    // actual position of the ball.
+    // This value decays when we have no camera data (since we are only guessing
+    // based of off physics where the ball is),
+    // and increases when we do have camera data that comes close to our
+    // predictions
     double ballConfidence;
 
     // The filter stores the field size
@@ -160,28 +168,24 @@ class ParticleFilter final
     double width_;
 
     /**
-     * Generates new particles areound the given basepoints
+     * Generates new particles around the given basepoints
      *
      * Generates PARTICLE_FILTER_NUM_PARTICLES Particles in gaussian
-     * distributions around the
-     * given basepoints. If no basepoints are given, generates the Particles
-     * randomly across the
-     * whole field. The particles will try to be generated within the bounds of
-     * the field
+     * distributions around the given basepoints. If no basepoints are given,
+     * generates the Particles randomly across the whole field. The particles
+     * will be generated within the bounds of the field.
      *
-     * @param smallDistribution whether or not the particles should be generated
-     * with the small distribution or not. The default is to use the larger
-     * distribution
+     * @param variance The variance to use for the Gaussian Distribution that
+     * the filter uses to generate the particles
      */
     void generateParticles(
-        const std::vector<Point>& basepoints, bool smallDistribution);
+        const std::vector<Point>& basepoints, double standard_dev);
 
     /**
      * Updates the confidence of each Particle in the list of particles
      *
      * Evaluates each particle in the filter's list of particles and assigns a
-     * new confidence
-     * value for each.
+     * new confidence value for each.
      */
     void updateParticleConfidences();
 
@@ -216,38 +220,17 @@ class ParticleFilter final
     double getDetectionWeight(const double dist);
 
     /**
-     * Return true if the Point is within the field plus the given threshold,
-     * otherwise return false
+     * Return true if the Point is within the field
      *
-     * @param p the point
-     * @param threshold how far outside the field the point can be before the
-     * function returns false
-     * @return true if p is within the field plus the tolerance, and false
+     * @param p the point to check
+     * @return true if p is within the field and false
      * otherwise
      */
-    bool isInField(const Point& p, double threshold = 0.0);
-
-/**
- * Returns the mean of a list of points
- *
- * @param points the vector of points
- * @return the mean point of points
- */
-#warning put this in evaluation
-    Point getPointsMean(const std::vector<Point>& points);
-
-/**
- * Returns the variance of a list of Points
- *
- * @param points the vector of points
- * @return the variance of the list of points
- */
-#warning put this in evaluation
-    double getPointsVariance(const std::vector<Point>& points);
+    bool isInField(const Point& p);
 };
 }
 }
 }
 }
 
-#endif
+#endif  // GEOM_PARTICLE_PARTICLE_FILTER_H

@@ -500,3 +500,19 @@ std::pair<Point, Point> get_circle_tangent_points(
     const Point &start, const Geom::Circle &circle, double buffer = 0.0);
 
 bool point_is_to_right_of_line(const Geom::Seg &line, const Point &point);
+
+/**
+ * Returns the mean of a list of points
+ *
+ * @param points the vector of points
+ * @return the mean point of points
+ */
+Point getPointsMean(const std::vector<Point> &points);
+
+/**
+ * Returns the variance of a list of Points
+ *
+ * @param points the vector of points
+ * @return the variance of the list of points
+ */
+double getPointsVariance(const std::vector<Point> &points);

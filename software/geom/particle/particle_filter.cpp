@@ -1,4 +1,6 @@
 #include "particle_filter.h"
+#include "geom/util.h"
+
 #include <math.h>
 #include <algorithm>
 #include <chrono>
@@ -67,15 +69,12 @@ ParticleFilter::ParticleFilter(double length, double width)
     particles =
         std::vector<Particle>(PARTICLE_FILTER_NUM_PARTICLES, Particle());
 
+    // Set the seed for the random number generator
     seed = static_cast<unsigned int>(
         std::chrono::system_clock::now().time_since_epoch().count());
 
     // These will be used to generate Points with a gaussian distribution
-    generator         = std::default_random_engine(seed);
-    distributionLarge = std::normal_distribution<double>(
-        0.0, PARTICLE_GENERATION_VARIANCE_LARGE);
-    distributionSmall = std::normal_distribution<double>(
-        0.0, PARTICLE_GENERATION_VARIANCE_SMALL);
+    generator = std::default_random_engine(seed);
 
     // This will be used to generate Points spread across the whole field
     linearGenerator = std::minstd_rand0(seed);
@@ -87,16 +86,15 @@ ParticleFilter::ParticleFilter(double length, double width)
     ballPositionVariance  = 0.0;
 
     ballConfidence = 0.0;
-
-    add(Point(0, 0));
 }
 
-void ParticleFilter::add(const Point ballLocation)
+void ParticleFilter::add(const Point pos)
 {
-    if (!std::isnan(ballLocation.x + ballLocation.y) &&
-        isInField(ballLocation, WITHIN_FIELD_THRESHOLD))
+    // We only care about points that are within the field. The ball can't
+    // be outside the field, and we don't need to track it there
+    if (!std::isnan(pos.x + pos.y) && isInField(pos))
     {
-        detections.push_back(ballLocation);
+        detections.push_back(pos);
     }
 }
 
@@ -108,38 +106,45 @@ void ParticleFilter::update(Point ballPredictedPos)
     // Only add the PredictedPosition (not the ball's last position) as a
     // basepoint because the ball is more likely
     // to be there than the ball's old location. If the ball is not moving, the
-    // prediction
-    // should be the ball's position anyway.
-    if (ballPosition != TMP_POINT && ballPredictedPosition != TMP_POINT)
+    // prediction should be the ball's position anyway.
+    if (ballPosition != TMP_POINT && ballPredictedPosition != TMP_POINT &&
+        isInField(ballPredictedPosition))
     {
         basepoints.push_back(ballPredictedPos);
     }
 
-    // Remove basepoints that are out of the field. It's either noise, or we
-    // don't care if the ball is there.
-    for (auto it = basepoints.begin(); it != basepoints.end();)
-    {
-        if (!isInField(*it, WITHIN_FIELD_THRESHOLD))
-        {
-            it = basepoints.erase(it);
-        }
-        else
-        {
-            it++;
-        }
-    }
+    // Because we only add points that are inside the field to the list of
+    // basepoints, at this point
+    // we can guarantee that all basepoints are within the field, so don't need
+    // to do another loop
+    // to check them
 
     // This is the main particle filter loop.
     // - Generate particles around the given basepoints
     // - Update the confidences of these new particles
-    // - Evaluate each particle, and keep the top percentage of particles to use
-    // as
-    //   basepoints for the next iteration. These particles should converge to
-    //   the ball's location.
+    // - Evaluate each particle, update their confidence, and keep the top
+    // percentage of particles to use
+    // as basepoints for the next iteration. These particles should converge to
+    // the ball's location.
     for (int i = 0; i < PARTICLE_FILTER_NUM_CONDENSATIONS; i++)
     {
-        generateParticles(
-            basepoints, i > PARTICLE_FILTER_NUM_CONDENSATIONS / 2);
+        // As we loop through each condensation, we want the particles that are
+        // generated around the basepoints
+        // to get more and more precise, so that we can pinpoint a more accurate
+        // point when we take the mean
+
+        // Make sure the denominator is never negative or 0
+        double particle_standard_dev_decrement_denominator =
+            PARTICLE_FILTER_NUM_CONDENSATIONS < 1
+                ? 1
+                : PARTICLE_FILTER_NUM_CONDENSATIONS - 1;
+        double particle_standard_dev_decrement =
+            (MAX_PARTICLE_STANDARD_DEV - MIN_PARTICLE_STANDARD_DEV) /
+            particle_standard_dev_decrement_denominator;
+        double particle_standard_dev =
+            MAX_PARTICLE_STANDARD_DEV - i * particle_standard_dev_decrement;
+
+        generateParticles(basepoints, particle_standard_dev);
         updateParticleConfidences();
 
         unsigned int numParticlesToKeep = static_cast<unsigned int>(
@@ -150,12 +155,15 @@ void ParticleFilter::update(Point ballPredictedPos)
         {
             numParticlesToKeep = static_cast<unsigned int>(particles.size());
         }
+
         // sort the list of Particles by their confidences from least to most
         // confidence
         std::sort(particles.begin(), particles.end());
 
         // Replace the basepoints with the positions of the most confident
-        // particles
+        // particles. We iterate over the last part of the array since this is
+        // where the particles
+        // with the most confidence are because of the sort
         basepoints.clear();
         for (auto it = particles.end() - numParticlesToKeep;
              it != particles.end(); it++)
@@ -184,7 +192,8 @@ void ParticleFilter::update(Point ballPredictedPos)
     // If this happens, don't use the newly calculated position as it might be
     // bad.
     if ((newBallPosition - ballPosition).len() > BALL_VALID_DIST_THRESHOLD ||
-        newBallPositionVariance > PARTICLE_GENERATION_VARIANCE_LARGE * 1.5)
+        newBallPositionVariance >
+            MAX_PARTICLE_STANDARD_DEV * MAX_PARTICLE_STANDARD_DEV)
     {
         updateBallConfidence(-BALL_CONFIDENCE_DELTA);
         // TODO: possibly use the ball's predicted position here
@@ -220,9 +229,9 @@ void ParticleFilter::update(Point ballPredictedPos)
 }
 
 void ParticleFilter::generateParticles(
-    const std::vector<Point>& corePoints, bool smallDistribution)
+    const std::vector<Point>& basepoints, double standard_dev)
 {
-    if (corePoints.empty())
+    if (basepoints.empty())
     {
         // If there are no basepoints, spread random points across the whole
         // field
@@ -239,38 +248,39 @@ void ParticleFilter::generateParticles(
     }
     else
     {
+        std::normal_distribution<double> particleNormalDistribution =
+            std::normal_distribution<double>(0.0, standard_dev);
+
         // If there are basepoints, generate points around them with a gaussian
         // distribution
         int count;
         for (unsigned int i = 0; i < particles.size(); i++)
         {
-            Point basepoint = corePoints[static_cast<unsigned int>(
-                i / (particles.size() / corePoints.size()))];
+            Point basepoint = basepoints[static_cast<unsigned int>(
+                i / (particles.size() / basepoints.size()))];
             Point newParticle = Point();
             count             = 0;
             do
             {
-                double x = 0.0;
-                double y = 0.0;
-
-                if (smallDistribution)
-                {
-                    x = distributionSmall(generator) + basepoint.x;
-                    y = distributionLarge(generator) + basepoint.y;
-                }
-                else
-                {
-                    x = distributionLarge(generator) + basepoint.x;
-                    y = distributionLarge(generator) + basepoint.y;
-                }
+                double x = particleNormalDistribution(generator) + basepoint.x;
+                double y = particleNormalDistribution(generator) + basepoint.y;
 
                 newParticle = Point(x, y);
                 count++;
-            } while (!isInField(newParticle, WITHIN_FIELD_THRESHOLD) &&
-                     count < 10);
+            } while (!isInField(newParticle) && count < 10);
+
+            // If the generated particle is not within the field, try to
+            // generate another one.
+            // We don't care about points outside the field. If we are unable to
+            // produce a particle inside
+            // the field within 10 attempts, just generate the particle
+            // somewhere on the field. 10 is chosen
+            // arbitrarily here, so that we get several attempts but don't slow
+            // down the algorithm.
 
             if (count >= 10)
             {
+                // TODO: remove this duplicate code
                 // failed- just generate a uniformly distributed new particle
                 double x = static_cast<double>(linearGenerator()) /
                                ((double)linearGenerator.max() / length_) -
@@ -305,7 +315,6 @@ void ParticleFilter::updateBallConfidence(double val)
 
 void ParticleFilter::updateParticleConfidences()
 {
-    // TODO: maybe just combine this with evaluateParticle into one function
     for (unsigned int k = 0; k < particles.size(); k++)
     {
         particles[k].confidence = evaluateParticle(particles[k].position);
@@ -376,36 +385,9 @@ double ParticleFilter::getDetectionWeight(const double dist)
     return weight < 0.0 ? 0.0 : weight;
 }
 
-bool ParticleFilter::isInField(const Point& p, double threshold)
+bool ParticleFilter::isInField(const Point& p)
 {
-    return fabs(p.x) <= length_ / 2 + threshold &&
-           fabs(p.y) <= width_ / 2 + threshold;
-}
-
-Point ParticleFilter::getPointsMean(const std::vector<Point>& points)
-{
-    Point average = Point(0, 0);
-    for (unsigned int i = 0; i < points.size(); i++)
-    {
-        average += points[i];
-    }
-
-    average /= static_cast<double>(points.size());
-    return average;
-}
-
-double ParticleFilter::getPointsVariance(const std::vector<Point>& points)
-{
-    Point mean = getPointsMean(points);
-
-    double sum = 0.0;
-    for (unsigned int i = 0; i < points.size(); i++)
-    {
-        sum += (points[i] - mean).lensq();
-    }
-
-    sum /= static_cast<double>(points.size());
-    return sqrt(sum);
+    return fabs(p.x) <= length_ / 2 && fabs(p.y) <= width_ / 2;
 }
 
 Point ParticleFilter::getEstimate()

@@ -30,9 +30,9 @@ Matrix Kalman::gen_b_mat(double timestep) const
 {
     // %the control to state vector (given a control, what is the state
     // %update)
-    // B=[timestep/2; 1-decay_constant];
+    // B=[timestep; 1-decay_constant];
     Matrix B(2, 1);
-    B(0, 0) = timestep / 2;
+    B(0, 0) = timestep;
     B(1, 0) = 1 - std::exp(-timestep / time_constant);
     return B;
 }
@@ -58,7 +58,7 @@ Matrix Kalman::gen_f_mat(double timestep) const
     // F=[1 timestep;0 decay_constant];
     Matrix f(2, 2);
     f(0, 0) = 1.0;
-    f(0, 1) = timestep / 2;
+    f(0, 1) = timestep;
     f(1, 0) = 0.0;
     f(1, 1) = std::exp(-timestep / time_constant);
     return f;
