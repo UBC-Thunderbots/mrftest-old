@@ -1107,3 +1107,29 @@ bool point_is_to_right_of_line(const Geom::Seg &line, const Point &point)
                (line.end.y - line.start.y) * (point.x - line.start.x) <
            0.0;
 }
+
+Point getPointsMean(const std::vector<Point> &points)
+{
+    Point average = Point(0, 0);
+    for (unsigned int i = 0; i < points.size(); i++)
+    {
+        average += points[i];
+    }
+
+    average /= static_cast<double>(points.size());
+    return average;
+}
+
+double getPointsVariance(const std::vector<Point> &points)
+{
+    Point mean = getPointsMean(points);
+
+    double sum = 0.0;
+    for (unsigned int i = 0; i < points.size(); i++)
+    {
+        sum += (points[i] - mean).lensq();
+    }
+
+    sum /= static_cast<double>(points.size());
+    return sqrt(sum);
+}

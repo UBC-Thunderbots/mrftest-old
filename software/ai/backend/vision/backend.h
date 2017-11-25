@@ -29,8 +29,6 @@ namespace Vision
  */
 extern BoolParam DISABLE_VISION_FILTER;
 
-extern BoolParam USE_PARTICLE_FILTER;
-
 /**
  * \brief The minimum probability above which the best ball detection will be
  * accepted.
@@ -41,6 +39,7 @@ extern DoubleParam BALL_FILTER_THRESHOLD;
  * \brief The distance from the centre of the robot to the centre of the ball
  * when touching the dribbler.
  */
+#warning put this somewhere else. In Robot?
 constexpr double ROBOT_CENTRE_TO_FRONT_DISTANCE = 0.087;
 
 /**
@@ -194,7 +193,7 @@ AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam>::handle_vision_packet(
     if (!pFilter_ && field_.valid())
     {
         pFilter_ = new AI::BE::Vision::Particle::ParticleFilter(
-            field_.length(), field_.width());
+            field_.total_length(), field_.total_width());
     }
 
     // If it contains ball and robot data, update the ball and the teams.
@@ -292,13 +291,6 @@ inline void AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam>::update_ball(
                 time_rec - ball_.lock_time())
                 .count();
 
-        /* KALMAN VARIABLE DECLARATIONS */
-        Point estimated_position = ball_.position(time_delta);
-        Point estimated_velocity = ball_.velocity(time_delta);
-        Point estimated_stdev    = ball_.position_stdev(time_delta);
-        double x_prob = 0, y_prob = 0;
-        double best_prob = 0;
-
         if (time_delta >= 0)
         {
             bool any_ball_inside = false;
@@ -328,61 +320,12 @@ inline void AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam>::update_ball(
                     detection_position = -detection_position;
                 }
 
-                if (AI::BE::Vision::USE_PARTICLE_FILTER)
-                {
-                    /* PARTICLE FILTER */
-                    pFilter_->add(detection_position);
-                }
-                else
-                {
-                    /* KALMAN FORMULAS */
-
-                    /* old Kalman formulae
-                     * Point distance_from_estimate = detection_position -
-                     * estimated_position;
-                     * x_prob = 1.0f / (std::pow(distance_from_estimate.x /
-                     * estimated_stdev.x, 2.0) + 1.0f);
-                     * y_prob = 1.0f / (std::pow(distance_from_estimate.y /
-                     * estimated_stdev.y, 2.0) + 1.0f);
-                     */
-
-                    /* new Kalman formulae */
-                    double a = (detection_position.x - estimated_position.x) /
-                               estimated_stdev.x;
-                    x_prob = std::exp(-0.5 * a * a);
-                    a      = (detection_position.y - estimated_position.y) /
-                        estimated_stdev.y;
-                    y_prob = std::exp(-0.5 * a * a);
-
-                    double prob = x_prob * y_prob * b.confidence();
-                    if (prob > best_prob)
-                    {
-                        best_prob = prob;
-                        best_pos  = detection_position;
-                    }
-
-                    if (b.confidence() > best_conf)
-                    {
-                        best_conf = b.confidence();
-                        best_pos  = detection_position;
-                    }
-                }
+                pFilter_->add(detection_position);
             }
         }
 
-        if (AI::BE::Vision::USE_PARTICLE_FILTER)
-        {
-            pFilter_->update(ball_.position(time_delta));
-            ball_.add_field_data(pFilter_->getEstimate(), best_time);
-        }
-        else
-        {
-            /* KALMAN - UPDATE BALL */
-            if (best_prob >= BALL_FILTER_THRESHOLD)
-            {
-                ball_.add_field_data(best_pos, best_time);
-            }
-        }
+        pFilter_->update(ball_.position(time_delta));
+        ball_.add_field_data(pFilter_->getEstimate(), best_time);
     }
     else
     {
