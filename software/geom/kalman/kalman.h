@@ -71,7 +71,6 @@ class Kalman final
      * \param[in] input_time the time at which the control input was delivered
      * to the system.
      */
-    void add_control(double input, Timestamp input_time);
 
    private:
     struct ControlInput final

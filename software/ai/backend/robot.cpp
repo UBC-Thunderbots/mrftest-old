@@ -135,13 +135,6 @@ Visualizable::Colour Robot::bar_graph_colour(unsigned int) const
     throw std::logic_error("This robot has no graphs");
 }
 
-void Robot::add_control(
-    Point linear_value, Angle angular_value, Predictor<double>::Timestamp ts)
-{
-    pred.add_control(linear_value, angular_value, ts);
-    update_caches();
-}
-
 void Robot::update_caches()
 {
     position_cached    = position(0.0);

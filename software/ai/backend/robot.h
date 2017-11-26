@@ -71,11 +71,6 @@ class Robot : public Visualizable::Robot
     double bar_graph_value(unsigned int index) const override;
     Visualizable::Colour bar_graph_colour(unsigned int index) const override;
 
-   protected:
-    void add_control(
-        Point linear_value, Angle angular_value,
-        Predictor<double>::Timestamp ts);
-
    private:
     const unsigned int pattern_;
     mutable ObjectStore object_store_;
