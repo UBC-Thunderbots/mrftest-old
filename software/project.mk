@@ -87,7 +87,7 @@ PROJECT_CXXFLAGS += -D__STDC_CONSTANT_MACROS=1
 PROJECT_CXXFLAGS += -DHAVE_INLINE
 # Use boost includes from the local directory, rather then from a system 
 # directory, as we use a depreceated version of boost
-PROJECT_CXXFLAGS += -I ./boost_1_54_0
+PROJECT_CXXFLAGS += -isystem ./boost_1_54_0
 # Take include files from the project root directory rather than relative to the source file.
 PROJECT_CXXFLAGS += -I.
 
