@@ -71,7 +71,6 @@ class Kalman final
      * \param[in] input_time the time at which the control input was delivered
      * to the system.
      */
-    void add_control(double input, Timestamp input_time);
 
    private:
     struct ControlInput final
@@ -94,8 +93,7 @@ class Kalman final
     bool is_angle;
 
     void predict_step(
-        Timediff timestep, double control, Matrix &state_predict,
-        Matrix &p_predict) const;
+        Timediff timestep, Matrix &state_predict, Matrix &p_predict) const;
     Matrix gen_f_mat(double timestep) const;
     Matrix gen_q_mat(double timestep) const;
     Matrix gen_b_mat(double timestep) const;

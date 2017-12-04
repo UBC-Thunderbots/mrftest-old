@@ -17,8 +17,8 @@ class Predictor final
 {
    public:
     /**
-     * \brief The type of a timestamp used to record control inputs,
-     * measurements, and estimations.
+     * \brief The type of a timestamp used to record
+     * measurements and estimations.
      */
     typedef std::chrono::steady_clock::time_point Timestamp;
 
@@ -78,15 +78,6 @@ class Predictor final
      * \param[in] ts the timestamp at which the value was sampled.
      */
     void add_measurement(T value, Timestamp ts);
-
-    /**
-     * \brief Pushes a new control value into the prediction engine.
-     *
-     * \param[in] value the value to add.
-     *
-     * \param[in] ts the timestamp at which the control input will take effect.
-     */
-    void add_control(T value, Timestamp ts);
 
     /**
      * \brief Clears the accumulated history of the predictor.
@@ -164,15 +155,6 @@ class Predictor2 final
      * \param[in] ts the timestamp at which the value was sampled.
      */
     void add_measurement(Point value, Predictor<double>::Timestamp ts);
-
-    /**
-     * \brief Pushes a new control input into the prediction engine.
-     *
-     * \param[in] value the value to add.
-     *
-     * \param[in] ts the timestamp at which the control input will take effect.
-     */
-    void add_control(Point value, Predictor<double>::Timestamp ts);
 
     /**
      * \brief Clears the accumulated history of the predictor.
@@ -263,19 +245,6 @@ class Predictor3 final
      */
     void add_measurement(
         Point linear_value, Angle orientation, Predictor<double>::Timestamp ts);
-
-    /**
-     * \brief Pushes a new control input into the prediction engine.
-     *
-     * \param[in] linear_value the linear velocity input to add.
-     *
-     * \param[in] angular_value the angular velocity input to add.
-     *
-     * \param[in] ts the timestamp at which the control input will take effect.
-     */
-    void add_control(
-        Point linear_value, Angle angular_value,
-        Predictor<double>::Timestamp ts);
 
     /**
      * \brief Clears the accumulated history of the predictor.
