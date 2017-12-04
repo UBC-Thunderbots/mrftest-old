@@ -93,8 +93,7 @@ class Kalman final
     bool is_angle;
 
     void predict_step(
-        Timediff timestep, Matrix &state_predict,
-        Matrix &p_predict) const;
+        Timediff timestep, Matrix &state_predict, Matrix &p_predict) const;
     Matrix gen_f_mat(double timestep) const;
     Matrix gen_q_mat(double timestep) const;
     Matrix gen_b_mat(double timestep) const;

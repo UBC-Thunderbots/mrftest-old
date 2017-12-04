@@ -2,7 +2,6 @@
 #include <cmath>
 #include "geom/angle.h"
 
-
 Kalman::Kalman(
     bool angle, double measure_std, double accel_std,
     Timediff decay_time_constant)
@@ -52,8 +51,7 @@ Matrix Kalman::gen_f_mat(double timestep) const
 
 // predict forward one step
 void Kalman::predict_step(
-    Timediff timestep, Matrix &state_predict,
-    Matrix &p_predict) const
+    Timediff timestep, Matrix &state_predict, Matrix &p_predict) const
 {
     double timestep_double =
         std::chrono::duration_cast<std::chrono::duration<double>>(timestep)
@@ -77,7 +75,8 @@ void Kalman::predict(
 
     if (is_angle)
     {
-        state_predict(0, 0) = Angle::of_radians(state_predict(0, 0)).angle_mod().to_radians();
+        state_predict(0, 0) =
+            Angle::of_radians(state_predict(0, 0)).angle_mod().to_radians();
     }
 }
 
