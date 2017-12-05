@@ -8,6 +8,9 @@ stages:
 build_feature_branch:
     stage: build
     script:
+        # Make runners have their git config set properly
+        - git config --global user.email "chead@chead.com"
+        - git config --global user.name "Christopher Head"
         - cd software
         # -j: compile in parallel as much as possible
         # -l: limit load to stop us running out of virtual memory
@@ -18,7 +21,7 @@ build_feature_branch:
 build_merged_master:
     stage: build
     script:
-        # Make runners have git config
+        # Make runners have their git config set properly
         - git config --global user.email "chead@chead.com"
         - git config --global user.name "Christopher Head"
         - git merge origin/dev --no-commit --no-ff
@@ -32,6 +35,9 @@ build_merged_master:
 check_formatting_master:
     stage: build
     script:
+        # Make runners have their git config set properly
+        - git config --global user.email "chead@chead.com"
+        - git config --global user.name "Christopher Head"
         - git merge origin/dev --no-commit --no-ff
         - ./clang-format/fix_formatting.sh dev
 
