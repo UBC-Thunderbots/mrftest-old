@@ -28,6 +28,7 @@ else
     # Since this script is used with CI, if we had to change some files, exit with 1 if we had to
     # change any files
     echo "=================================================="
-    echo "Had to change some files :( , if this is running in CI, this means the formatting check has failed"
+    echo "Had to change some files :( "
+    echo "If this is running in CI, this means the formatting check has failed. To fix things up so they pass, run the 'fix_formatting.sh' script in the 'clang-format' folder"
     exit 1
 fi
