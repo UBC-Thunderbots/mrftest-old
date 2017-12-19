@@ -5,6 +5,20 @@
 
 #define M_PI 3.14159265f
 
+#define max(a, b)                                                              \
+    ({                                                                         \
+        __typeof__(a) _a = (a);                                                \
+        __typeof__(b) _b = (b);                                                \
+        _a > _b ? _a : _b;                                                     \
+    })
+
+#define min(a, b)                                                              \
+    ({                                                                         \
+        __typeof__(a) _a = (a);                                                \
+        __typeof__(b) _b = (b);                                                \
+        _a < _b ? _a : _b;                                                     \
+    })
+
 //This file contains all the physical constants of the robot
 //Dimensions and the like as well as 
 
@@ -30,8 +44,8 @@
 //factor for steel motor mounts
 #define STEEL_INTERTIAL_FACTOR 0.3858f
 
-#define ROT_MASS INERTIAL_FACTOR*ROBOT_POINT_MASS
-#define INERTIA ROT_MASS*ROBOT_RADIUS*ROBOT_RADIUS
+#define ROT_MASS (INERTIAL_FACTOR * ROBOT_POINT_MASS)
+#define INERTIA (ROT_MASS * ROBOT_RADIUS * ROBOT_RADIUS)
 
 #define CURRENT_PER_TORQUE 39.21f //from motor data sheet (1/25.5 mNm)
 #define PHASE_RESISTANCE 1.6f //adjust this number as calculated

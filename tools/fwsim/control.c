@@ -47,17 +47,17 @@ void correct_wheel_force(const float force[4], float new_force[4]) {
  * \param[in] per wheel force in newtons
  */
 void apply_wheel_force(const float force[4]) {
-/*	float battery = adc_battery();
-	//float new_force[4];
-	//correct_wheel_force(force, new_force);
-
-	for(int i=0;i<4; i++) {
-		float torque = force[i]*WHEEL_RADIUS*GEAR_RATIO;
-		float voltage = torque*CURRENT_PER_TORQUE*PHASE_RESISTANCE; //delta voltage
-		float back_emf = (float)encoder_speed(i)*QUARTERDEGREE_TO_VOLT;
-		wheels_drive(i,(voltage+back_emf)/battery*255);
-	}*/
-	sim_apply_wheel_force(force);
+    //	float battery = adc_battery();
+    /*
+            for(int i=0;i<4; i++) {
+                    float torque = force[i]*WHEEL_RADIUS*GEAR_RATIO;
+                    float voltage = torque*CURRENT_PER_TORQUE*PHASE_RESISTANCE;
+       //delta voltage
+                    float back_emf =
+       (float)encoder_speed(i)*QUARTERDEGREE_TO_VOLT;
+                    wheels_drive(i,(voltage+back_emf)/battery*255);
+            }*/
+    sim_apply_wheel_force(force);
 }
 
 

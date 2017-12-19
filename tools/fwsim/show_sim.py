@@ -20,21 +20,21 @@ specified in your simulation parameters.
 # parses constants from x and y position of the ball from the main.c file
 f = open("main.c")
 txt = f.readlines()
-X_BALL = None
-Y_BALL = None
-for line in txt:
-    if re.search("^const float X_BALL", line):
-        X_BALL = float(line.split('=')[-1].replace(' ', '').split(';')[0])
-    if re.search("^const float Y_BALL", line):
-       Y_BALL = float(line.split('=')[-1].replace(' ', '').split(';')[0])
-
-if (X_BALL is None or Y_BALL is None):
-    print("X and Y positions not found for ball.\n"
-        + "Please specify them in main.c as:\n"
-        + "    const float X_BALL = ...;\n"
-        + "    const float Y_BALL = ...;\n"
-        + "and replace ... with numbers.")
-    sys.exit()
+X_BALL =  1.0 # None
+Y_BALL =  1.0 # None
+#for line in txt:
+#    if re.search("^const float X_BALL", line):
+#        X_BALL = float(line.split('=')[-1].replace(' ', '').split(';')[0])
+#    if re.search("^const float Y_BALL", line):
+#       Y_BALL = float(line.split('=')[-1].replace(' ', '').split(';')[0])
+#
+#if (X_BALL is None or Y_BALL is None):
+#    print("X and Y positions not found for ball.\n"
+#        + "Please specify them in main.c as:\n"
+#        + "    const float X_BALL = ...;\n"
+#        + "    const float Y_BALL = ...;\n"
+#        + "and replace ... with numbers.")
+#    sys.exit()
 
 with open(sys.argv[1]) as file:
     fmt_rows = []
@@ -59,9 +59,9 @@ first_points, last_points = 5, 5
 def main():
     """Select your plot in here."""
     try:
-        # plot_xy()
-        # plot_vxvy_vs_t()
-        # plot_xy_vs_t()
+        plot_xy()
+        plot_vxvy_vs_t()
+        plot_xy_vs_t()
         # plot_theta()
         anim = Animate()
         anim.animate_xy()
@@ -108,9 +108,6 @@ def plot_xy():
         width=0.0025)
     ax.set_xlim(xmin, xmax)
     ax.set_ylim(ymin, ymax)
-    plt.xlabel('X')
-    plt.ylabel('Y')
-    plt.legend()
 
 def plot_theta():
     """Plot theta relative to global x-axis as a function of time"""
