@@ -163,8 +163,6 @@ void move_tick() {
 	accel[1] = minor_accel*(local_y_norm_vec[0]*minor_vec[0] + local_y_norm_vec[1]*minor_vec[1] );
 	accel[1] += major_accel*(local_y_norm_vec[0]*major_vec[0] + local_y_norm_vec[1]*major_vec[1] );
 
-
-	
 	apply_accel(accel, accel[2]); // accel is already in local coords
 
 }

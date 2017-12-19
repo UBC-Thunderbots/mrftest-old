@@ -11,6 +11,7 @@
 // the idea is to clamp the maximum velocity and acceleration
 // so that the axes would never have to compete for resources
 #define TIME_HORIZON 0.05f //s
+#define NUM_SPLINE_POINTS 50
 
 static float destination[3], major_vec[2], minor_vec[2], total_rot;
 
@@ -120,16 +121,16 @@ static void shoot_init(void) {
  *
  * \param[in] params the movement parameters, which are only valid until this
  * function returns and must be copied into this module if needed
- *  there are two shoot methods the second bit in extra byte indicate which
- *  method is called
- * 
+ *	there are two shoot methods the second bit in extra byte indicate which
+ *	method is called
+ *
  *       params[0] = dest.x * 1000.0;
  *       params[1] = dest.y * 1000.0;
  *       params[2] = 0.0;
  *       params[3] = power * 1000.0;
  *       extra = chip;
  *
- *  method two
+ *	method two
  *
  *       params[0] = dest.x * 1000.0;
  *       params[1] = dest.y * 1000.0;
@@ -137,10 +138,10 @@ static void shoot_init(void) {
  *       params[3] = power * 1000.0;
  *       extra = static_cast<uint8_t>(2 | chip);
  *
- *  What this function do
- *  1. record the movement intent
- *  2. there is no need to worry about recording the start position 
- *     because the primitive start function already does it
+ *	What this function do
+ *	1. record the movement intent
+ *	2. there is no need to worry about recording the start position
+ *	   because the primitive start function already does it
  *
  */
 void shoot_start(const primitive_params_t *params) {
@@ -209,6 +210,5 @@ void shoot_tick() {
     apply_accel(accel, accel[2]);
 
     // if (log) {to_log(log, pb.rot.time, accel);}
-
 }
 

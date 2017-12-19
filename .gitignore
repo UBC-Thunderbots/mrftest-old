@@ -58,6 +58,10 @@ software/tags
 *.out
 *.app
 
+# Vim garbage
+*.swo
+*.swp
+
 # Tools
 *.csv
 *.elf

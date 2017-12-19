@@ -50,27 +50,35 @@ float norm2(float a1, float a2){
 // return the minimum angle from angle1 to angle2
 // test with angle2 increased or decreased by 2pi
 float min_angle_delta(float angle1, float angle2){
-    if (angle1 > 2 * M_PI) {
-        angle1 = fmod(angle1, 2 * M_PI);
-    } 
-    if (angle2 > 2 * M_PI) {
-        angle2 = fmod(angle2, 2 * M_PI);
+    angle1 = fmod(angle1, 2 * M_PI);
+    angle2 = fmod(angle2, 2 * M_PI);
+
+    if (angle2 >= angle1)
+    {
+        float ang_sub = angle2 - 2 * M_PI;
+        if ((ang_sub - angle1) * (ang_sub - angle1) <=
+            (angle2 - angle1) * (angle2 - angle1))
+        {
+            return (ang_sub - angle1);
+        }
+        else
+        {
+            return (angle2 - angle1);
+        }
     }
-	if(angle2 >= angle1 ){                                                                                                        
-		float ang_sub = angle2 - 2*M_PI;                                                                                        
-		if((ang_sub - angle1)*(ang_sub - angle1) <= (angle2 - angle1)*(angle2 - angle1)){                             
-			return(ang_sub - angle1);                                                              
-		}else{                                                                                                                 
-			return(angle2 - angle1);                                                                                 
-		}                                                                                                                      
-	}else{                                                                                                                       
-		float ang_plus = angle2 + 2*M_PI;                                                                                       
-		if((ang_plus - angle1)*(ang_plus - angle1) <= (angle2 - angle1)*(angle2 - angle1)){                           
-			return(ang_plus - angle1);                                                              
-		}else{                                                                                                                 
-			return(angle2 - angle1);                                                                                 
-		}                                                                                                                      
-	}                                                                                                                       
+    else
+    {
+        float ang_plus = angle2 + 2 * M_PI;
+        if ((ang_plus - angle1) * (ang_plus - angle1) <=
+            (angle2 - angle1) * (angle2 - angle1))
+        {
+            return (ang_plus - angle1);
+        }
+        else
+        {
+            return (angle2 - angle1);
+        }
+    }
 }
 
 /**
@@ -83,12 +91,14 @@ float min_angle_delta(float angle1, float angle2){
  * \param[in] matrix the matrix to multiply
  */
 void matrix_mult(float* lhs, int lhs_len, const float* rhs,int rhs_len, const float matrix[lhs_len][rhs_len]) {
-	for(int j=0;j<lhs_len;++j) {
-		lhs[j]=0.0f;
-		for(int i=0;i<rhs_len;++i) {
-			lhs[j] += matrix[j][i]*rhs[i];
-		}
-	}
+    for (int j = 0; j < lhs_len; j++)
+    {
+        lhs[j] = 0.0f;
+        for (int i = 0; i < rhs_len; i++)
+        {
+            lhs[j] += matrix[j][i] * rhs[i];
+        }
+    }
 }
 
 /**
