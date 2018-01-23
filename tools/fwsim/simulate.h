@@ -66,6 +66,7 @@ void sim_apply_wheel_force(const float wheel_force[4]);
 void sim_tick(float delta_t);
 void sim_log_tick(float time);
 void sim_log_start();
+void sim_log_end();
 void sim_reset();
 float get_pos_x();
 
