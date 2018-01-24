@@ -4,6 +4,7 @@ gcc -DFWSIM -std=c99 \
 ../../firmware/main/simulate.c \
 ../../firmware/main/control.c \
 ../../firmware/main/primitives/primitive.h \
+../../firmware/main/bangbang.c \
 -o sim -lm
 #./sim 
 #../../firmware/main/primitives/physics.c \
