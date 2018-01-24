@@ -210,6 +210,7 @@ typedef struct {
 	DMA_SxFCR_t FCR;
 } dma_stream_t;
 _Static_assert(sizeof(dma_stream_t) == 0x18U, "dma_stream_t is wrong size");
+#endif
 
 typedef struct {
 	DMA_LISR_t LISR;
@@ -223,7 +224,6 @@ _Static_assert(sizeof(DMA_t) == 0xD0U, "DMA_t is wrong size");
 extern volatile DMA_t DMA1;
 extern volatile DMA_t DMA2;
 
-#endif
 
 /**
  * @}

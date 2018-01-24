@@ -109,7 +109,7 @@ void adc_init(void) {
 	// Precompute 80 / (cal110 - cal30) and -cal30 × 80 / (cal110 - cal30) + 30, then multiply reading by the former and add the latter to get temperature.
 	temp_cal_scale = 80.0f / (TEMP_CAL_110 - TEMP_CAL_30);
 	temp_cal_offset = -TEMP_CAL_30 * 80.0f / (TEMP_CAL_110 - TEMP_CAL_30) + 30.0f;
-
+	
 	// Enable the modules.
 	rcc_enable(APB2, ADC1);
 	rcc_enable(APB2, ADC2);

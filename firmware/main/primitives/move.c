@@ -1,11 +1,13 @@
-#include "shoot.h"
+#include "move.h"
 #include "../chicker.h"
 #include "../control.h"
 #include "../dr.h"
 #include "../dribbler.h"
 #include "../leds.h"
-#include "../physics.h"
 #include "../bangbang.h"
+#include "../util/log.h"
+#include "../physics.h"
+#include "../util/physbot.h"
 #include <math.h>
 #include <stdio.h>
 
@@ -15,11 +17,39 @@
 #define TIME_HORIZON 0.05f //s
 
 //TODO: find out actual wheel angles
-static const float PREFERRED_DRIVE_ANGLES[4] = {M_PI*35.0/180.0, M_PI*155.0/180.0, M_PI*215.0/180.0, M_PI*325.0/180.0};
-
-static float destination[3], end_speed, major_vec[2], minor_vec[2], major_angle;
+const float PI_2 = M_PI / 2.0f;
+const float APPROACH_LIMIT = 2 * M_PI * ROBOT_RADIUS;
+static float destination[3], end_speed, major_vec[2], minor_vec[2];
 // Only need two data points to form major axis vector.
 
+void choose_rotation_destination(PhysBot *pb, float angle) {
+	// if we are close enough then we should just allow the bot to rotate
+	// onto its destination angle
+	if ((float) fabs(pb->maj.disp) > APPROACH_LIMIT) {
+		float left_perpindicular = angle + CLOSEST_WHEEL_ANGLE - PI_2;
+		float right_perpindicular = angle - CLOSEST_WHEEL_ANGLE + PI_2;
+		float theta_norm = atan2f(pb->dr[1], pb->dr[0]);
+		float to_left = min_angle_delta(left_perpindicular, theta_norm);
+		float to_right = min_angle_delta(right_perpindicular, theta_norm);
+		// pick the closer axis to rotate onto
+		pb->rot.disp = (fabs(to_right) < fabs(to_left)) ? to_right : to_left;
+	}
+}
+
+void move_to_log(log_record_t *log, float time_target, float accel[3]) {
+    log_destination(log, destination);
+    log_accel(log, accel);
+    log_time_target(log, time_target);
+}
+
+void plan_move_rotation(PhysBot *pb, float avel) {
+	pb->rot.time = (pb->maj.time > TIME_HORIZON) ? pb->maj.time : TIME_HORIZON;
+	pb->rot.vel = pb->rot.disp / pb->rot.time * 4.0f; 
+	pb->rot.accel = (pb->rot.vel - avel) / TIME_HORIZON;
+}
+
+
+#ifndef FWTEST
 /**
  * \brief Initializes the move primitive.
  *
@@ -47,22 +77,23 @@ static void move_start(const primitive_params_t *params)
 	//				end_speed [millimeter/s]
   
 	// Convert into m/s and rad/s because physics is in m and s
-	destination[0] = ((float)(params->params[0])/1000.0f);
-	destination[1] = ((float)(params->params[1])/1000.0f);
-	destination[2] = ((float)(params->params[2])/100.0f);
-	end_speed = ((float)(params->params[3])/1000.0f);
+	destination[0] = (float) (params->params[0]) / 1000.0f;
+	destination[1] = (float) (params->params[1]) / 1000.0f;
+	destination[2] = (float) (params->params[2]) / 100.0f;
+	end_speed = (float) (params->params[3]) / 1000.0f;
 	
 	dr_data_t current_states;
 	dr_get(&current_states);
 	
-	float distance = norm2(destination[0] - current_states.x, destination[1] - current_states.y);	
-	major_vec[0] = (destination[0] - current_states.x)/distance; 
-	major_vec[1] = (destination[1] - current_states.y)/distance;
+	float dx = destination[0] - current_states.x;
+	float dy = destination[1] - current_states.y;
+	float total_disp = sqrtf(dx * dx + dy * dy);	
+	
+	major_vec[0] = dx / total_disp; 
+	major_vec[1] = dy / total_disp;
 	minor_vec[0] = major_vec[0];
 	minor_vec[1] = major_vec[1];
 	rotate(minor_vec, M_PI/2);	
-
-	major_angle = atan2f(major_vec[1], major_vec[0]);
 }
 
 /**
@@ -84,99 +115,26 @@ static void move_end(void)
  * \c NULL if no record is to be filled
  */
 static void move_tick(log_record_t *log) {
-	//TODO: what would you like to log?
-
 	dr_data_t current_states;
 	dr_get(&current_states);
+	PhysBot pb = setup_bot(current_states, destination, major_vec, minor_vec);
 
-	float vel[3] = {current_states.vx, current_states.vy, current_states.avel};
+	// choose_rotation_destination(&pb, current_states.angle);
 
-	float relative_destination[3];
+	// magic constants
+	float major_par[3] = {end_speed, 2.5, 2.5};
+	plan_move(&pb.maj, major_par);
+	// magic constants
+	float minor_par[3] = {0, 1.5, 1.5};
+	plan_move(&pb.min, minor_par);
 
-	relative_destination[0] = destination[0] - current_states.x;
-	relative_destination[1] = destination[1] - current_states.y;
-	relative_destination[2] = min_angle_delta(current_states.angle, destination[2]);
-	
+	plan_move_rotation(&pb, current_states.avel);
 
-	/*if(norm2(relative_destination[0], relative_destination[1]) < 0.3){
-		relative_destination[2] = min_angle_delta(current_states.angle, destination[2]);
-	}else{
-		//Want to lock onto a track where the robot wheels point in the direction of travel
-		int i;
-		float best_angle = destination[2];
-		float test_angle;
-		float delta;
-		float min_delta = 99999.9;
-		for(i=0;i++;i<4){
-			test_angle = major_angle + PREFERRED_DRIVE_ANGLES[i];
-			delta = abs(min_angle_delta(test_angle, destination[2]));
-			if(delta < min_delta){
-				best_angle = test_angle;
-				min_delta = delta;	
-			}
-		}
-		relative_destination[2] = best_angle;
-	}*/
+	float accel[3] = {0, 0, pb.rot.accel};
+	to_local_coords(accel, pb, current_states.angle, major_vec, minor_vec);
+	apply_accel(accel, accel[2]);
 
-
-	BBProfile major_profile;
-	BBProfile minor_profile;
-	
-	float major_disp = relative_destination[0]*major_vec[0] + relative_destination[1]*major_vec[1]; 
-	float minor_disp = minor_vec[0]*relative_destination[0] + minor_vec[1]*relative_destination[1];
-	
-	//TODO: tune further: experimental
-	float max_major_a = 3.0;//(get_var(0x00)/4.0);
-	float max_major_v = 3.0;//(get_var(0x01)/4.0);
-	float major_vel = major_vec[0]*vel[0] + major_vec[1]*vel[1];
-	PrepareBBTrajectoryMaxV(&major_profile, major_disp, major_vel, end_speed, max_major_a, max_major_v); //3.5, 3.0
-	//PrepareBBTrajectoryMaxV(&major_profile, major_disp, major_vel, end_speed, 3.5, 3.0); //3.5, 3.0
-	PlanBBTrajectory(&major_profile);
-	float major_accel = BBComputeAvgAccel(&major_profile, TIME_HORIZON);
-	float time_major = GetBBTime(&major_profile);
-
-
-	float max_minor_a = 1.5;//(get_var(0x02)/4.0);
-	float max_minor_v = 1.5;//(get_var(0x03)/4.0);
-	printf("max_minor_a: %f", max_minor_a);
-	float minor_vel = minor_vec[0]*vel[0] + minor_vec[1]*vel[1];
-	//PrepareBBTrajectoryMaxV(&minor_profile, minor_disp, minor_vel, 0, 1.5, 1.5); //1.5, 1.5
-	PrepareBBTrajectoryMaxV(&minor_profile, minor_disp, minor_vel, 0, max_minor_a, max_minor_v); //1.5, 1.5
-	PlanBBTrajectory(&minor_profile);
-	float minor_accel = BBComputeAvgAccel(&minor_profile, TIME_HORIZON);
-	float time_minor = GetBBTime(&minor_profile);
-
-	float timeTarget = (time_major > TIME_HORIZON) ? time_major : TIME_HORIZON;
-	if(timeTarget > 0.5){
-		timeTarget = 0.5;
-	}	
-
-	float accel[3] = {0};
-
-	float targetVel = relative_destination[2]/timeTarget; 
-	accel[2] = (targetVel - vel[2])/TIME_HORIZON;
-	Clamp(&accel[2], MAX_T_A);
-
-	if (log) {
-		log->tick.primitive_data[0] = destination[0];//accel[0];
-		log->tick.primitive_data[1] = destination[1];//accel[1];
-		log->tick.primitive_data[2] = destination[2];//accel[2];
-		log->tick.primitive_data[3] = accel[0];//timeX;
-		log->tick.primitive_data[4] = accel[1];//timeY;
-		log->tick.primitive_data[5] = accel[2];
-		log->tick.primitive_data[6] = timeTarget;
-	}
-
-	float local_x_norm_vec[2] = {cosf(current_states.angle), sinf(current_states.angle)}; 
-	float local_y_norm_vec[2] = {cosf(current_states.angle + M_PI/2), sinf(current_states.angle + M_PI/2)}; 
-	
-	accel[0] = minor_accel*(local_x_norm_vec[0]*minor_vec[0] + local_x_norm_vec[1]*minor_vec[1] );
-	accel[0] += major_accel*(local_x_norm_vec[0]*major_vec[0] + local_x_norm_vec[1]*major_vec[1] );
-	accel[1] = minor_accel*(local_y_norm_vec[0]*minor_vec[0] + local_y_norm_vec[1]*minor_vec[1] );
-	accel[1] += major_accel*(local_y_norm_vec[0]*major_vec[0] + local_y_norm_vec[1]*major_vec[1] );
-
-	apply_accel(accel, accel[2]); // accel is already in local coords
-
+    if (log) { move_to_log(log, pb.rot.time, accel); }
 }
 
 /**
@@ -189,4 +147,5 @@ const primitive_t MOVE_PRIMITIVE = {
 	.end = &move_end,
 	.tick = &move_tick,
 };
+#endif
 

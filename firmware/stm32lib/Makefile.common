@@ -31,15 +31,12 @@ OBJS := $(SOURCES:../%.c=obj/%.o)
 
 
 override CFLAGS := $(CFLAGS) $(LIBRARIES:%=-isystem ../%/include) -I. -DSTM32LIB_USE_FREERTOS=$(if $(filter freertos,$(LIBRARIES)),1,0)
-override LDLIBS := $(LDLIBS) -lm
+override LDLIBS := $(LDLIBS) -lm 
 override LDFLAGS := $(LDFLAGS) -Wl,-T$(LINKER_SCRIPT)
-
 
 
 .PHONY : world
 world : $(PROJECT).bin
-
-
 
 %.bin : %.elf
 	@echo " OBJCOPY   $@"
@@ -55,6 +52,10 @@ $(OBJS) : obj/%.o : ../%.c
 	@mkdir -p $(shell dirname $@)
 	@echo " CC        $@"
 	@$(CC) $(CPPFLAGS) $(CFLAGS) -frandom-seed=$@ -c $< -o $@
+
+.PHONY : view 
+view : 
+	@echo $(HEADERS)
 
 .PHONY : clean
 clean :
