@@ -1,4 +1,4 @@
-#include "control.h"
+#include "../../firmware/main/control.h"
 #include "../../firmware/main/simulate.h"
 //#include "dribbler.h"
 //#include "leds.h"

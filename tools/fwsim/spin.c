@@ -1,6 +1,6 @@
 #include "spin.h"
 #include "bangbang.h"
-#include "control.h"
+#include "../../firmware/main/control.h"
 #include "../../firmware/main/simulate.h"
 #include "../../firmware/main/physics.h"
 #include <math.h>

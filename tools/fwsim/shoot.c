@@ -1,5 +1,5 @@
 #include "shoot.h"
-#include "control.h"
+#include "../../firmware/main/control.h"
 #include "../../firmware/main/simulate.h"
 #include "../../firmware/main/physics.h"
 #include "bangbang.h"
