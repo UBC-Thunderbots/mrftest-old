@@ -40,7 +40,6 @@ void dr_init(void) {
   ball_camera_data.x = 0.0;
   ball_camera_data.y = 0.0;
   ball_camera_data.timestamp = 0;
-
   circbuff_init(past_wheel_speeds, SPEED_SIZE);
 }
 
@@ -58,7 +57,6 @@ void dr_tick(log_record_t *log) {
     dr_apply_cam();
     robot_camera_data.new_data = false;
   }
-
   float encoder_speeds[4];
   float wheel_speeds[3];
 
@@ -98,7 +96,6 @@ void dr_tick(log_record_t *log) {
   //Update ball positions
   current_ball_state.x += current_ball_state.vx*TICK_TIME;
   current_ball_state.y += current_ball_state.vy*TICK_TIME;
-
   if (log) {
     dr_log(log);
   }
@@ -273,7 +270,6 @@ void dr_follow_ball(){
   }
 }
 
-
 void dr_log(log_record_t *log){
   sensors_gyro_data_t gyrodata;
   sensors_accel_data_t acceldata;
@@ -314,4 +310,3 @@ void dr_log(log_record_t *log){
 				
   log->tick.cam_delay = (uint16_t)robot_camera_data.timestamp;
 }
-

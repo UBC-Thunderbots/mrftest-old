@@ -1,0 +1,31 @@
+{
+    "files.associations": {
+        "stdio.h": "c",
+        "*.ipp": "c",
+        "physbot.h": "c",
+        "math.h": "c",
+        "physics.h": "c",
+        "quadratic_test.h": "c",
+        "main.h": "c",
+        "quadratic.h": "c",
+        "dr.h": "c",
+        "stdbool.h": "c",
+        "chrono": "c",
+        "limits": "c",
+        "nvic.h": "c",
+        "stdlib.h": "c",
+        "encoder.h": "c",
+        "adc.h": "c",
+        "i2c.h": "c",
+        "rcc.h": "c",
+        "check.h": "c",
+        "leds.h": "c",
+        "freertos.h": "c",
+        "freertosconfig.h": "c",
+        "exception.h": "c",
+        "control.h": "c",
+        "dribbler.h": "c",
+        "move.h": "c",
+        "spin.h": "c"
+    }
+}

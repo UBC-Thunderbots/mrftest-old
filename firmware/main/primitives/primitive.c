@@ -18,7 +18,7 @@
 #include <semphr.h>
 #include <stdint.h>
 #include <stdio.h>
-
+#ifndef FWTEST
 /**
  * \brief The available movement primitives.
  *
@@ -151,3 +151,4 @@ bool primitive_params_are_equal(primitive_params_t* params1,primitive_params_t* 
 	return equal;
 }
 	
+#endif
