@@ -2,7 +2,7 @@
 #include "../../firmware/main/simulate.h"
 //#include "dribbler.h"
 //#include "leds.h"
-#include "primitive.h"
+#include "../../firmware/main/primitives/primitive.h"
 #include "../../firmware/main/physics.h"
 #include "bangbang.h"
 #include <math.h>

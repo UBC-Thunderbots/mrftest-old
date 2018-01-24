@@ -1,7 +1,7 @@
 #ifndef PRIMITIVES_SHOOT_H
 #define PRIMITIVES_SHOOT_H
 
-#include "primitive.h"
+#include "../../firmware/main/primitives/primitive.h"
 
 
 void shoot_tick();

@@ -2,7 +2,7 @@
 #define PRIMITIVES_MOVE_H
 
 #include "../../firmware/main/physics.h"
-#include "primitive.h"
+#include "../../firmware/main/primitives/primitive.h"
 
 
 #define VAL_EQUIVALENT_2_ZERO (5e-3f)

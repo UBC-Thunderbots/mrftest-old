@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "move.h"
-#include "primitive.h"
+#include "../../firmware/main/primitives/primitive.h"
 #include "shoot.h"
 #include "../../firmware/main/simulate.h"
 
