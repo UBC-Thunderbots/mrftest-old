@@ -1,8 +1,14 @@
 #include "physics.h"
-#include "adc.h"
 #include "encoder.h"
 #include <math.h>
 #include <stdint.h>
+
+#ifndef FWSIM
+#include "adc.h"
+#else
+#include <stdio.h>
+#include <stdlib.h>
+#endif
 
 
 //Wheel angles for these matricies are (55, 135, 225, 305) degrees
@@ -41,6 +47,11 @@ const float MAX_ACC[3] = {MAX_X_A, MAX_Y_A, MAX_T_A*ROBOT_RADIUS};
 //contention vector, where in forces will simply consume power.
 static const float contention_vector[4] = {-0.4621, 0.5353, -0.5353, 0.4621};
 
+#ifdef FWSIM
+float norm2(float a1, float a2){
+	return(sqrtf(a1*a1 + a2*a2) );
+}
+#endif
 
 
 // return the minimum angle from angle1 to angle2
@@ -269,6 +280,12 @@ void speed4_to_speed3(const float speed4[4], float speed3[3]) {
 	matrix_mult(speed3,3,speed4,4, speed4_to_speed3_mat);
 }
 
+#ifdef FWSIM
+void force4_to_force3(const float force4[4], float force3[3]) {
+	matrix_mult(force3,3,force4,4, force4_to_force3_mat);
+}
+#endif
+
 /**
  * \ingroup Physics
  *
@@ -450,7 +467,7 @@ void force3_to_force4(float force3[3], float force4[4]) {
  *
  * \return the amount by which to scale the torque vector to max it out
  */
-
+#ifndef FWSIM
 float get_maximal_torque_scaling(const float torque[4]) {
 	float acc_max = -INFINITY;
 	float vapp_max = -INFINITY;
@@ -472,6 +489,7 @@ float get_maximal_torque_scaling(const float torque[4]) {
 
 	return (emf_ratio > slip_ratio)?slip_ratio:emf_ratio; 
 }
+#endif
 
 
 /**
@@ -484,7 +502,7 @@ float get_maximal_torque_scaling(const float torque[4]) {
  *
  * \return amount by which to scale acceleration
  */
-
+#ifndef FWSIM
 float get_maximal_accel_scaling(const float linear_accel[2], float angular_accel) {
 	//first convert accelerations into consistent units
 	//choose units of Force (N)
@@ -500,6 +518,7 @@ float get_maximal_accel_scaling(const float linear_accel[2], float angular_accel
 	}
 	return get_maximal_torque_scaling(wheel_force);
 }
+#endif
 
 #endif
 

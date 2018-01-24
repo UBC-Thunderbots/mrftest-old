@@ -5,6 +5,22 @@
 
 #define M_PI 3.14159265f
 
+#ifdef FWSIM
+#define max(a, b)                                                              \
+    ({                                                                         \
+        __typeof__(a) _a = (a);                                                \
+        __typeof__(b) _b = (b);                                                \
+        _a > _b ? _a : _b;                                                     \
+    })
+
+#define min(a, b)                                                              \
+    ({                                                                         \
+        __typeof__(a) _a = (a);                                                \
+        __typeof__(b) _b = (b);                                                \
+        _a < _b ? _a : _b;                                                     \
+    })
+#endif
+
 //This file contains all the physical constants of the robot
 //Dimensions and the like as well as 
 
@@ -86,11 +102,20 @@ extern const float MAX_VEL[3];
 //robot relative coordinates
 void speed4_to_speed3(const float speed4[4], float speed3[3]);
 void speed3_to_speed4(const float speed3[3], float speed4[4]);
+#ifdef FWSIM
+void force4_to_force3(const float force4[4], float force3[3]);
+#endif
 
 float min_angle_delta(float,float);
+
+#ifndef FWSIM
 inline float norm2(float a1, float a2){
 	return(sqrtf(a1*a1 + a2*a2) );
 }
+#else
+float min_angle_delta_alt(float, float);
+float norm2(float a1, float a2);
+#endif
 
 //rotate a velocity vector through angle
 void rotate(float speed3[2], float angle);
