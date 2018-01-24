@@ -4,7 +4,7 @@
 //#include "leds.h"
 #include "../../firmware/main/primitives/primitive.h"
 #include "../../firmware/main/physics.h"
-#include "bangbang.h"
+#include "../../firmware/main/bangbang.h"
 #include <math.h>
 #include <stdio.h>
 

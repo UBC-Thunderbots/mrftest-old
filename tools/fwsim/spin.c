@@ -1,5 +1,5 @@
 #include "spin.h"
-#include "bangbang.h"
+#include "../../firmware/main/bangbang.h"
 #include "../../firmware/main/control.h"
 #include "../../firmware/main/simulate.h"
 #include "../../firmware/main/physics.h"

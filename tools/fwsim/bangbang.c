@@ -1,4 +1,4 @@
-#include "bangbang.h"
+#include "../../firmware/main/bangbang.h"
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
