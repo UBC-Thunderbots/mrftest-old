@@ -4,3 +4,5 @@ gcc -DFWSIM -std=c99 \
 -o sim -lm
 #./sim 
 #../../firmware/main/primitives/physics.c \
+#./sim test.csv 3 1000 1000 0 0 0 0 
+#python show_sim.py test.csv

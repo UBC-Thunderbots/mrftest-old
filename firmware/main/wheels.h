@@ -1,10 +1,14 @@
 #ifndef WHEELS_H
 #define WHEELS_H
 
-#include "log.h"
+
 #include "physics.h"
 
 #include <math.h>
+
+#ifndef FWSIM
+#include "log.h"
+#endif
 
 /**
  * \ingroup WHEELS
@@ -26,10 +30,12 @@
 #define WHEELS_VOLTS_PER_ENCODER_COUNT (WHEELS_VOLTS_PER_RPT / (float) WHEELS_ENCODER_COUNTS_PER_REV) // volts per encoder count
 #define WHEELS_HALL_TO_MS (WHEELS_CIRCUM*WHEELS_GEAR_RATIO/((float)WHEELS_ENCODER_COUNTS_PER_REV)*CONTROL_LOOP_HZ)
 
+#ifndef FWSIM
 void wheels_init(void);
 void wheels_coast(unsigned int index);
 void wheels_brake(unsigned int index);
 void wheels_drive(unsigned int index, int power);
 void wheels_tick(log_record_t *record);
+#endif
 
 #endif
