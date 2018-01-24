@@ -1,7 +1,7 @@
 #ifndef WHEELS_H
 #define WHEELS_H
 
-#include "physics.h"
+#include "../../firmware/main/physics.h"
 
 #include <math.h>
 

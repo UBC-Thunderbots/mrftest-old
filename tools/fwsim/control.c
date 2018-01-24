@@ -1,5 +1,5 @@
 #include "control.h"
-#include "physics.h"
+#include "../../firmware/main/physics.h"
 #include "simulate.h"
 #include "wheels.h"
 #include <math.h>

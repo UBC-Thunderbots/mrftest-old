@@ -2,7 +2,7 @@
 #define PRIMITIVES_SPIN_H
 
 #include "primitive.h"
-#include "physics.h"
+#include "../../firmware/main/physics.h"
 
 #endif
 

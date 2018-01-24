@@ -3,7 +3,7 @@
 //#include "dribbler.h"
 //#include "leds.h"
 #include "primitive.h"
-#include "physics.h"
+#include "../../firmware/main/physics.h"
 #include "bangbang.h"
 #include <math.h>
 #include <stdio.h>

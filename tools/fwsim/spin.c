@@ -2,7 +2,7 @@
 #include "bangbang.h"
 #include "control.h"
 #include "simulate.h"
-#include "physics.h"
+#include "../../firmware/main/physics.h"
 #include <math.h>
 #include <stdio.h>
 

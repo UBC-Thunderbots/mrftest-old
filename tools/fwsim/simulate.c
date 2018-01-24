@@ -1,5 +1,5 @@
 #include "simulate.h"
-#include "physics.h"
+#include "../../firmware/main/physics.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
