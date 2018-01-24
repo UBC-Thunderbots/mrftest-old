@@ -7,9 +7,9 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "move.h"
+#include "../../firmware/main/primitives/move.h"
 #include "../../firmware/main/primitives/primitive.h"
-#include "shoot.h"
+#include "../../firmware/main/primitives/shoot.h"
 #include "../../firmware/main/simulate.h"
 
 #define DELTA_T 0.0001

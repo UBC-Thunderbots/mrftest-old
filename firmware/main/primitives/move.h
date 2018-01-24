@@ -5,6 +5,7 @@
 #include "physics.h"
 #include "../util/physbot.h"
 
+#ifndef FWSIM
 extern const primitive_t MOVE_PRIMITIVE;
 
 // TODO: Find out actual wheel angle

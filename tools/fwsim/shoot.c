@@ -1,4 +1,4 @@
-#include "shoot.h"
+#include "../../firmware/main/primitives/shoot.h"
 #include "../../firmware/main/control.h"
 #include "../../firmware/main/simulate.h"
 #include "../../firmware/main/physics.h"
