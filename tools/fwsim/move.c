@@ -1,5 +1,5 @@
 #include "control.h"
-#include "simulate.h"
+#include "../../firmware/main/simulate.h"
 //#include "dribbler.h"
 //#include "leds.h"
 #include "primitive.h"

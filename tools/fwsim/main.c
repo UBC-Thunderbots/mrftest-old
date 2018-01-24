@@ -10,7 +10,7 @@
 #include "move.h"
 #include "primitive.h"
 #include "shoot.h"
-#include "simulate.h"
+#include "../../firmware/main/simulate.h"
 
 #define DELTA_T 0.0001
 #define ROBOT_TICK_T 0.005

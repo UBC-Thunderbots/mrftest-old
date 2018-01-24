@@ -1,6 +1,6 @@
 #include "shoot.h"
 #include "control.h"
-#include "simulate.h"
+#include "../../firmware/main/simulate.h"
 #include "../../firmware/main/physics.h"
 #include "bangbang.h"
 #include <math.h>

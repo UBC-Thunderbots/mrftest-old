@@ -1,6 +1,6 @@
 #include "control.h"
 #include "../../firmware/main/physics.h"
-#include "simulate.h"
+#include "../../firmware/main/simulate.h"
 #include "../../firmware/main/wheels.h"
 #include <math.h>
 #include <stdio.h>

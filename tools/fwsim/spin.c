@@ -1,7 +1,7 @@
 #include "spin.h"
 #include "bangbang.h"
 #include "control.h"
-#include "simulate.h"
+#include "../../firmware/main/simulate.h"
 #include "../../firmware/main/physics.h"
 #include <math.h>
 #include <stdio.h>
