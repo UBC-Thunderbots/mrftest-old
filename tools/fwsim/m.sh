@@ -6,6 +6,7 @@ gcc -DFWSIM -std=c99 \
 ../../firmware/main/primitives/primitive.h \
 ../../firmware/main/bangbang.c \
 ../../firmware/main/primitives/move.c \
+../../firmware/main/primitives/shoot.c \
 -o sim -lm
 #./sim 
 #../../firmware/main/primitives/physics.c \

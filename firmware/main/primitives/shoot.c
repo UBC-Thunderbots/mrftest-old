@@ -19,6 +19,44 @@
 
 static float destination[3], major_vec[2], minor_vec[2], total_rot;
 
+// sets up the PhysBot container with all of its info
+PhysBot setup_bot(dr_data_t states) {
+    float v[2] = {states.vx, states.vy};
+    float dr[2] = {destination[0] - states.x, destination[1] - states.y};
+    PhysBot pb = {
+        .rot = {
+            .disp = min_angle_delta(states.angle, destination[2])
+        },
+        .maj = {
+            .disp = dot2D(major_vec, dr),
+            .vel = dot2D(major_vec, v),
+            .accel = 0,
+            .time = 0
+        },
+        .min = {
+            .disp = dot2D(minor_vec, dr),
+            .vel = dot2D(minor_vec, v),
+            .accel = 0,
+            .time = 0
+        }
+    };
+    return pb;
+}
+
+
+/**
+ * Creates the BBProfile for a component. It is assumed that the displacement, 
+ * velocity, and acceleration lie along the major or minor axis (i.e. the 
+ * Component given is a major or minor axis component). 
+ */
+void plan_move(Component *c, float p[3]) {
+    BBProfile profile;
+    PrepareBBTrajectoryMaxV(&profile, c->disp, c->vel, p[0], p[1], p[2]); 
+    PlanBBTrajectory(&profile);
+    c->accel = BBComputeAvgAccel(&profile, TIME_HORIZON);
+    c->time = GetBBTime(&profile);
+}
+
 /**
  * Scales the major acceleration by the distance from the major axis and the
  * amount required left to rotate. Total roation and the distance vector should
@@ -170,6 +208,7 @@ static void shoot_tick(log_record_t *log) {
     scale(&pb);
     to_local_coords(accel, pb, states.angle, major_vec, minor_vec);
     apply_accel(accel, accel[2]);
+
     if (log) { to_log(log, pb.rot.time, accel); }
 }
 
