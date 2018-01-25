@@ -1,4 +1,4 @@
-#include "spin.h"
+#include "../../firmware/main/primitives/spin.h"
 #include "../../firmware/main/bangbang.h"
 #include "../../firmware/main/control.h"
 #include "../../firmware/main/simulate.h"
