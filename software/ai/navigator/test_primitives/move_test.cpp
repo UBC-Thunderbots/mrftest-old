@@ -15,6 +15,7 @@ MoveTest::MoveTest(World w)
       goto_ball(false)
 {
     tests["Move"]       = static_cast<testfun_t>(&MoveTest::test_move_dest);
+    tests["MoveReplace"] = static_cast<testfun_t>(&MoveTest::test_move_replace);
     tests["MoveOrient"] = static_cast<testfun_t>(&MoveTest::test_move_ori_dest);
     tests["MoveTimeDelta"] =
         static_cast<testfun_t>(&MoveTest::test_move_tdelta_dest);
@@ -30,6 +31,30 @@ void MoveTest::test_move_dest(Player player)
     if (goto_ball)
         dest = world.ball().position();
     player.move_move(dest);
+}
+
+void MoveTest::test_move_replace(Player player)
+{
+    if (world.friendly_team().size() > 0)
+    {
+        FriendlyTeam friendly_team = world.friendly_team();
+        int friendly_size          = static_cast<int>(friendly_team.size());
+        for (int i = 0; i < friendly_size; i++)
+        {
+            Player player = friendly_team[i];
+            player.replace(0.3 + (0.4 * i), 0, 0.0, i, true);
+        }
+    }
+    if (world.enemy_team().size() > 0)
+    {
+        EnemyTeam enemy_team = world.enemy_team();
+        int enemy_size       = static_cast<int>(enemy_team.size());
+        for (int i = 0; i < enemy_size; i++)
+        {
+            Robot enemy = enemy_team[i];
+            enemy.replace(-0.3 * (i + 1), -1.5, 0.0, i, false);
+        }
+    }
 }
 
 void MoveTest::test_move_ori_dest(Player player)

@@ -54,6 +54,9 @@ class Robot : public AI::Common::Robot
      */
     Robot(const Robot &copyref);
 
+    bool replace(
+        double x, double y, double dir, int id, bool is_yellow) override;
+
     /**
      * \brief Returns the avoidance distance for this robot
      *
@@ -533,6 +536,14 @@ inline void AI::Nav::W::Player::move_brake()
 inline void AI::Nav::W::Player::move_move(Point dest)
 {
     AI::Common::Player::impl->move_move(dest);
+}
+
+inline bool AI::Nav::W::Robot::replace(
+    double x, double y, double dir, int id, bool is_yellow)
+{
+    AI::Common::Robot::impl->is_replace = true;
+    AI::Common::Robot::impl->replace(x, y, dir, id, is_yellow);
+    return true;
 }
 
 inline void AI::Nav::W::Player::move_move(Point dest, Angle orientation)

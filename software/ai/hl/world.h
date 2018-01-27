@@ -202,7 +202,23 @@ class Player final : public Robot, public AI::Common::Player
      * \param[in] orientation how far left to rotate the robot to reach
      * its desired orientation
      */
+
     void move_move(Point dest, Angle orientation);
+
+    /**
+     * \brief Replaces the robot position, direction, team assignment on grSim.
+     *
+     * \param[in] x-coordinate position to move to, absolute to the
+     * robot’s current orientation
+     * \param[in] y-coordinate position to move to, absolute to the
+     * robot’s current orientation
+     * \param[in] direction of robot
+     * \param[in] id of the robot
+     * \param[in] yellow or blue team assignment of the robot
+     */
+
+    bool replace(
+        double x, double y, double dir, int id, bool is_yellow) override;
 
     /**
      * \brief Moves the robot to a target position.
@@ -618,6 +634,12 @@ inline void AI::HL::W::Player::move_coast()
 inline void AI::HL::W::Player::move_brake()
 {
     AI::Common::Player::impl->move_brake();
+}
+
+inline bool AI::HL::W::Player::replace(
+    double x, double y, double dir, int id, bool is_yellow)
+{
+    return false;
 }
 
 inline void AI::HL::W::Player::move_move(Point dest)

@@ -142,3 +142,27 @@ void Robot::update_caches()
     velocity_cached    = velocity(0.0);
     avelocity_cached   = avelocity(0.0);
 }
+
+bool Robot::replace(double x, double y, double dir, int id, bool is_yellow)
+{
+    this->replace_robot_x         = x;
+    this->replace_robot_y         = y;
+    this->replace_robot_dir       = dir;
+    this->replace_robot_id        = id;
+    this->replace_robot_is_yellow = is_yellow;
+    return true;
+}
+
+void Robot::encode_replacements(grSim_RobotReplacement &replacement)
+{
+    Robot::replace_robot(replacement);
+}
+
+void Robot::replace_robot(grSim_RobotReplacement &replacement)
+{
+    replacement.set_x(this->replace_robot_x);
+    replacement.set_y(this->replace_robot_y);
+    replacement.set_dir(this->replace_robot_dir);
+    replacement.set_id(this->replace_robot_id);
+    replacement.set_yellowteam(this->replace_robot_is_yellow);
+}
