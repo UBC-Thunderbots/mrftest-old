@@ -9,6 +9,7 @@
 #include "ai/backend/vision/backend.h"
 #include "ai/backend/vision/team.h"
 #include "proto/grSim_Packet.pb.h"
+#include "proto/grSim_Replacement.pb.h"
 #include "util/exception.h"
 #include "util/fd.h"
 #include "util/sockaddrs.h"
@@ -180,6 +181,29 @@ void Backend::send_packet(AI::Timediff)
     grSim_Commands *commands = packet.mutable_commands();
     commands->set_timestamp(0.0);
     commands->set_isteamyellow(friendly_colour() == AI::Common::Colour::YELLOW);
+
+    AI::BE::GRSim::Player::Ptr player_one =
+        friendly_team().get_backend_robot(0);
+    if (player_one->is_replace)
+    {
+        {
+            grSim_Replacement *replacements = packet.mutable_replacement();
+
+            for (std::size_t i = 0; i < friendly_team().size(); ++i)
+            {
+                AI::BE::GRSim::Player::Ptr player =
+                    friendly_team().get_backend_robot(i);
+                player->encode_replacements(*replacements->add_robots());
+
+                AI::BE::Robot::Ptr enemy = enemy_team().get_backend_robot(i);
+                enemy->encode_replacements(*replacements->add_robots());
+
+                player->is_replace = false;
+                enemy->is_replace  = false;
+            }
+        }
+    }
+
     for (std::size_t i = 0; i < friendly_team().size(); ++i)
     {
         AI::BE::GRSim::Player::Ptr player =

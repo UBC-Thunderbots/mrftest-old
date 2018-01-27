@@ -7,6 +7,7 @@
 #include "geom/angle.h"
 #include "geom/point.h"
 #include "geom/predictor.h"
+#include "proto/grSim_Replacement.pb.h"
 #include "uicomponents/visualizer.h"
 #include "util/box_ptr.h"
 #include "util/object_store.h"
@@ -70,6 +71,22 @@ class Robot : public Visualizable::Robot
     unsigned int num_bar_graphs() const override;
     double bar_graph_value(unsigned int index) const override;
     Visualizable::Colour bar_graph_colour(unsigned int index) const override;
+
+    double replace_robot_x;
+    double replace_robot_y;
+    double replace_robot_dir;
+    int replace_robot_id;
+    bool replace_robot_is_yellow;
+    bool is_replace;
+
+    void replace_robot(grSim_RobotReplacement &replacement);
+    void encode_replacements(grSim_RobotReplacement &replacement);
+    bool replace(double x, double y, double dir, int id, bool is_yellow);
+
+   protected:
+    void add_control(
+        Point linear_value, Angle angular_value,
+        Predictor<double>::Timestamp ts);
 
    private:
     const unsigned int pattern_;

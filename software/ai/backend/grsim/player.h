@@ -3,6 +3,7 @@
 
 #include "ai/backend/player.h"
 #include "proto/grSim_Commands.pb.h"
+#include "proto/grSim_Replacement.pb.h"
 #include "util/box_ptr.h"
 
 namespace AI
@@ -43,6 +44,15 @@ class Player final : public AI::BE::Player
 
     void tick(bool halt, bool stop);
     void encode_orders(grSim_Robot_Command &packet);
+
+    double replace_ball_x;
+    double replace_ball_y;
+    double replace_ball_vx;
+    double replace_ball_vy;
+
+    void replace_ball(
+        grSim_BallReplacement &ball_replacement, double x, double y, double vx,
+        double vy);
 
    private:
     Point _drive_linear;

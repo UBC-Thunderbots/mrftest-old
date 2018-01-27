@@ -110,6 +110,14 @@ class Robot
     unsigned int pattern() const;
 
     /**
+     * \brief Replaces the position of the robot.
+     *
+     * \return a boolean to indicate successful replacement
+     */
+    virtual bool replace(
+        double x, double y, double dir, int id, bool is_yellow);
+
+    /**
      * \brief Returns an object store for the robot.
      *
      * AI entities can use this object store to hold opaque data on
@@ -286,6 +294,12 @@ inline unsigned int AI::Common::Robot::pattern() const
 inline ObjectStore &AI::Common::Robot::object_store() const
 {
     return impl->object_store();
+}
+
+inline bool AI::Common::Robot::replace(
+    double x, double y, double dir, int id, bool is_yellow)
+{
+    return true;
 }
 
 inline Point AI::Common::Robot::position() const

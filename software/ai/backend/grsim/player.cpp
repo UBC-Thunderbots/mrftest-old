@@ -240,6 +240,16 @@ void Player::tick(bool halt, bool stop)
     }
 }
 
+void Player::replace_ball(
+    grSim_BallReplacement &ball_replacement, double x, double y, double vx,
+    double vy)
+{
+    ball_replacement.set_x(x);
+    ball_replacement.set_y(y);
+    ball_replacement.set_vx(vx);
+    ball_replacement.set_vy(vy);
+}
+
 void Player::encode_orders(grSim_Robot_Command &packet)
 {
     packet.set_id(pattern());

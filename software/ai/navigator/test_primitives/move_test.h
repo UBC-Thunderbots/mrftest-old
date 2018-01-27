@@ -34,6 +34,8 @@ class MoveTest : public PrimTest
 
     void test_move_dest(Player player);
 
+    void test_move_replace(Player player);
+
     void test_move_ori_dest(Player player);
 
     void test_move_tdelta_dest(Player player);
