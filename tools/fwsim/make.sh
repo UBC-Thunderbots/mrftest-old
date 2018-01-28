@@ -1,6 +1,17 @@
 # COMPILE
 #!bin/bash
-if gcc -std=c99 -Wall *.c -o sim -lm; then
+if gcc  -DFWSIM -std=c99 -Wall \
+main.c \
+../../firmware/main/physics.c \
+../../firmware/main/simulate.c \
+../../firmware/main/control.c \
+../../firmware/main/primitives/primitive.h \
+../../firmware/main/bangbang.c \
+../../firmware/main/primitives/move.c \
+../../firmware/main/primitives/shoot.c \
+../../firmware/main/primitives/spin.c \
+-o sim -lm; \
+then
     if [ $? -ne 0 ]
     then
         echo "Compile failed!"
