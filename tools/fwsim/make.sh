@@ -24,7 +24,7 @@ fi
 
 # PYTHON
 ./sim test.csv 3 1000 1000 0 0 0 0 
-python show_sim.py test.csv
+python3 show_sim.py test.csv
 
 # FWVIEW
 cp test.csv fwview/data/
