@@ -1,5 +1,5 @@
 gcc -DFWSIM -std=c99 \
-*.c \
+main.c \
 ../../firmware/main/physics.c \
 ../../firmware/main/simulate.c \
 ../../firmware/main/control.c \

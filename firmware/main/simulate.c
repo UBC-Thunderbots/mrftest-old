@@ -1,3 +1,4 @@
+#ifdef FWSIM
 #include "simulate.h"
 #include "physics.h"
 #include <stdbool.h>
@@ -133,3 +134,5 @@ void sim_reset(){
 float get_pos_x() {
 	return pos[0];
 }
+
+#endif
