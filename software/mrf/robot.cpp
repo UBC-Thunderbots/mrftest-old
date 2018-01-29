@@ -111,7 +111,7 @@ unsigned int chicker_power_to_pulse_width(double power, bool chip)
     if (!chip)
     {
         power = clamp_symmetric(power, MAX_KICK_VALUE);
-        width = static_cast<unsigned>(power * 332.7 + 219.8);
+        width = static_cast<unsigned>(power * 438.1 + 44.592);
     }
     else
     {
