@@ -13,6 +13,17 @@
 #include <math.h>
 #include <stdio.h>
 
+#ifndef FWSIM
+#include "shoot.h" // TODO: don't think this should be here, might be a mistake
+#include "../chicker.h"
+#include "../dr.h"
+#include "../dribbler.h"
+#include "../leds.h"
+#else
+#include "move.h"
+#include "../simulate.h"
+#endif
+
 // these are set to decouple the 3 axis from each other
 // the idea is to clamp the maximum velocity and acceleration
 // so that the axes would never have to compete for resources
@@ -142,7 +153,11 @@ static void move_init(void)
  * function returns and must be copied into this module if needed
  * @return void
  */
+#ifndef FWSIM
 static void move_start(const primitive_params_t *params) 
+#else
+void move_start(const primitive_params_t *params) // TODO: Unify this
+#endif
 {
 	//Parameters: 	destination_x [mm]
 	//				destination_y [mm]
@@ -194,6 +209,7 @@ static void move_end(void)
  * NULL if no record is to be filled
  * @return void 
  */
+#ifndef FWSIM
 static void move_tick(log_record_t *log) {
 	// get the state of the bot
 	dr_data_t current_states;
@@ -227,6 +243,7 @@ static void move_tick(log_record_t *log) {
 /**
  * The move movement primitive.
  */
+#ifndef FWSIM
 const primitive_t MOVE_PRIMITIVE = {
 	.direct = false,
  	.init = &move_init,
@@ -236,3 +253,4 @@ const primitive_t MOVE_PRIMITIVE = {
 };
 
 #endif
+

@@ -102,6 +102,7 @@ void apply_accel(float linear_accel[2], float angular_accel) {
   dr_setaccel(linear_accel, angular_accel);
 #else
 	float scaling = 10.0; // Assume no motor limitations. Main limiter will be wheel slip
+	// Todo: might want to get rid of the line above, just use the accelleration from before
 #endif
 
   

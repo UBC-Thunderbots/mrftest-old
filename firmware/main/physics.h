@@ -108,13 +108,10 @@ void force4_to_force3(const float force4[4], float force3[3]);
 
 float min_angle_delta(float,float);
 
-#ifndef FWSIM
-inline float norm2(float a1, float a2){
-	return(sqrtf(a1*a1 + a2*a2) );
-}
-#else
-float min_angle_delta_alt(float, float);
 float norm2(float a1, float a2);
+
+#ifdef FWSIM
+float min_angle_delta_alt(float, float); //Todo: what is this suppose to be?
 #endif
 
 //rotate a velocity vector through angle

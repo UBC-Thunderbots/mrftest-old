@@ -47,11 +47,10 @@ const float MAX_ACC[3] = {MAX_X_A, MAX_Y_A, MAX_T_A*ROBOT_RADIUS};
 //contention vector, where in forces will simply consume power.
 static const float contention_vector[4] = {-0.4621, 0.5353, -0.5353, 0.4621};
 
-#ifdef FWSIM
 float norm2(float a1, float a2){
 	return(sqrtf(a1*a1 + a2*a2) );
 }
-#endif
+
 
 
 // return the minimum angle from angle1 to angle2
