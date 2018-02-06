@@ -18,10 +18,14 @@
 #define TIME_HORIZON 0.05f //s
 
 static float destination[3], major_vec[2], minor_vec[2], total_rot;
+
 /**
  * Scales the major acceleration by the distance from the major axis and the
  * amount required left to rotate. Total roation and the distance vector should
  * not be zero so as to avoid divide by zero errors.
+ * 
+ * @param pb The PhysBot data container that contains information about the 
+ * major and minor axis.
  */
 void scale(PhysBot *pb) {
     float maj_disp = (float) fabs(pb->maj.disp) - ROBOT_RADIUS;
@@ -44,12 +48,16 @@ void scale(PhysBot *pb) {
  * plan_move has been done along the minor axis. The minor time from bangbang
  * is used to determine the rotation time, and thus the rotation velocity and
  * acceleration. The rotational acceleration is clamped under the MAX_T_A.
+ * 
+ * @param pb The PhysBot data container that should have minor axis time and 
+ * will store the rotational information
+ * @param avel The rotational velocity of the bot
  */ 
-void plan_shoot_rotation(PhysBot *pb, dr_data_t states) {
+void plan_shoot_rotation(PhysBot *pb, float avel) {
     pb->rot.time = (pb->min.time > TIME_HORIZON) ? pb->min.time : TIME_HORIZON;
     // 1.6f is a magic constant
     pb->rot.vel = 1.6f * pb->rot.disp / pb->rot.time; 
-    pb->rot.accel = (pb->rot.vel - states.avel) / TIME_HORIZON;
+    pb->rot.accel = (pb->rot.vel - avel) / TIME_HORIZON;
     Clamp(&pb->rot.accel, MAX_T_A);
 }
 
@@ -155,7 +163,7 @@ static void shoot_tick(log_record_t *log) {
     // tuned constants from testing
     float minor_par[3] = {0, MAX_Y_A, MAX_Y_V * 2};
     plan_move(&pb.min, minor_par);
-    plan_shoot_rotation(&pb, states);
+    plan_shoot_rotation(&pb, states.avel);
     float accel[3] = {0, 0, pb.rot.accel};
     scale(&pb);
     to_local_coords(accel, pb, states.angle, major_vec, minor_vec);

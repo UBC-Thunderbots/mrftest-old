@@ -3,7 +3,6 @@
 #include "../bangbang.h"
 #include "../physics.h"
 
-// sets up the PhysBot container with all of its info
 PhysBot setup_bot(dr_data_t states, float destination[3], float major_vec[2], 
     float minor_vec[2]) {
     float v[2] = {states.vx, states.vy};
@@ -31,12 +30,9 @@ PhysBot setup_bot(dr_data_t states, float destination[3], float major_vec[2],
     return pb;
 }
 
+// need the ifndef here so that we can ignore this code when compiling
+// the firmware tests
 #ifndef FWTEST
-/**
- * Creates the BBProfile for a component. It is assumed that the displacement, 
- * velocity, and acceleration lie along the major or minor axis (i.e. the 
- * Component given is a major or minor axis component). 
- */
 void plan_move(Component *c, float p[3]) {
     BBProfile profile;
     PrepareBBTrajectoryMaxV(&profile, c->disp, c->vel, p[0], p[1], p[2]); 
@@ -46,11 +42,6 @@ void plan_move(Component *c, float p[3]) {
 }
 #endif
 
-/**
- * Uses a rotaion matrix to rotate the acceleration vectors of the given 
- * PhysBot back to local xy coordinates and store them in a separate array. The
- * given angle should be the bot's angle relative to the global x-axis.
- */
 void to_local_coords(float accel[3], PhysBot pb, float angle, float major_vec[2], 
     float minor_vec[2]) {
     float local_norm_vec[2][2] = {

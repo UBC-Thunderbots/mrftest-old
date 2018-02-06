@@ -18,6 +18,10 @@
 #include <semphr.h>
 #include <stdint.h>
 #include <stdio.h>
+
+
+// need the ifndef here so that we can ignore this code when compiling
+// the firmware tests
 #ifndef FWTEST
 /**
  * \brief The available movement primitives.

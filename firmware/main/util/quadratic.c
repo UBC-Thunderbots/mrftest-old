@@ -5,8 +5,21 @@
 #include "../cvxgen/solver.h"
 #include <math.h>
 
+// Angles of each wheel relative to the front of the bot.
+// TODO: these should actually be measured.
 const float rel_wheel_angles[4] = { 30, 120, -30, -120 };
 
+/**
+ * Builds the M matrix for the optimization. This matrix has one 
+ * row for each acceleration (major, minor, rotational) and one 
+ * column for each wheel on the bot.
+ * 
+ * @param pb a PhysBot that should be setup by the setup_bot function
+ * in physbot.c
+ * @param state The current state of the robot that should have the
+ * @param M a 3 x 4 matrix where each column corresponds to a wheel
+ * \
+ */ 
 void build_M_matrix(PhysBot pb, dr_data_t state, float M[3][4]) {
     int wheel_spin_direction;
     if (pb.rot.disp >= 0) {
@@ -27,6 +40,12 @@ void build_M_matrix(PhysBot pb, dr_data_t state, float M[3][4]) {
     }
 }
 
+/**
+ * Takes the Q matrix and converts it to a 16 length matrix for the 
+ * CVXGEN solver.
+ * 
+ * @param Q A 4 x 4 matrix that is the result of multiplying M.T * M
+ */
 void to_1d_matrix(float Q[4][4]) {
     int i;
     int j;
@@ -40,6 +59,11 @@ void to_1d_matrix(float Q[4][4]) {
 }
 
 /**
+ * Creates the c matrix for the optimization.
+ * 
+ * @param a_req The requested accelerations supplied by the primitive.
+ * @param M a 3 x 4 matrix where each column corresponds to a wheel
+ * 
  * c = 2 * a_req.T * M
  */
 void build_c_matrix(float a_req[3], float M[3][4]) {
@@ -58,6 +82,12 @@ void build_c_matrix(float a_req[3], float M[3][4]) {
     }
 }
 
+/**
+ * Transposes the M matrix.
+ * 
+ * @param M a 3 x 4 matrix where each column corresponds to a wheel
+ * @param M_T the transpose of the M matrix
+ */ 
 void transpose(float M[3][4], float M_T[4][3]) {
     int i; 
     int j;
@@ -68,6 +98,13 @@ void transpose(float M[3][4], float M_T[4][3]) {
     }
 }
 
+/**
+ * Multiplies the M.T * M to get the Q matrix for the optimization.
+ * 
+ * @param M a 3 x 4 matrix where each column corresponds to a wheel
+ * @param M_T the transpose of the M matrix
+ * @param Q A 4 x 4 matrix that is the result of multiplying M.T * M
+ */ 
 void build_Q_matrix(float M[3][4], float M_T[4][3], float Q[4][4]) {
     int i;
     int j;
@@ -83,7 +120,8 @@ void build_Q_matrix(float M[3][4], float M_T[4][3], float Q[4][4]) {
 
 
 /**
- * Should get accelerations out of this. Might be weird with units.
+ * TODO: Figure out the units for the matrices so we make sure
+ * that we get accelerations out of the optimization.
  */
 void quad_optimize(PhysBot pb, dr_data_t state, float a_req[3]) {
     float M[3][4];
@@ -98,6 +136,8 @@ void quad_optimize(PhysBot pb, dr_data_t state, float a_req[3]) {
     to_1d_matrix(Q);
     solve();
     double x = *vars.x;
+    // TODO: remove this print statement once we figure out what 
+    // parameters we need from the solver
     printf("%f\n", x);
 
 }

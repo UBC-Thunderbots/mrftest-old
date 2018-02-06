@@ -31,6 +31,7 @@ build_merged_master:
         - make -j -l 2
         - make test
 
+
 # Merge our branch into dev and check that we still pass clang-format
 check_formatting_master:
     stage: build

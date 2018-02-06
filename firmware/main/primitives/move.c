@@ -16,11 +16,8 @@
 // so that the axes would never have to compete for resources
 #define TIME_HORIZON 0.05f //s
 
-//TODO: find out actual wheel angles
 const float PI_2 = M_PI / 2.0f;
-const float APPROACH_LIMIT = 2 * M_PI * ROBOT_RADIUS;
 static float destination[3], end_speed, major_vec[2], minor_vec[2];
-// Only need two data points to form major axis vector.
 
 void choose_rotation_destination(PhysBot *pb, float angle) {
 	// if we are close enough then we should just allow the bot to rotate
@@ -36,19 +33,30 @@ void choose_rotation_destination(PhysBot *pb, float angle) {
 	}
 }
 
+/**
+ * Pass information to be logged.
+ * 
+ * @param log The log object.
+ * @param time_target The time target to log
+ * @param accel A 3 length array of {x, y, rotation} accelerations
+ */ 
 void move_to_log(log_record_t *log, float time_target, float accel[3]) {
     log_destination(log, destination);
     log_accel(log, accel);
     log_time_target(log, time_target);
 }
 
+
 void plan_move_rotation(PhysBot *pb, float avel) {
 	pb->rot.time = (pb->maj.time > TIME_HORIZON) ? pb->maj.time : TIME_HORIZON;
 	pb->rot.vel = pb->rot.disp / pb->rot.time * 4.0f; 
 	pb->rot.accel = (pb->rot.vel - avel) / TIME_HORIZON;
+	pb->rot.accel = (fabs(pb->rot.accel) < MAX_T_A) ? pb->rot.accel : MAX_T_A; 
 }
 
 
+// need the ifndef here so that we can ignore this code when compiling
+// the firmware tests
 #ifndef FWTEST
 /**
  * \brief Initializes the move primitive.
@@ -119,18 +127,18 @@ static void move_tick(log_record_t *log) {
 	dr_get(&current_states);
 	PhysBot pb = setup_bot(current_states, destination, major_vec, minor_vec);
 
-	// choose_rotation_destination(&pb, current_states.angle);
+	choose_rotation_destination(&pb, current_states.angle);
 
 	// magic constants
-	float major_par[3] = {end_speed, 2.5, 2.5};
+	float major_par[3] = {end_speed, 2.5f, 2.5f};
 	plan_move(&pb.maj, major_par);
 	// magic constants
-	float minor_par[3] = {0, 1.5, 1.5};
+	float minor_par[3] = {0.0f, 1.5f, 1.5f};
 	plan_move(&pb.min, minor_par);
 
 	plan_move_rotation(&pb, current_states.avel);
 
-	float accel[3] = {0, 0, pb.rot.accel};
+	float accel[3] = {0.0f, 0.0f, pb.rot.accel};
 	to_local_coords(accel, pb, current_states.angle, major_vec, minor_vec);
 	apply_accel(accel, accel[2]);
 

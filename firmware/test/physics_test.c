@@ -51,13 +51,15 @@ START_TEST(test_min_angle_delta_big_angles)
 }
 END_TEST
 
+/**
+ * Test function manager for physics.c
+ */
 void run_physics_test() {
-    TCase *tc_core;
+    // Put the name of the suite of tests in here
     Suite *s = suite_create("Physics Test");
-
-    /* Core test case */
-    tc_core = tcase_create("Core");
-
+    // Creates a test case that you can add all of the tests to
+    TCase *tc_core = tcase_create("Core");
+    // add the tests for this file here
     tcase_add_test(tc_core, test_dot2D);
     tcase_add_test(tc_core, test_dot3D);
     tcase_add_test(tc_core, test_dot_product);
@@ -65,5 +67,6 @@ void run_physics_test() {
     tcase_add_test(tc_core, test_min_angle_delta_gt_90);
     tcase_add_test(tc_core, test_min_angle_delta_both_non_zero);
     tcase_add_test(tc_core, test_min_angle_delta_big_angles);
+    // run the tests
     run_test(tc_core, s);
 }

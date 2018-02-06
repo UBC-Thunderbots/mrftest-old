@@ -69,7 +69,4 @@ software/tags
 *.map
 *.dfu
 software/.vscode/launch.json
-
-# Other
-*.DS_Store
-*.vscode
+.vscode/
