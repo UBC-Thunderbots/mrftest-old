@@ -11,11 +11,13 @@ build_feature_branch:
         # Make runners have their git config set properly
         - git config --global user.email "chead@chead.com"
         - git config --global user.name "Christopher Head"
-        - cd software
         # -j: compile in parallel as much as possible
         # -l: limit load to stop us running out of virtual memory
-        - make -j -l 2
-        - make test
+        # run makefiles from toplevel
+        - make -j -l 2 -C software
+        - make test -C software
+        # go into firmware and run the tests
+        - make -C firmware/test
 
 # Check that dev will build when we merge our feature branch in
 build_merged_master:
@@ -25,11 +27,13 @@ build_merged_master:
         - git config --global user.email "chead@chead.com"
         - git config --global user.name "Christopher Head"
         - git merge origin/dev --no-commit --no-ff
-        - cd software
         # -j: compile in parallel as much as possible
         # -l: limit load to stop us running out of virtual memory
-        - make -j -l 2
-        - make test
+        # run makefiles from top level
+        - make -j -l 2 -C software
+        - make test -C software
+        # go into firmware and run the tests
+        - make -C firmware/test 
 
 
 # Merge our branch into dev and check that we still pass clang-format

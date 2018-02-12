@@ -12,6 +12,8 @@ firmware/usb/internal
 firmware/usb/public
 firmware/usb/tags
 firmware/usb/usb.tag
+firmware/test/test
+firmware/test/test.c
 
 # Software
 software/.cproject
@@ -70,3 +72,4 @@ software/tags
 *.dfu
 software/.vscode/launch.json
 .vscode/
+tools/fwsim/sim

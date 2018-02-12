@@ -527,6 +527,11 @@ void decompose_radial(const float speed, float* vf, const float* init_pos,
 
 /**
  * Use for dot product on arbitrarily large arrays.
+ *
+ * @param vec1 the first vector in the dot product
+ * @param vec2 the second vector in the dot product
+ * @param size the size of the vectors. They should be the same size
+ * @return the dot product result of the vectors
  */
 float dot_product(float vec1[], float vec2[], int size) {
     float result = 0;
@@ -537,14 +542,22 @@ float dot_product(float vec1[], float vec2[], int size) {
 }
 
 /**
- * DOt product for 2D vectors.
+ * Dot product for 2D vectors.
+ * 
+ * @param vec1 the first vector in the dot product
+ * @param vec2 the second vector in the dot product
+ * @return the dot product result of the vectors
  */
 float dot2D(float vec1[2], float vec2[2]) {
     return vec1[0] * vec2[0] + vec1[1] * vec2[1];
 }
 
 /**
- * DOt product for 3D vectors.
+ * Dot product for 3D vectors.
+ *
+ * @param vec1 the first vector in the dot product
+ * @param vec2 the second vector in the dot product
+ * @return the dot product result of the vectors
  */
 float dot3D(float vec1[3], float vec2[3]) {
     return vec1[0] * vec2[0] + vec1[1] * vec2[1] + vec1[2] * vec2[2];

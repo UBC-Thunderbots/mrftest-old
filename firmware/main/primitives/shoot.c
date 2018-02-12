@@ -26,6 +26,7 @@ static float destination[3], major_vec[2], minor_vec[2], total_rot;
  * 
  * @param pb The PhysBot data container that contains information about the 
  * major and minor axis.
+ * @return void
  */
 void scale(PhysBot *pb) {
     float maj_disp = (float) fabs(pb->maj.disp) - ROBOT_RADIUS;
@@ -52,6 +53,7 @@ void scale(PhysBot *pb) {
  * @param pb The PhysBot data container that should have minor axis time and 
  * will store the rotational information
  * @param avel The rotational velocity of the bot
+ * @return void
  */ 
 void plan_shoot_rotation(PhysBot *pb, float avel) {
     pb->rot.time = (pb->min.time > TIME_HORIZON) ? pb->min.time : TIME_HORIZON;
@@ -168,7 +170,6 @@ static void shoot_tick(log_record_t *log) {
     scale(&pb);
     to_local_coords(accel, pb, states.angle, major_vec, minor_vec);
     apply_accel(accel, accel[2]);
-    
     if (log) { to_log(log, pb.rot.time, accel); }
 }
 

@@ -12,6 +12,6 @@
  * @param tc Should have a series of test cases added to it
  * @param s The Suite should have been created with an appropriate name
  * for the test that it manages
- * 
+ * @return void
  */
-void run_test();
+void run_test(TCase *tc, Suite *s);

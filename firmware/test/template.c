@@ -2,14 +2,6 @@
 #include <stdio.h>
 #include "check.h"
 #include "test.h"
-#include "physics_test.c"
-#include "quadratic_test.c"
-#include "shoot_test.c"
-#include "move_test.c"
-<<<<<<< HEAD
-#include "math_test.c"
-=======
->>>>>>> 711f63a9dd52a459265a25a622a9dbd34c8d8f3a
 
 static int number_failed = 0;
 
@@ -29,11 +21,8 @@ void run_test(TCase *tc, Suite *s) {
  */
 int main(void)
 {
-    printf("\nStart Tests\n\n");
-    run_physics_test();
-    run_quadratic_test();
-    run_move_test();
-    run_math_test();
+    printf("\nStart Tests\n");
+    // INSERT_TESTS_HERE
     (number_failed == 0) ? printf("All tests passed.\n") : printf("%d Tests failed.\n\n", number_failed);
     return 0;
 }
