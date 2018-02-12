@@ -28,6 +28,7 @@ static const float APPROACH_LIMIT = 2 * M_PI * ROBOT_RADIUS;
  * @param pb The data container that housld contain information about
  * the direction the robot will move along.
  * @param angle The angle that the robot is currently facing
+ * @return void
  */ 
 void choose_rotation_destination(PhysBot *pb, float angle);
 
@@ -38,6 +39,7 @@ void choose_rotation_destination(PhysBot *pb, float angle);
  * @param pb The data container that has information about major axis time
  * and will store the rotational information
  * @param avel The current rotational velocity of the bot
+ * @return void
  */
 void plan_move_rotation(PhysBot *pb, float avel);
 

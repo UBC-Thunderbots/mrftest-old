@@ -54,6 +54,7 @@ typedef struct {
  * on the global axis
  * @param major_vec the major vector components on the global axis
  * @param minor_vec the minor vector components on the global axis
+ * @return a new PhysBot data container
  */ 
 PhysBot setup_bot(dr_data_t states, float destination[3], float major_vec[2], 
     float minor_vec[2]);
@@ -66,6 +67,7 @@ PhysBot setup_bot(dr_data_t states, float destination[3], float major_vec[2],
  * @param c A major or minor axis component that contains displacement and
  * velocity information
  * @param p A 3 length array of {final velocity, max acceleration, max_velocity}
+ * @return void
  */
 void plan_move(Component *c, float p[3]);
 
@@ -81,6 +83,7 @@ void plan_move(Component *c, float p[3]);
  * @param angle the angle that the robot is facing
  * @param major_vec the major vector components on the global axis
  * @param minor_vec the minor vector components on the global axis
+ * @return void
  */
 void to_local_coords(float accel[3], PhysBot pb, float angle, float major_vec[2], 
     float minor_vec[2]);

@@ -11,6 +11,7 @@
  * @param log a log object to save information into
  * @param destination a 3 length array of {x, y, rotation} destination values
  * on the global axis
+ * @return void
  */ 
 void log_destination(log_record_t  *log, float destination[3]); 
 
@@ -19,6 +20,7 @@ void log_destination(log_record_t  *log, float destination[3]);
  * 
  * @param log a log object to save information into
  * @param accel a 3 length array of {x, y, rotation} accelerations 
+ * @return void
  */ 
 void log_accel(log_record_t *log, float accel[3]); 
 
@@ -27,5 +29,6 @@ void log_accel(log_record_t *log, float accel[3]);
  * 
  * @param log a log object to save information into
  * @param time_target the time target to log
+ * @return void
  */ 
 void log_time_target(log_record_t *log, float time_target);

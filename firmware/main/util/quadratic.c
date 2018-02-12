@@ -9,17 +9,7 @@
 // TODO: these should actually be measured.
 const float rel_wheel_angles[4] = { 30, 120, -30, -120 };
 
-/**
- * Builds the M matrix for the optimization. This matrix has one 
- * row for each acceleration (major, minor, rotational) and one 
- * column for each wheel on the bot.
- * 
- * @param pb a PhysBot that should be setup by the setup_bot function
- * in physbot.c
- * @param state The current state of the robot that should have the
- * @param M a 3 x 4 matrix where each column corresponds to a wheel
- * \
- */ 
+
 void build_M_matrix(PhysBot pb, dr_data_t state, float M[3][4]) {
     int wheel_spin_direction;
     if (pb.rot.disp >= 0) {
@@ -40,12 +30,7 @@ void build_M_matrix(PhysBot pb, dr_data_t state, float M[3][4]) {
     }
 }
 
-/**
- * Takes the Q matrix and converts it to a 16 length matrix for the 
- * CVXGEN solver.
- * 
- * @param Q A 4 x 4 matrix that is the result of multiplying M.T * M
- */
+
 void to_1d_matrix(float Q[4][4]) {
     int i;
     int j;
@@ -58,36 +43,23 @@ void to_1d_matrix(float Q[4][4]) {
     }
 }
 
-/**
- * Creates the c matrix for the optimization.
- * 
- * @param a_req The requested accelerations supplied by the primitive.
- * @param M a 3 x 4 matrix where each column corresponds to a wheel
- * 
- * c = 2 * a_req.T * M
- */
-void build_c_matrix(float a_req[3], float M[3][4]) {
+void build_c_matrix(float a_req[3], float M[3][4], float c[4]) {
     int i;
     int j;
     for (i = 0; i < 4; i++) {
-        params.c[i] = 0;
+        c[i] = 0;
     }
     // loop each M col
     for (j = 0; j < 4; j++) {
         // loop each M row
         for (i = 0; i < 3; i++) {
-            params.c[j] += (double) (a_req[i] * M[i][j]);
+            c[j] += (double) (a_req[i] * M[i][j]);
         }
-        params.c[j] = 2 * params.c[j];
+        c[j] = 2 * c[j];
     }
 }
 
-/**
- * Transposes the M matrix.
- * 
- * @param M a 3 x 4 matrix where each column corresponds to a wheel
- * @param M_T the transpose of the M matrix
- */ 
+
 void transpose(float M[3][4], float M_T[4][3]) {
     int i; 
     int j;
@@ -98,26 +70,27 @@ void transpose(float M[3][4], float M_T[4][3]) {
     }
 }
 
-/**
- * Multiplies the M.T * M to get the Q matrix for the optimization.
- * 
- * @param M a 3 x 4 matrix where each column corresponds to a wheel
- * @param M_T the transpose of the M matrix
- * @param Q A 4 x 4 matrix that is the result of multiplying M.T * M
- */ 
+
 void build_Q_matrix(float M[3][4], float M_T[4][3], float Q[4][4]) {
     int i;
     int j;
     int k;
     for (i = 0; i < 4; i++) {
         for (j = 0; j < 4; j++) {
+            Q[i][j] = 0.0f;
             for (k = 0; k < 3; k++) {
-                Q[i][j] = M_T[i][k] * M[k][j];
+                Q[i][j] += M_T[i][k] * M[k][j];
             }
         }
     }
 }
 
+
+void put_c_matrix_in_params(float c[4]) {
+    for (int i = 0; i < 4; i++) {
+        params.c[i] = c[i];
+    }
+}
 
 /**
  * TODO: Figure out the units for the matrices so we make sure
@@ -127,9 +100,11 @@ void quad_optimize(PhysBot pb, dr_data_t state, float a_req[3]) {
     float M[3][4];
     float M_T[4][3];
     float Q[4][4];
+    float c[4];
     build_M_matrix(pb, state, M);
     transpose(M, M_T);
-    build_c_matrix(a_req, M);
+    build_c_matrix(a_req, M, c);
+    put_c_matrix_in_params(c);
     build_Q_matrix(M, M_T, Q);
     set_defaults();
     setup_indexing();
