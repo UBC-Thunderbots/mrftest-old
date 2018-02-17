@@ -7,9 +7,24 @@ namespace Nav
 namespace TestNavigator
 {
 CatchTest::CatchTest(World w)
-    : PrimTest(), orient(Angle::zero()), displacement(0), speed(0), world(w)
+    : PrimTest(w), orient(Angle::zero()), displacement(0), speed(0), world(w)
 {
     tests["Catch"] = static_cast<testfun_t>(&CatchTest::test_catch);
+
+    // Create ControlElements
+    displacement_slider =
+        std::make_shared<SliderControlElement>("Displacement", -50, 50);
+    speed_slider = std::make_shared<SliderControlElement>("Speed", 0, 20);
+    angle_slider =
+        std::make_shared<SliderControlElement>("Angle (degrees)", -180, 180);
+
+    // Add ControlElements to vector
+    control_elements.push_back(displacement_slider);
+    control_elements.push_back(speed_slider);
+    control_elements.push_back(angle_slider);
+
+    // Important to call this function after adding all ControlElements to the
+    // control_elements vector
     build_widget();
 }
 
@@ -18,52 +33,12 @@ void CatchTest::test_catch(Player player)
     player.move_catch(orient, displacement, speed);
 }
 
-void CatchTest::build_widget()
+// Callback function to update test function params
+void CatchTest::update_params()
 {
-    // Create input range
-    speed_entry.set_range(0, 20);
-    angle_entry.set_range(-360, 360);
-    displacement_entry.set_range(-50, 50);
-
-    // Generate labels Names
-    speed_label.set_label("Speed");
-    angle_label.set_label("Angle (degrees)");
-    displacement_label.set_label("Displacement");
-
-    // add widgets to vbox
-    box.add(speed_label);
-    box.add(speed_entry);  // speed
-
-    box.add(angle_label);
-    box.add(angle_entry);  // orient
-
-    box.add(displacement_label);
-    box.add(displacement_entry);  // displacement
-
-    box.show_all();
-
-    // link signals
-    speed_entry.signal_value_changed().connect(
-        sigc::mem_fun(this, &CatchTest::on_speed_changed));
-    angle_entry.signal_value_changed().connect(
-        sigc::mem_fun(this, &CatchTest::on_angle_changed));
-    displacement_entry.signal_value_changed().connect(
-        sigc::mem_fun(this, &CatchTest::on_displacement_changed));
-}
-
-void CatchTest::on_speed_changed()
-{
-    speed = speed_entry.get_value();
-}
-
-void CatchTest::on_angle_changed()
-{
-    orient = Angle::of_degrees(angle_entry.get_value());
-}
-
-void CatchTest::on_displacement_changed()
-{
-    displacement = displacement_entry.get_value();
+    orient       = Angle::of_degrees(angle_slider->GetValue());
+    displacement = displacement_slider->GetValue();
+    speed        = speed_slider->GetValue();
 }
 }
 }

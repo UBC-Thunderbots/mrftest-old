@@ -41,22 +41,13 @@ class CatchTest : public PrimTest
      */
     void test_catch(Player player);
 
-    // GTK control elements
-    Gtk::SpinButton displacement_entry;
-    Gtk::SpinButton angle_entry;
-    Gtk::SpinButton speed_entry;
+    // Callback to update params (overrides default PrimTest impl)
+    void update_params() override;
 
-    // Labels for GTK elements
-    Gtk::Label speed_label;
-    Gtk::Label displacement_label;
-    Gtk::Label angle_label;
-
-    // Callback functions to update parameters when changed in UI
-    void on_speed_changed();
-    void on_angle_changed();
-    void on_displacement_changed();
-
-    void build_widget();
+    // GTK ControlElement shared_ptrs
+    std::shared_ptr<SliderControlElement> displacement_slider;
+    std::shared_ptr<SliderControlElement> angle_slider;
+    std::shared_ptr<SliderControlElement> speed_slider;
 };
 }
 }

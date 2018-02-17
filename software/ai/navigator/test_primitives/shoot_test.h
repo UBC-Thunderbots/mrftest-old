@@ -16,43 +16,32 @@ class ShootTest : public PrimTest
     Angle orient;
 
     World world;
-    bool has_shot = false;
-
-    // Gtk::VBox box;
-    Gtk::HScale point_x_slider;
-    Gtk::HScale point_y_slider;
-    Gtk::SpinButton power_entry;
-    Gtk::SpinButton angle_entry;
-    Gtk::CheckButton to_chip;
-
-    Gtk::CheckButton goto_ball_coords_checkbox;
-
-    Gtk::Label x_label;
-    Gtk::Label y_label;
-    Gtk::Label powerLbl;
-    Gtk::Label angle_label;
-
     bool goto_ball;
+
+    std::shared_ptr<SliderControlElement> x_coord_slider;
+    std::shared_ptr<SliderControlElement> y_coord_slider;
+    std::shared_ptr<SliderControlElement> angle_slider;
+    std::shared_ptr<SliderControlElement> power_slider;
+    std::shared_ptr<CheckbuttonControlElement> chip_checkbutton;
+    std::shared_ptr<CheckbuttonControlElement> goto_ball_checkbutton;
 
     ShootTest(World w);
 
-    void test_shoot(Player player);
+    // builds widget
+    void make_widget();
 
+    //updates the parameters of coordinates,angle, power and checkbottons
+    void update_params();
+
+    void test_shoot(Player player);
+    
     void test_shoot_ori(Player player);
 
-    void build_widget();
-
-    void on_point_x_changed();
-
-    void on_point_y_changed();
-
-    void on_chip_changed();
-
-    void on_angle_changed();
-
-    void on_power_changed();
-
+    // when checkbox clicked, robot goes to ball
     void on_goto_ball_coords_changed();
+    
+    //chipper activation
+    void on_chip_changed();
 };
 }
 }
