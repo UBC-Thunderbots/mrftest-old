@@ -110,6 +110,12 @@ unsigned int chicker_power_to_pulse_width(double power, bool chip)
     unsigned int width;
     if (!chip)
     {
+        /*
+         * Transfer function derived by measuring ball speed form various input
+         * power levels form 2 m/s to 7 m/s and finding a linear relationship.
+         *
+         * Transfer function set for 2 cap chicker.
+         */
         power = clamp_symmetric(power, MAX_KICK_VALUE);
         width = static_cast<unsigned>(power * 438.1 + 44.592);
     }

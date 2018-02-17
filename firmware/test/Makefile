@@ -8,7 +8,7 @@ DIRS = $(LIBRARIES:%=-isystem ../%/include)
 DEST = obj
 
 # parse and find folders that contain header files
-HEADER_DIRS := main $(filter-out freertos,$(LIBRARIES)) $(if $(filter freertos,$(LIBRARIES)),freertos/include) 
+HEADER_DIRS := main test/check/src test/check $(filter-out freertos,$(LIBRARIES)) $(if $(filter freertos,$(LIBRARIES)),freertos/include) 
 HEADERS := $(shell find $(HEADER_DIRS:%=../%) -maxdepth 1 -type d)
 
 # The last flag includes each of the folders containing headers
@@ -18,35 +18,43 @@ HEADERS := $(shell find $(HEADER_DIRS:%=../%) -maxdepth 1 -type d)
 CFLAGS = -Wall -std=gnu99 -DFWTEST $(HEADERS:%=-I%)
 
 # libraries used
-LIBS = -lcheck -lm -lpthread -lrt 
+LIBS = -lm -lpthread -lrt 
+
 
 # each variable corresponds to a different folder
 # the entries should be a c file you want to compile, but write it with 
 # a .o extension
 #
 # firmware/main
-_OBJS = physics.o					
+_OBJS = physics.o			
 # firmware/main/util
-_UTILS = quadratic.o log.o physbot.o
+_UTILS = quadratic.o log.o physbot.o util.o
 # firmware/main/cvxgen
 _CVXGEN = solver.o ldl.o matrix_support.o
 # firmware/main/primitives
 _PRIMITIVES = move.o primitive.o
+# firmware/test/check/src
+_CHECK = $(wildcard check/src/*.c)
 
 # put all of the object files into one variable
-_OUTPUT = $(_OBJS) $(_UTILS) $(_CVXGEN) $(_PRIMITIVES)
+_OUTPUT = $(_OBJS) $(_UTILS) $(_CVXGEN) $(_PRIMITIVES) $(_CHECK)
 # adjust the names so that they are outputed into the DEST folder
 OUTPUT = $(patsubst %.o, $(DEST)/%.o, $(_OUTPUT))
 
 # entry point for the makefile. runs the test.o rule to compile test.c,
 # then compiles everything in $(_OUTPUT) which have their own rules
 # based on where the files are
-test: test.o $(_OUTPUT)
+test: generate test.o $(_OUTPUT)
 	@gcc $(CFLAGS) -o $@ $(DEST)/$@.o $(OUTPUT) $(LIBS)
 	./test
 
+# generates the test.c file
+generate:
+	bash test_generator.sh
+
 # for test.c
 test.o: 
+	mkdir -p obj
 	@gcc $(CFLAGS) -c $(patsubst %.o, %.c, $@) -o $(DEST)/$@
 
 # an individual set of rules for each folder
@@ -59,11 +67,13 @@ $(_OBJS):
 	@gcc $(CFLAGS) -c $(patsubst %.o, ../main/%.c, $@) -o $(DEST)/$@
 $(_PRIMITIVES):
 	@gcc $(CFLAGS) -c $(patsubst %.o, ../main/primitives/%.c, $@) -o $(DEST)/$@
+$(_CHECK):
+	@gcc $(CFLAGS) -c $(patsubst %.o, check/src/%.c, $@) -o $(DEST)/$@
 
 # can use this rule if you want to echo something
 # make view
 view:
-	@echo $(OUTPUT)
+	@echo $(_CHECK)
 
 # use this rule to clean the files compiled
 # make clean
