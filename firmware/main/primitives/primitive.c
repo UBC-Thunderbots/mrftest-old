@@ -39,7 +39,7 @@
 static const primitive_t * const PRIMITIVES[] = {
 	&STOP_PRIMITIVE, // index 0, do not change the order of stuff in this one
 	&MOVE_PRIMITIVE, // 1
-	&DRIBBLE_PRIMITIVE, // 2
+	&DRIBBLE_PRIMITIVE, // 2 this should be unessisary for FWSIM, but keep it here to make the order still correct
 	&SHOOT_PRIMITIVE, // 3
 	&CATCH_PRIMITIVE, // 4
 	&PIVOT_PRIMITIVE, // 5
