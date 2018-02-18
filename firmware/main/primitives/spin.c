@@ -27,10 +27,8 @@ static float major_angle;
  *
  * This function runs once at system startup.
  */
-#ifndef FWSIM
 static void spin_init(void) {
 }
-#endif
 
 /**
  * \brief Starts a movement of this type.
@@ -44,11 +42,7 @@ static void spin_init(void) {
 // input to 3->4 matrix is quarter-degrees per 5 ms, matrix is dimensionless
 // linear ramp up for velocity and linear fall as robot approaches point
 // constant angular velocity
-#ifndef FWSIM
 static void spin_start(const primitive_params_t *p) {
-#else
-void spin_start(primitive_params_t *p) {
-#endif
     // Parameters:  param[0]: g_destination_x   [mm]
     //              param[1]: g_destination_y   [mm]
     //              param[2]: g_angular_v_final [centi-rad/s]
@@ -98,11 +92,7 @@ static void spin_end(void) {
  * \c NULL if no record is to be filled
  */
 
-#ifndef FWSIM
 static void spin_tick(log_record_t *log) {
-#else
-void spin_tick() {
-#endif
 dr_data_t now;
     dr_get(&now);
 
@@ -174,7 +164,6 @@ dr_data_t now;
 /**
  * \brief The spin movement primitive.
  */
-#ifndef FWSIM
 const primitive_t SPIN_PRIMITIVE = {
     .direct = false,
     .init   = &spin_init,
@@ -182,4 +171,3 @@ const primitive_t SPIN_PRIMITIVE = {
     .end    = &spin_end,
     .tick   = &spin_tick,
 };
-#endif

@@ -5,6 +5,7 @@ main.c \
 ../../firmware/main/control.c \
 ../../firmware/main/bangbang.c \
 ../../firmware/main/primitives/primitive.c \
+../../firmware/main/primitives/primitive.h \
 ../../firmware/main/primitives/move.c \
 ../../firmware/main/primitives/shoot.c \
 ../../firmware/main/primitives/spin.c \

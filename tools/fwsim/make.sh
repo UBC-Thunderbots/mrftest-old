@@ -5,8 +5,9 @@ main.c \
 ../../firmware/main/physics.c \
 ../../firmware/main/simulate.c \
 ../../firmware/main/control.c \
-../../firmware/main/primitives/primitive.h \
 ../../firmware/main/bangbang.c \
+../../firmware/main/primitives/primitive.c \
+../../firmware/main/primitives/primitive.h \
 ../../firmware/main/primitives/move.c \
 ../../firmware/main/primitives/shoot.c \
 ../../firmware/main/primitives/spin.c \
@@ -23,7 +24,7 @@ else
 fi
 
 # PYTHON
-./sim test.csv 3 1000 1000 0 0 0 0 
+./sim test.csv 2 1000 1000 0 0 0 0 
 python3 show_sim.py test.csv
 
 # FWVIEW

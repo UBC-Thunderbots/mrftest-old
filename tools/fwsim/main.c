@@ -1,9 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include "simulate.h"
-//#include "spline.h"
-#include "shoot.h"
-// #include "move.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,6 +5,7 @@
 #include "../../firmware/main/primitives/primitive.h"
 #include "../../firmware/main/primitives/shoot.h"
 #include "../../firmware/main/simulate.h"
+#include "../../firmware/main/spline.h"
 
 #define DELTA_T 0.0001
 #define ROBOT_TICK_T 0.005
@@ -58,7 +53,7 @@ unsigned runSim(double params[NUM_PARAMS], dr_data_t hist[HIST_SIZE])
 
         if (time - last_robot_tick >= ROBOT_TICK_T)
         {
-            shoot_tick();
+            prim_tick(primNum);
             last_robot_tick = time;
         }
 
@@ -121,3 +116,11 @@ unsigned runSim(double params[NUM_PARAMS], dr_data_t hist[HIST_SIZE])
 
         return runSim(argv[1], atoi(argv[2]), p);
     }
+
+    primitive_params_t p = {
+        .params = {atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6])}};
+    //primitive_init();
+    primitive_start(2, &p);
+    return 1;
+    //return runSim(argv[1], atoi(argv[2]), &p);
+}

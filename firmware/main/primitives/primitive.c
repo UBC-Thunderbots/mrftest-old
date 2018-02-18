@@ -3,6 +3,7 @@
 #include <FreeRTOS.h>
 #include <semphr.h>
 #endif // FWSIM
+
 #include "primitive.h"
 #include "catch.h"
 #include "direct_velocity.h"

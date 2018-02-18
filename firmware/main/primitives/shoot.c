@@ -1,21 +1,27 @@
 #include "shoot.h"
-#include "../chicker.h"
 #include "../control.h"
-#include "../dr.h"
-#include "../dribbler.h"
-#include "../leds.h"
 #include "../physics.h"
 #include "../bangbang.h"
-#include "../util/physbot.h"
-#include "../util/log.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#ifndef FWSIM
+#include "../chicker.h"
+#include "../dr.h"
+#include "../dribbler.h"
+#include "../leds.h"
+#else
+#include "../simulate.h"
+#endif
 
 // these are set to decouple the 3 axis from each other
 // the idea is to clamp the maximum velocity and acceleration
 // so that the axes would never have to compete for resources
 #define TIME_HORIZON 0.05f //s
+#ifdef FWSIM
+#define NUM_SPLINE_POINTS 50
+#endif
 
 static float destination[3], major_vec[2], minor_vec[2], total_rot;
 
@@ -61,10 +67,6 @@ void plan_move(Component *c, float p[3]) {
  * Scales the major acceleration by the distance from the major axis and the
  * amount required left to rotate. Total roation and the distance vector should
  * not be zero so as to avoid divide by zero errors.
- * 
- * @param pb The PhysBot data container that contains information about the 
- * major and minor axis.
- * @return void
  */
 void scale(PhysBot *pb) {
     float maj_disp = (float) fabs(pb->maj.disp) - ROBOT_RADIUS;
@@ -87,25 +89,42 @@ void scale(PhysBot *pb) {
  * plan_move has been done along the minor axis. The minor time from bangbang
  * is used to determine the rotation time, and thus the rotation velocity and
  * acceleration. The rotational acceleration is clamped under the MAX_T_A.
- * 
- * @param pb The PhysBot data container that should have minor axis time and 
- * will store the rotational information
- * @param avel The rotational velocity of the bot
- * @return void
  */ 
-void plan_shoot_rotation(PhysBot *pb, float avel) {
+void plan_rotation(PhysBot *pb, dr_data_t states) {
     pb->rot.time = (pb->min.time > TIME_HORIZON) ? pb->min.time : TIME_HORIZON;
     // 1.6f is a magic constant
     pb->rot.vel = 1.6f * pb->rot.disp / pb->rot.time; 
-    pb->rot.accel = (pb->rot.vel - avel) / TIME_HORIZON;
+    pb->rot.accel = (pb->rot.vel - states.avel) / TIME_HORIZON;
     Clamp(&pb->rot.accel, MAX_T_A);
 }
 
-void to_log(log_record_t *log, float time_target, float accel[3]) {
-    log_destination(log, destination);
-    log_accel(log, accel);
-    log_time_target(log, time_target);
+/**
+ * Uses a rotaion matrix to rotate the acceleration vectors of the given 
+ * PhysBot back to local xy coordinates and store them in a separate array. The
+ * given angle should be the bot's angle relative to the global x-axis.
+ */
+void to_local_coords(float accel[3], PhysBot pb, float angle) {
+    float local_norm_vec[2][2] = {
+        {cosf(angle), sinf(angle)}, 
+        {cosf(angle + M_PI / 2), sinf(angle + M_PI / 2)}
+    };
+    for (int i = 0; i < 2; i++) {
+        accel[i] =  pb.min.accel * dot2D(local_norm_vec[i], minor_vec);
+        accel[i] += pb.maj.accel * dot2D(local_norm_vec[i], major_vec); 
+    }
 }
+
+#ifndef FWSIM
+void to_log(log_record_t *log, float timeTarget, float accel[3]) {
+	log->tick.primitive_data[0] = destination[0];//accel[0];
+	log->tick.primitive_data[1] = destination[1];//accel[1];
+	log->tick.primitive_data[2] = destination[2];//accel[2];
+	log->tick.primitive_data[3] = accel[0];//timeX;
+	log->tick.primitive_data[4] = accel[1];//timeY;
+	log->tick.primitive_data[5] = accel[2];
+	log->tick.primitive_data[6] = timeTarget;
+}
+#endif
 
 // Only need two data points to form major axis vector.
 
@@ -148,6 +167,7 @@ static void shoot_init(void) {
  *	   because the primitive start function already does it
  *
  */
+
 static void shoot_start(const primitive_params_t *params) {
 
 
@@ -169,7 +189,9 @@ static void shoot_start(const primitive_params_t *params) {
     total_rot = min_angle_delta(destination[2], states.angle);	
 
 	// arm the chicker
+#ifndef FWSIM
 	chicker_auto_arm((params->extra & 1) ? CHICKER_CHIP : CHICKER_KICK, params->params[3]);
+#endif
 	
 }
 
@@ -180,7 +202,9 @@ static void shoot_start(const primitive_params_t *params) {
  * shoot movement is already in progress.
  */
 static void shoot_end(void) {
+#ifndef FWSIM
 	chicker_auto_disarm();
+#endif
 }
 
 /**
@@ -191,10 +215,11 @@ static void shoot_end(void) {
  * \param[out] log the log record to fill with information about the tick, or
  * \c NULL if no record is to be filled
  */
+
 static void shoot_tick(log_record_t *log) {
     dr_data_t states;
     dr_get(&states);
-    PhysBot pb = setup_bot(states, destination, major_vec, minor_vec);
+    PhysBot pb = setup_bot(states);
     if (pb.maj.disp > 0) {
         // tuned constants from testing
         float major_par[3] = { 1.0f, MAX_X_A * 0.75f, MAX_X_V };
@@ -203,19 +228,21 @@ static void shoot_tick(log_record_t *log) {
     // tuned constants from testing
     float minor_par[3] = {0, MAX_Y_A, MAX_Y_V * 2};
     plan_move(&pb.min, minor_par);
-    plan_shoot_rotation(&pb, states.avel);
+    plan_rotation(&pb, states);
     float accel[3] = {0, 0, pb.rot.accel};
     scale(&pb);
-    to_local_coords(accel, pb, states.angle, major_vec, minor_vec);
+    to_local_coords(accel, pb, states.angle);
     apply_accel(accel, accel[2]);
-
+#ifndef FWSIM
     if (log) { to_log(log, pb.rot.time, accel); }
+#endif
 }
 
 
 /**
  * \brief The shoot movement primitive.
  */
+
 const primitive_t SHOOT_PRIMITIVE = {
 	.direct = false,
 	.init = &shoot_init,
