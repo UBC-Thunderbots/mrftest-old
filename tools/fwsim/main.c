@@ -103,6 +103,9 @@ unsigned runSim(double params[NUM_PARAMS], dr_data_t hist[HIST_SIZE])
         sim_log_end();
         return 0;
     }
+    //sim_log_end();
+    //return 0;
+//}
 
     int main(int argc, char **argv)
     {

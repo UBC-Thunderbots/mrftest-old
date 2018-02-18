@@ -10,7 +10,9 @@
 #include "../dribbler.h"
 #include "../log.h"
 #include "../wheels.h"
+#ifndef FWSIM
 #include <unused.h>
+#endif
 
 /**
  * \brief Initializes the direct_wheels primitive.

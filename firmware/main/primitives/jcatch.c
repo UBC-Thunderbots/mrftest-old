@@ -4,7 +4,9 @@
 #include "../dr.h"
 #include "../physics.h"
 #include <math.h>
+#ifndef FWSIM
 #include <unused.h>
+#endif // FWSIM
 
 #define CATCH_MAX_X_V (MAX_X_V/2)
 #define CATCH_MAX_Y_V (MAX_Y_V/2)

@@ -14,7 +14,7 @@
 #include <stdio.h>
 
 #ifndef FWSIM
-#include "shoot.h" // TODO: don't think this should be here, might be a mistake
+#include "shoot.h" // TODO: don't think this should be here, might be a mistake?
 #include "../chicker.h"
 #include "../dr.h"
 #include "../dribbler.h"

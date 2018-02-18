@@ -1,7 +1,10 @@
 #include "direct_velocity.h"
 #include "../control.h"
 #include "../dribbler.h"
+
+#ifndef FWSIM
 #include <unused.h>
+#endif // FWSIM
 
 static float direct_target_velocity[3];
 
