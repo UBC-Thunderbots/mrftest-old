@@ -6,11 +6,17 @@ main.c \
 ../../firmware/main/simulate.c \
 ../../firmware/main/control.c \
 ../../firmware/main/bangbang.c \
+../../firmware/main/wheels.c \
+../../firmware/main/dribbler.c \
 ../../firmware/main/primitives/primitive.c \
 ../../firmware/main/primitives/primitive.h \
 ../../firmware/main/primitives/move.c \
 ../../firmware/main/primitives/shoot.c \
 ../../firmware/main/primitives/spin.c \
+../../firmware/main/primitives/pivot.c \
+../../firmware/main/primitives/jcatch.c \
+../../firmware/main/primitives/stop.c \
+../../firmware/main/primitives/dribble.c \
 -o sim -lm; \
 then
     if [ $? -ne 0 ]

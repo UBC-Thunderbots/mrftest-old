@@ -14,6 +14,7 @@ main.c \
 ../../firmware/main/primitives/pivot.c \
 ../../firmware/main/primitives/jcatch.c \
 ../../firmware/main/primitives/stop.c \
+../../firmware/main/primitives/dribble.c \
 -o sim -lm
 #./sim 
 #./sim test.csv 3 1000 1000 0 0 0 0 
