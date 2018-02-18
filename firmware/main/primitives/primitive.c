@@ -36,18 +36,26 @@
  * Make sure stop is always the first primitive.
  */
 static const primitive_t * const PRIMITIVES[] = {
-	&STOP_PRIMITIVE,
-	&MOVE_PRIMITIVE,
-	&DRIBBLE_PRIMITIVE,
-	&SHOOT_PRIMITIVE,
-	&CATCH_PRIMITIVE,
-	&PIVOT_PRIMITIVE,
-	&SPIN_PRIMITIVE,
-	&DIRECT_WHEELS_PRIMITIVE,
-	&DIRECT_VELOCITY_PRIMITIVE,
-#ifndef FWSIM
-  &IMU_TEST_PRIMITIVE,
+#ifndef FWSIM // TODO: uncomment this once other primitive files modifed and added
+	&STOP_PRIMITIVE, // index 0, do not change the order of stuff in this one
 #endif
+	&MOVE_PRIMITIVE, // 1
+#ifndef FWSIM // TODO: uncomment this once other primitive files modifed and added
+	&DRIBBLE_PRIMITIVE, // 2
+#endif
+	&SHOOT_PRIMITIVE, // 3
+#ifndef FWSIM // TODO: uncomment this once other primitive files modifed and added
+	&CATCH_PRIMITIVE, // 4
+	&PIVOT_PRIMITIVE, // 5
+#endif
+	&SPIN_PRIMITIVE, // 6
+#ifndef FWSIM // TODO: uncomment this once other primitive files modifed and added
+	&DIRECT_WHEELS_PRIMITIVE, // 7
+	&DIRECT_VELOCITY_PRIMITIVE, // 8
+#endif
+#ifndef FWSIM // not useful for simlation at all, so get rid of it
+  &IMU_TEST_PRIMITIVE,
+#endif // FWSIM
 };
 
 /**
