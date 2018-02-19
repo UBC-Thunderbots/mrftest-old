@@ -1,33 +1,32 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "../../firmware/main/simulate.h"
+#include "../../firmware/main/simulate.h" 
+#include "../../firmware/main/log.h"
 #include "../../firmware/main/primitives/move.h"
 #include "../../firmware/main/primitives/primitive.h"
 #include "../../firmware/main/primitives/shoot.h"
-#include "../../firmware/main/simulate.h"
-#include "../../firmware/main/spline.h"
+
 
 #define DELTA_T 0.0001
 #define ROBOT_TICK_T 0.005
-#define MAX_SIM_T 15.0f
-#define HIST_TICK_T 0.03
-#define NUM_PARAMS 3
-#define NUM_ATTEMPTS 1
+#define LOG_TICK_T 0.03
+#define MAX_SIM_T 7.0
 
-static const unsigned HIST_SIZE = MAX_SIM_T / HIST_TICK_T + 1;
-const float X_BALL              = -1.0;
-const float Y_BALL              = -2.0;
-
-double metric(dr_data_t hist[HIST_SIZE], unsigned histPos)
+/*
+void prim_tick(unsigned primNum)
 {
-    float cost;
-    for (unsigned i = 0; i++; i < histPos)
+    switch (primNum)
     {
-        cost += hist[i].x * hist[i].x + hist[i].y * hist[i].y;
+        case 1:
+            move_tick();
+            break;
+        case 3:
+            shoot_tick();
+            break;
+        default:
+            printf("this primitive not yet implemented in fwsim");
     }
-    cost = cost / histPos;
-    return cost;
 }
 void prim_start(unsigned primNum, primitive_params_t *p)
 {
@@ -48,7 +47,7 @@ void prim_start(unsigned primNum, primitive_params_t *p)
 unsigned runSim(char *logFile, const int primNum, const primitive_params_t *p)
 {
     sim_reset();
-    //prim_start(primNum, &p);
+    // prim_start(primNum, &p);
     primitive_start(primNum, p);
     sim_log_start(logFile);
     log_record_t *notUsedLog = NULL;
@@ -63,8 +62,8 @@ unsigned runSim(char *logFile, const int primNum, const primitive_params_t *p)
 
         if (time - last_robot_tick >= ROBOT_TICK_T)
         {
-            //prim_tick(primNum);
-        	primitive_tick(notUsedLog);
+            // prim_tick(primNum);
+            primitive_tick(notUsedLog);
             last_robot_tick = time;
         }
 
