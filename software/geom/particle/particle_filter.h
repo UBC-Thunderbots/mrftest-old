@@ -4,7 +4,6 @@
 #include <random>
 #include "geom/point.h"
 #include "util/param.h"
-#include <random>
 
 namespace AI
 {
