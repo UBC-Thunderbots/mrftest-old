@@ -42,7 +42,7 @@ class MoveTest : public PrimTest
     void test_move_ori_tdelta_dest(Player player);
 
     void test_move_to_ball(Player player);
-    
+
     void test_move_replace(Player player);
 
     void on_goto_ball_coords_changed();

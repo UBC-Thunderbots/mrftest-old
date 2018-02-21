@@ -33,7 +33,7 @@ void SpinTest::test_spin(Player player)
     player.move_spin(dest, speed);
 }
 
-//Updates parameters
+// Updates parameters
 void SpinTest::update_params()
 {
     dest  = Point(x_coord_slider->GetValue(), y_coord_slider->GetValue());

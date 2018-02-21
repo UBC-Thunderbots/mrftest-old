@@ -30,17 +30,17 @@ class ShootTest : public PrimTest
     // builds widget
     void make_widget();
 
-    //updates the parameters of coordinates,angle, power and checkbottons
+    // updates the parameters of coordinates,angle, power and checkbottons
     void update_params();
 
     void test_shoot(Player player);
-    
+
     void test_shoot_ori(Player player);
 
     // when checkbox clicked, robot goes to ball
     void on_goto_ball_coords_changed();
-    
-    //chipper activation
+
+    // chipper activation
     void on_chip_changed();
 };
 }

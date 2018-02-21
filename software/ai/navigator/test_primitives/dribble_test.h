@@ -40,7 +40,6 @@ class DribbleTest : public PrimTest
     void on_small_kick_allowed_changed();
 
     void on_use_ball_coordinates_changed();
-
 };
 }
 }

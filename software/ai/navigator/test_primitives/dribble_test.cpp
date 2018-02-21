@@ -30,11 +30,11 @@ DribbleTest::DribbleTest(World w)
         std::make_shared<SliderControlElement>("RPM", 0, 20000);
     small_kick_allowed_checkbutton =
         std::make_shared<CheckbuttonControlElement>("Use Small Kick");
-    use_ball_coords_checkbutton = 
-        std::make_shared<CheckbuttonControlElement>("use ball coords");    
+    use_ball_coords_checkbutton =
+        std::make_shared<CheckbuttonControlElement>("use ball coords");
     make_widget();
 }
-    //makes widget
+// makes widget
 void DribbleTest::make_widget()
 {
     control_elements.push_back(x_coord_slider);
@@ -52,7 +52,7 @@ void DribbleTest::test_dribble(Player player)
 {
     player.move_dribble(dest, orient, desired_rpm, small_kick_allowed);
 }
-    // updates the x coordinates,y coordinate,RPM and small kick checkbox
+// updates the x coordinates,y coordinate,RPM and small kick checkbox
 void DribbleTest::update_params()
 {
     dest        = Point(x_coord_slider->GetValue(), y_coord_slider->GetValue());
@@ -60,22 +60,20 @@ void DribbleTest::update_params()
     desired_rpm = desired_rpm_slider->GetValue();
     small_kick_allowed = small_kick_allowed_checkbutton->GetValue();
 }
-    // small kick
+// small kick
 void DribbleTest::on_small_kick_allowed_changed()
 {
     small_kick_allowed =
         small_kick_allowed_checkbutton->GetCheckbutton()->get_active();
 }
-    
 
-void DribbleTest::on_use_ball_coordinates_changed() 
+void DribbleTest::on_use_ball_coordinates_changed()
 {
     if (use_ball_coords_checkbutton->GetCheckbutton()->get_active())
     {
         x_coord_slider->GetHScale()->set_sensitive(false);
         y_coord_slider->GetHScale()->set_sensitive(false);
         use_ball_coords = true;
-
     }
     else
     {
@@ -84,9 +82,6 @@ void DribbleTest::on_use_ball_coordinates_changed()
         dest = Point(x_coord_slider->GetValue(), y_coord_slider->GetValue());
         use_ball_coords = false;
     }
-
-
-
 }
 }
 }

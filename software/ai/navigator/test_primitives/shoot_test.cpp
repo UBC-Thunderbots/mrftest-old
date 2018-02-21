@@ -31,7 +31,6 @@ ShootTest::ShootTest(World w)
     make_widget();
 }
 
-
 void ShootTest::test_shoot(Player player)
 {
     if (goto_ball)
@@ -49,8 +48,8 @@ void ShootTest::test_shoot_ori(Player player)
         dest = world.ball().position();
     player.move_shoot(dest, orient, power, chip);
 }
-//function builds test Nav
-//builds widget
+// function builds test Nav
+// builds widget
 void ShootTest::make_widget()
 {
     control_elements.push_back(x_coord_slider);
@@ -66,7 +65,7 @@ void ShootTest::make_widget()
     build_widget();
 }
 
-//updates parameters for coords,angle and power
+// updates parameters for coords,angle and power
 void ShootTest::update_params()
 {
     dest   = Point(x_coord_slider->GetValue(), y_coord_slider->GetValue());
@@ -90,7 +89,7 @@ void ShootTest::on_goto_ball_coords_changed()
         goto_ball = false;
     }
 }
-    //enables chipper when checkbutton is selected
+// enables chipper when checkbutton is selected
 void ShootTest::on_chip_changed()
 {
     chip = chip_checkbutton->GetCheckbutton()->get_active();

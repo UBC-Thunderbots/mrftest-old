@@ -33,10 +33,10 @@ void MPTest::build_gui()
     primitives[CHOOSE_PLAY_TEXT] = std::make_shared<PrimTest>(world);
 
     // ADD NEW PRIMTESTS HERE
-    primitives["MoveMove"]  = std::make_shared<MoveTest>(world);
-    primitives["MoveCatch"] = std::make_shared<CatchTest>(world);
-    primitives["MoveShoot"] = std::make_shared<ShootTest>(world);
-    primitives["MoveSpin"]  = std::make_shared<SpinTest>(world);
+    primitives["MoveMove"]    = std::make_shared<MoveTest>(world);
+    primitives["MoveCatch"]   = std::make_shared<CatchTest>(world);
+    primitives["MoveShoot"]   = std::make_shared<ShootTest>(world);
+    primitives["MoveSpin"]    = std::make_shared<SpinTest>(world);
     primitives["MoveDribble"] = std::make_shared<DribbleTest>(world);
     // primitives["MoveCatch"]   = new CatchTest(world);
     primitives["MovePivot"] = std::shared_ptr<PivotTest>(new PivotTest(world));
