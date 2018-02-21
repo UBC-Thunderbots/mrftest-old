@@ -38,8 +38,7 @@ void MPTest::build_gui()
     primitives["MoveShoot"]   = std::make_shared<ShootTest>(world);
     primitives["MoveSpin"]    = std::make_shared<SpinTest>(world);
     primitives["MoveDribble"] = std::make_shared<DribbleTest>(world);
-    // primitives["MoveCatch"]   = new CatchTest(world);
-    primitives["MovePivot"] = std::shared_ptr<PivotTest>(new PivotTest(world));
+    primitives["MovePivot"]   = std::make_shared<PivotTest>(world);
 
     for (auto const &i : primitives)
     {
