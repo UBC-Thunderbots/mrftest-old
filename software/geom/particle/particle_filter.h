@@ -1,6 +1,7 @@
 #ifndef GEOM_PARTICLE_PARTICLE_FILTER_H
 #define GEOM_PARTICLE_PARTICLE_FILTER_H
 
+#include <random>
 #include "geom/point.h"
 #include "util/param.h"
 #include <random>
