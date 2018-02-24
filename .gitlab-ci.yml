@@ -35,7 +35,6 @@ build_merged_master:
         # go into firmware and run the tests
         - make -C firmware/test 
 
-
 # Merge our branch into dev and check that we still pass clang-format
 check_formatting_master:
     stage: build

@@ -73,3 +73,8 @@ software/tags
 software/.vscode/launch.json
 .vscode/
 tools/fwsim/sim
+
+# CLion
+CMakeLists.txt
+cmake-build-debug/
+.idea/
