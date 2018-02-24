@@ -10,9 +10,9 @@ add_executable(
 target_link_libraries(${PROJECT_NAME}
         ${Boost_LIBRARIES}
         ${LibXML++_LIBRARIES}
+        ${GTKMM_LIBRARIES}
         ${BZIP2_LIBRARIES}
         ${PROTOBUF_LIBRARIES}
-        ${GTKMM_LIBRARIES}
         ${GLIB_LIBRARIES}
         ${GTEST_BOTH_LIBRARIES}
         ${CMAKE_THREAD_LIBS_INIT}

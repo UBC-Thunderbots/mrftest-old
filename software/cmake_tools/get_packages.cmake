@@ -40,7 +40,7 @@ file(GLOB proto-files ${CMAKE_SOURCE_DIR}/software/proto/*.proto)
 PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS ${proto-files})
 
 ##### GTK ######
-pkg_check_modules(REQUIRED gtkmm-3.0)
+pkg_check_modules(GTKMM REQUIRED gtkmm-3.0)
 # include the GTK dependencies
 include_directories(${GTKMM_INCLUDE_DIRS})
 link_directories(${GTKMM_LIBRARY_DIRS})
@@ -85,6 +85,14 @@ include_directories(/usr/include)
 find_package(BZip2 REQUIRED)
 include_directories(${BZIP2_INCLUDE_DIR})
 
+# use pthread
+add_definitions(-pthread)
+add_definitions(-Wl,--as-needed)
+add_definitions(-Wl,-02)
+# Include full debug information.
+add_definitions(-ggdb3)
+# use c++11
+add_definitions(-std=c++11)
 ##### strerror_r #####
 add_definitions(-D_POSIX_C_SOURCE=200112L)
 ##### toggle for 32/64 bit offsets #####
@@ -101,14 +109,5 @@ add_definitions(-fno-common)
 add_definitions(-fno-math-errno)
 # Optimize by assuming pointers do not alias when they are not permitted to do so according to type.
 add_definitions(-fstrict-aliasing)
-# Include full debug information.
-add_definitions(-ggdb3)
-# use c++11
-add_definitions(-std=c++11)
-# use pthread
-add_definitions(-pthread)
-
-add_definitions(-Wl,--as-needed)
-add_definitions(-Wl,-02)
 add_definitions(-Wall)
 
