@@ -39,20 +39,6 @@ PhysBot setup_bot(dr_data_t states) {
     return pb;
 }
 
-
-/**
- * Creates the BBProfile for a component. It is assumed that the displacement, 
- * velocity, and acceleration lie along the major or minor axis (i.e. the 
- * Component given is a major or minor axis component). 
- */
-void plan_move(Component *c, float p[3]) {
-    BBProfile profile;
-    PrepareBBTrajectoryMaxV(&profile, c->disp, c->vel, p[0], p[1], p[2]); 
-    PlanBBTrajectory(&profile);
-    c->accel = BBComputeAvgAccel(&profile, TIME_HORIZON);
-    c->time = GetBBTime(&profile);
-}
-
 /**
  * Scales the major acceleration by the distance from the major axis and the
  * amount required left to rotate. Total roation and the distance vector should
@@ -72,7 +58,6 @@ void scale(PhysBot *pb) {
         pb->maj.accel *= rot_factor;
     }
 }
-
 
 /**
  * Determines the rotation acceleration after setup_bot has been used and
@@ -101,6 +86,24 @@ void to_local_coords(float accel[3], PhysBot pb, float angle) {
         accel[i] =  pb.min.accel * dot2D(local_norm_vec[i], minor_vec);
         accel[i] += pb.maj.accel * dot2D(local_norm_vec[i], major_vec); 
     }
+}
+
+// Creates the BBProfile for a component
+void plan_move(Component *c, float p[3])
+{
+    BBProfile profile;
+    PrepareBBTrajectoryMaxV(&profile, c->disp, c->vel, p[0], p[1], p[2]);
+    PlanBBTrajectory(&profile);
+    c->accel = BBComputeAvgAccel(&profile, TIME_HORIZON);
+    c->time  = GetBBTime(&profile);
+}
+
+// Scales the major acceleration by the distance from the major axis
+void scale(PhysBot *pb)
+{
+    float r          = sqrtf(pow(pb->maj.disp, 2) + pow(pb->min.disp, 2));
+    float abs_factor = abs(pb->min.disp * 1000) / (r * 1000.0f);
+    pb->maj.accel *= (1 - abs_factor);
 }
 
 // Only need two data points to form major axis vector.

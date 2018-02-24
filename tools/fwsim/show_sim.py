@@ -20,21 +20,21 @@ specified in your simulation parameters.
 # parses constants from x and y position of the ball from the main.c file
 f = open("main.c")
 txt = f.readlines()
-X_BALL =  1.0 # None
-Y_BALL =  1.0 # None
-#for line in txt:
-#    if re.search("^const float X_BALL", line):
-#        X_BALL = float(line.split('=')[-1].replace(' ', '').split(';')[0])
-#    if re.search("^const float Y_BALL", line):
-#       Y_BALL = float(line.split('=')[-1].replace(' ', '').split(';')[0])
-#
-#if (X_BALL is None or Y_BALL is None):
-#    print("X and Y positions not found for ball.\n"
-#        + "Please specify them in main.c as:\n"
-#        + "    const float X_BALL = ...;\n"
-#        + "    const float Y_BALL = ...;\n"
-#        + "and replace ... with numbers.")
-#    sys.exit()
+X_BALL = None
+Y_BALL = None
+for line in txt:
+    if re.search("^const float X_BALL", line):
+        X_BALL = float(line.split('=')[-1].replace(' ', '').split(';')[0])
+    if re.search("^const float Y_BALL", line):
+       Y_BALL = float(line.split('=')[-1].replace(' ', '').split(';')[0])
+
+if (X_BALL is None or Y_BALL is None):
+    print("X and Y positions not found for ball.\n"
+        + "Please specify them in main.c as:\n"
+        + "    const float X_BALL = ...;\n"
+        + "    const float Y_BALL = ...;\n"
+        + "and replace ... with numbers.")
+    sys.exit()
 
 with open(sys.argv[1]) as file:
     fmt_rows = []
@@ -238,7 +238,6 @@ class Animate():
         If is_slider is True, then it is assumed that the user is scrolling
         through the animation so the canvas should be redrawn.
         Else, the index should be incremented to match the animation index.
-
         Args:
             i (int): The zero-index for the animation to get data from the 
                 arrays.
@@ -263,4 +262,3 @@ class Animate():
 
 if __name__ == '__main__':
     main()
-

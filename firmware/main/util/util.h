@@ -53,4 +53,11 @@ void fabs_of_array(float array[], float abs_array[], unsigned size);
  */
 void limit(float *value, float limiting_value);
 
+/**
+ * converts a degrees value to radians
+ * 
+ * @param  degrees an angle in degrees
+ * @return         an angle in radians
+ */
+float radians(float degrees);
 #endif

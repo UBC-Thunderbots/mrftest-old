@@ -8,7 +8,6 @@ PhysBot setup_bot(dr_data_t states, float destination[3], float major_vec[2],
     float v[2] = {states.vx, states.vy};
     float dr[2] = {destination[0] - states.x, destination[1] - states.y};
     PhysBot pb = {
-        .dr = {*dr},
         .rot = {
             .disp = min_angle_delta(states.angle, destination[2])
         },
@@ -23,10 +22,14 @@ PhysBot setup_bot(dr_data_t states, float destination[3], float major_vec[2],
             .vel = dot2D(minor_vec, v),
             .accel = 0,
             .time = 0
-        },
-        .major_vec = {*major_vec},
-        .minor_vec = {*minor_vec}
+        }
     };
+    unsigned i;
+    for (i = 0; i < 2; i++) {
+        pb.dr[i] = dr[i];
+        pb.major_vec[i] = major_vec[i];
+        pb.minor_vec[i] = minor_vec[i];
+    }
     return pb;
 }
 

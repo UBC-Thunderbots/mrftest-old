@@ -20,35 +20,76 @@
 
 const float PI_2 = M_PI / 2.0f;
 static float destination[3], end_speed, major_vec[2], minor_vec[2];
+// store a wheel index here so we only have to calculate the axis
+// we want to use when move start is called
+static unsigned wheel_index;
+// an array to store the wheel axes in that are perpendicular to
+// each wheel
+static float wheel_axes[8];
 
+/**
+ * builds an array that contains all of the axes perpendicular to
+ * each of the wheels on the bot.
+ *
+ * @param angle the current angle that the bot is facing
+ * @return void
+ */
+static void build_wheel_axes(float angle) {
+	wheel_axes[0] = angle + ANGLE_TO_FRONT_WHEELS - PI_2;
+	wheel_axes[1] = angle + ANGLE_TO_FRONT_WHEELS + PI_2;
+	wheel_axes[2] = angle - ANGLE_TO_FRONT_WHEELS - PI_2;
+	wheel_axes[3] = angle - ANGLE_TO_FRONT_WHEELS + PI_2;
+	wheel_axes[4] = angle + ANGLE_TO_BACK_WHEELS - PI_2;
+	wheel_axes[5] = angle + ANGLE_TO_BACK_WHEELS - (3 * PI_2);
+	wheel_axes[6] = angle - ANGLE_TO_BACK_WHEELS + PI_2;
+	wheel_axes[7] = angle - ANGLE_TO_BACK_WHEELS + (3 * PI_2);
+}
+
+unsigned choose_wheel_axis(float dx, float dy, float current_angle, float final_angle) {
+	build_wheel_axes(current_angle);
+	// the angle on the global axis corresponding to the bot's movement
+	float theta_norm = atan2f(dy, dx);
+	// initialize a variable to store the minimum rotation
+	float minimum_rotation = 2 * M_PI;
+	// the index that corresponds to the minimum rotation
+	unsigned min_index = 0;
+	unsigned i;
+	// loop through each axis to find the optimal one to rotate onto.
+	// it should be the axis that is closest to our final angle
+	for (i = 0; i < 2 * NUMBER_OF_WHEELS; i++) {
+		float relative_angle_to_movement = min_angle_delta(wheel_axes[i], theta_norm);
+		float initial_rotation = current_angle + relative_angle_to_movement;
+		float abs_final_rotation = fabs(min_angle_delta(initial_rotation, final_angle));
+		// if we have found a smaller angle, then update the minimum rotation
+		// and chosen index
+		if (abs_final_rotation < minimum_rotation) {
+			minimum_rotation = abs_final_rotation;
+			min_index = i;
+		}
+	}
+	return min_index;
+}
+
+/**
+ * If we are far enough away from our destination, then we should try
+ * rotating onto a wheel axis so that we can move faster. We should
+ * pick the wheel axis that minimizes the distance the bot will have
+ * to rotate to get to its destination angle after rotating onto an
+ * axis.
+ * 
+ * @param pb The data container that contains information about
+ * the direction the robot will move along.
+ * @param angle The angle that the robot is currently facing
+ * @return void
+ */ 
 void choose_rotation_destination(PhysBot *pb, float angle) {
 	// if we are close enough then we should just allow the bot to rotate
 	// onto its destination angle, so skip this if block
 	if ((float) fabs(pb->maj.disp) > APPROACH_LIMIT) {
-		// The axes perpindiculer to each of the wheels of the bot
-		float perpindicular_axes_to_wheels[4] = {
-			angle + ANGLE_TO_FRONT_WHEELS - PI_2,
-			angle - ANGLE_TO_FRONT_WHEELS + PI_2,
-			angle + ANGLE_TO_BACK_WHEELS - PI_2,
-			angle - ANGLE_TO_BACK_WHEELS + PI_2
-		};
-		// the angle on the global axis corresponding to the bot's movement
+		build_wheel_axes(angle);
 		float theta_norm = atan2f(pb->dr[1], pb->dr[0]);
-		// the angle between the bot's movement and each of the perpindicular 
-		// wheel axes
-		float relative_angles[NUMBER_OF_WHEELS];
-		// the absolute value of those angles
-		float absolute_value_relative_angles[NUMBER_OF_WHEELS];
-		unsigned i;
-		for (i = 0; i < NUMBER_OF_WHEELS; i++) {
-			relative_angles[i] = min_angle_delta(perpindicular_axes_to_wheels[i], theta_norm);
-		}
-		// make an absolute value array of the angles to find the min
-		fabs_of_array(relative_angles, absolute_value_relative_angles, NUMBER_OF_WHEELS);
-		// get the index of the closest axis
-		unsigned min_index = argmin(absolute_value_relative_angles, NUMBER_OF_WHEELS);
-		// set the displacement
-		pb->rot.disp = relative_angles[min_index];
+		// use the pre-determined wheel axis 
+		pb->rot.disp = min_angle_delta(wheel_axes[wheel_index], theta_norm);
 	}
 }
 
@@ -126,6 +167,9 @@ static void move_start(const primitive_params_t *params)
 	minor_vec[0] = major_vec[0];
 	minor_vec[1] = major_vec[1];
 	rotate(minor_vec, M_PI / 2);
+
+	// pick the wheel axis that will be used for faster movement
+	wheel_index = choose_wheel_axis(dx, dy, current_states.angle, destination[2]);
 }
 
 /**
