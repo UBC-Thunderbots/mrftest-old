@@ -80,6 +80,13 @@ START_TEST(test_limit_negative_below)
 }
 END_TEST
 
+START_TEST(test_radians)
+{
+    float degrees = 45.0f;
+    ck_assert_float_eq_tol(M_PI / 4.0f, radians(degrees), TOL);
+}
+END_TEST
+
 void run_util_test() {
     Suite *s = suite_create("Util Test");
     TCase *tc = tcase_create("Core");
@@ -92,5 +99,6 @@ void run_util_test() {
     tcase_add_test(tc, test_limit_positive_below);
     tcase_add_test(tc, test_limit_negative_above);
     tcase_add_test(tc, test_limit_negative_below);
+    tcase_add_test(tc, test_radians);
     run_test(tc, s);
 }

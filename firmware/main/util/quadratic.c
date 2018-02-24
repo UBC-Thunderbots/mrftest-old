@@ -9,7 +9,6 @@
 // TODO: these should actually be measured.
 const float rel_wheel_angles[4] = { 30, 120, -30, -120 };
 
-
 void build_M_matrix(PhysBot pb, dr_data_t state, float M[3][4]) {
     int wheel_spin_direction;
     if (pb.rot.disp >= 0) {
@@ -29,7 +28,6 @@ void build_M_matrix(PhysBot pb, dr_data_t state, float M[3][4]) {
         M[2][i] = wheel_spin_direction;
     }
 }
-
 
 void to_1d_matrix(float Q[4][4]) {
     int i;
@@ -59,7 +57,6 @@ void build_c_matrix(float a_req[3], float M[3][4], float c[4]) {
     }
 }
 
-
 void transpose(float M[3][4], float M_T[4][3]) {
     int i; 
     int j;
@@ -69,7 +66,6 @@ void transpose(float M[3][4], float M_T[4][3]) {
         }
     }
 }
-
 
 void build_Q_matrix(float M[3][4], float M_T[4][3], float Q[4][4]) {
     int i;
