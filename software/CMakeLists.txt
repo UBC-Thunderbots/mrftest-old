@@ -21,7 +21,7 @@ foreach(proj ${ALL_PROJECTS})
     # include the code from the corresponding file's .cmake file that will load its source files
     include(${CMAKE_TOOLS}/${proj}.cmake)
     # add the source files and link the libraries
-    include(${CMAKE_TOOLS}/add_exe.cmake)
+    include(${CMAKE_TOOLS}/create_binary.cmake)
 endforeach(proj)
 
 

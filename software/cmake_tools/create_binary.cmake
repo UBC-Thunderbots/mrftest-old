@@ -2,13 +2,14 @@
 add_executable(
         ${PROJECT_NAME}
         ${${PROJECT_NAME}-src}
+        ${boost-src}
         ${PROTO_SRCS}
         ${PROTO_HDRS}
 )
 
 # link against libraries
 target_link_libraries(${PROJECT_NAME}
-        ${Boost_LIBRARIES}
+        ${BOOST_LIBRARIES}
         ${LibXML++_LIBRARIES}
         ${GTKMM_LIBRARIES}
         ${BZIP2_LIBRARIES}

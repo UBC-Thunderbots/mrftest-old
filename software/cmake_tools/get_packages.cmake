@@ -7,19 +7,24 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 find_package(PkgConfig REQUIRED)
 
 ##### BOOST #####
+set(BOOST_LOC ${CMAKE_SOURCE_DIR}/software/boost_1_54_0)
+file(GLOB BOOST_LIBRARIES ${BOOST_LOC}/stage/lib/*.a)
+file(GLOB_RECURSE boost-src ${BOOST_LOC}/*.h)
+
+
 # need to run
 # sudo apt-get install cmake libblkid-dev e2fslibs-dev libboost-all-dev libaudit-dev
 # for boost to work
-find_package(Boost 1.54.0 REQUIRED
-        COMPONENTS
-        system
-        unit_test_framework
-        filesystem
-        coroutine
-        context)
-include_directories(${Boost_INCLUDE_DIR})
-link_directories(${Boost_LIBRARY_DIRS} )
-# need this to remove error that boost raises
+#find_package(Boost 1.54.0 REQUIRED
+#        COMPONENTS
+#        system
+#        unit_test_framework
+#        filesystem
+#        coroutine
+#        context)
+#include_directories(${Boost_INCLUDE_DIR})
+#link_directories(${Boost_LIBRARY_DIRS} )
+## need this to remove error that boost raises
 add_definitions(-DBOOST_ASIO_SEPARATE_COMPILATION)
 
 ##### PROTOBUF #####
@@ -59,7 +64,8 @@ include_directories(${GLIB_INCLUDE_DIRS})
 
 
 ##### LIBUSB #####
-pkg_check_modules(REQUIRED libusb-1.0)
+#pkg_check_modules(LIBUSB REQUIRED libusb-1.0)
+find_package(libusb-1.0 REQUIRED)
 include_directories(${LIBUSB_1_INCLUDE_DIRS})
 link_directories(${LIBUSB_1_LIBRARY_DIRS})
 add_definitions(${LIBUSB_1_DEFINITIONS})
