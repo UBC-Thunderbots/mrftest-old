@@ -1,23 +1,16 @@
 
-# builds the given binary
-function(build_binary "binary")
-    include("${CMAKE_TOOLS}/search.cmake")
-    # include the code from the corresponding file's .cmake file that we can call the binary-specific
-    # build_specific_binary function that is defined in each .cmake file
-    include("${CMAKE_TOOLS}/${binary}.cmake")
-    build_specific_binary("${binary}")
-    # set cmake to put the executable in the given directory
-    set_target_properties(
-            "${binary}"
-            PROPERTIES
-            RUNTIME_OUTPUT_DIRECTORY "${SOFTWARE_SOURCE_DIR}/bin"
-    )
-endfunction(build_binary)
 
+# set the path to our software folder
 set(SOFTWARE_SOURCE_DIR "${PROJECT_SOURCE_DIR}/software")
 
-# set the path to the .cmake files
+# set the path to the .cmake tools
 set(CMAKE_TOOLS "${SOFTWARE_SOURCE_DIR}/cmake_tools")
+
+# set the path to the .cmake binary builders
+set(CMAKE_BINARY_BUILDERS "${SOFTWARE_SOURCE_DIR}/cmake_binary_builders")
+
+# include the search function
+include("${CMAKE_TOOLS}/search.cmake")
 
 # makes the bin directory to store the binaries in
 file(MAKE_DIRECTORY "${CMAKE_SOURCE_DIR}/software/bin")
@@ -29,13 +22,32 @@ include_directories("${CMAKE_SOURCE_DIR}/software")
 # include the get_packages.cmake file to load third party libs
 include("${CMAKE_TOOLS}/get_packages.cmake")
 
+# all the libraries you will need to link against if you are using the ${SOFTWARE_SOURCE_DIR}/util folder
+set(UTIL_LIBRARIES
+    "${LibXML++_LIBRARIES}"
+    "${GTKMM_LIBRARIES}"
+    "${BZIP2_LIBRARIES}"
+    "${PROTOBUF_LIBRARIES}"
+    "${GLIB_LIBRARIES}"
+    "${LIBUSB_1_LIBRARIES}"
+    "${GSL_LIBRARIES}")
+
 # a list of all the executables we want to compile
-set(ALL_PROJECTS "ai" "mrftest" "software_test")# "buildid" "log" "getcore" "hall2phase" "mrfcap" "nulltest" "sdutil" "software_test")
+set(ALL_BINARIES "ai" "mrftest" "software_test" "buildid" "getcore" "hall2phase" "log" "mrfcap" "nulltest" "sdutil")
 
 # loop through each executable
 # don't put double quotes around the list we are iterating through
-foreach("binary" ${ALL_PROJECTS})
-    build_binary("${binary}")
+foreach("binary" ${ALL_BINARIES})
+    # include the code from the corresponding file's .cmake file that we can call the binary-specific
+    # build_specific_binary function that is defined in each .cmake file
+    include("${CMAKE_BINARY_BUILDERS}/${binary}.cmake")
+    build_specific_binary("${binary}")
+    # set cmake to put the executable in the given directory
+    set_target_properties(
+            "${binary}"
+            PROPERTIES
+            RUNTIME_OUTPUT_DIRECTORY "${SOFTWARE_SOURCE_DIR}/bin"
+    )
 endforeach("binary")
 
 

@@ -1,6 +1,4 @@
 
-
-
 function(build_specific_binary "binary")
     # the folders where the source files are
     set(SOURCE_FOLDERS "ai" "drive" "geom" "log/shared" "mrf" "proto" "uicomponents" "util")
@@ -8,8 +6,8 @@ function(build_specific_binary "binary")
     set(PATTERNS "*.cpp")
 
     # get the source files
-    search("${PATTERNS}" "${SOURCE_FOLDERS}")
-    set(src "${src}" "${SOFTWARE_SOURCE_DIR}/main.cpp")
+    search("${PATTERNS}" "${SOURCE_FOLDERS}" "src")
+    list(APPEND "src" "${SOFTWARE_SOURCE_DIR}/main.cpp")
 
     # add the source files
     add_executable(
@@ -21,17 +19,7 @@ function(build_specific_binary "binary")
 
     # link against libraries
     target_link_libraries(${binary}
-            ${BOOST_LIBRARIES}
-            ${LibXML++_LIBRARIES}
-            ${GTKMM_LIBRARIES}
-            ${BZIP2_LIBRARIES}
-            ${PROTOBUF_LIBRARIES}
-            ${GLIB_LIBRARIES}
-#            ${GTEST_BOTH_LIBRARIES}
-#            ${CMAKE_THREAD_LIBS_INIT}
-            ${LIBUSB_1_LIBRARIES}
-            ${GSL_LIBRARIES}
-#            ${ODE_LIBRARY}
-            )
+            "${BOOST_LIBRARIES}"
+            "${UTIL_LIBRARIES}")
 endfunction(build_specific_binary)
 
