@@ -8,24 +8,11 @@ find_package(PkgConfig REQUIRED)
 
 ##### BOOST #####
 set(BOOST_LOC ${CMAKE_SOURCE_DIR}/software/boost_1_54_0)
-file(GLOB BOOST_LIBRARIES ${BOOST_LOC}/stage/lib/*.a)
-file(GLOB_RECURSE boost-src ${BOOST_LOC}/*.h)
-
-
-# need to run
-# sudo apt-get install cmake libblkid-dev e2fslibs-dev libboost-all-dev libaudit-dev
-# for boost to work
-#find_package(Boost 1.54.0 REQUIRED
-#        COMPONENTS
-#        system
-#        unit_test_framework
-#        filesystem
-#        coroutine
-#        context)
-#include_directories(${Boost_INCLUDE_DIR})
-#link_directories(${Boost_LIBRARY_DIRS} )
-## need this to remove error that boost raises
-add_definitions(-DBOOST_ASIO_SEPARATE_COMPILATION)
+# IMPORTANT: must link coroutines before context, the order matters here
+set(BOOST_LIBRARIES
+        "${BOOST_LOC}/stage/lib/libboost_coroutine.a"
+        "${BOOST_LOC}/stage/lib/libboost_context.a")
+include_directories(${CMAKE_SOURCE_DIR}/software/boost_1_54_0)
 
 ##### PROTOBUF #####
 # proto files
