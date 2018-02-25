@@ -11,11 +11,11 @@ SpinTest::SpinTest(World w)
 {
     tests["Spin"] = static_cast<testfun_t>(&SpinTest::test_spin);
     x_coord_slider = std::make_shared<SliderControlElement>(
-        "X Coordinate", -world.field().length() / 2,
+        "X Coordinate (m)", -world.field().length() / 2,
         world.field().length() / 2);
     y_coord_slider = std::make_shared<SliderControlElement>(
-        "Y Coordinate", -world.field().width() / 2, world.field().width() / 2);
-    speed_slider = std::make_shared<SliderControlElement>("Speed", 0, 20);
+        "Y Coordinate (m)", -world.field().width() / 2, world.field().width() / 2);
+    speed_slider = std::make_shared<SliderControlElement>("Speed (deg/s)", 0, 1260);
     make_widget();
 }
 

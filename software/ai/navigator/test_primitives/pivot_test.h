@@ -44,8 +44,6 @@ class PivotTest : public PrimTest
     void test_pivot(Player player);
 
     void on_goto_ball_coords_changed();
-
-    void on_chip_changed();
 };
 }
 }

@@ -15,19 +15,16 @@ PivotTest::PivotTest(World w)
     tests["Pivot"] = static_cast<testfun_t>(&PivotTest::test_pivot);
 
     x_coord_slider =
-        std::shared_ptr<SliderControlElement>(new SliderControlElement(
-            "X Coordinate", -world.field().length() / 2,
-            world.field().length() / 2));
+        std::make_shared<SliderControlElement>(
+            "X Coordinate (m)", -world.field().length() / 2,
+            world.field().length() / 2);
     y_coord_slider =
-        std::shared_ptr<SliderControlElement>(new SliderControlElement(
-            "Y Coordinate", -world.field().width() / 2,
-            world.field().width() / 2));
-    orient_slider = std::shared_ptr<SliderControlElement>(
-        new SliderControlElement("Orientation of robot (degrees)", -180, 180));
-    swing_slider = std::shared_ptr<SliderControlElement>(
-        new SliderControlElement("Angle to pivot (degrees)", -180, 180));
-    goto_ball_checkbutton = std::shared_ptr<CheckbuttonControlElement>(
-        new CheckbuttonControlElement("Use ball coordinates"));
+        std::make_shared<SliderControlElement>(
+            "Y Coordinate (m)", -world.field().width() / 2,
+            world.field().width() / 2);
+    orient_slider = std::make_shared<SliderControlElement>("Orientation of robot (degrees)", -180, 180);
+    swing_slider = std::make_shared<SliderControlElement>("Angle to pivot (degrees)", -180, 180);
+    goto_ball_checkbutton = std::shared_ptr<CheckbuttonControlElement>("Use ball coordinates");
     make_widget();
 }
 

@@ -14,7 +14,7 @@ CatchTest::CatchTest(World w)
     // Create ControlElements
     displacement_slider =
         std::make_shared<SliderControlElement>("Displacement", -50, 50);
-    speed_slider = std::make_shared<SliderControlElement>("Speed", 0, 20);
+    speed_slider = std::make_shared<SliderControlElement>("Speed (m/s)", 0, 20);
     angle_slider =
         std::make_shared<SliderControlElement>("Angle (degrees)", -180, 180);
 

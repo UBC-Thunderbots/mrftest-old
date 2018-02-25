@@ -26,14 +26,14 @@ MoveTest::MoveTest(World w)
 
     // Initialize control elements
     x_coord_slider = std::make_shared<SliderControlElement>(
-        "X Coordinate", -world.field().length() / 2,
+        "X Coordinate (m)", -world.field().length() / 2,
         world.field().length() / 2);
     y_coord_slider = std::make_shared<SliderControlElement>(
-        "Y Coordinate", -world.field().width() / 2, world.field().width() / 2);
+        "Y Coordinate (m)", -world.field().width() / 2, world.field().width() / 2);
     angle_slider =
         std::make_shared<SliderControlElement>("Angle (degrees)", -180, 180);
     time_delta_slider =
-        std::make_shared<SliderControlElement>("Time Delta", 0, 10);
+        std::make_shared<SliderControlElement>("Time Delta (s)", 0, 10);
     goto_ball_checkbutton =
         std::make_shared<CheckbuttonControlElement>("Use ball coordinates");
     make_widget();
