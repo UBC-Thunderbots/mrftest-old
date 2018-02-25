@@ -14,8 +14,10 @@ SpinTest::SpinTest(World w)
         "X Coordinate (m)", -world.field().length() / 2,
         world.field().length() / 2);
     y_coord_slider = std::make_shared<SliderControlElement>(
-        "Y Coordinate (m)", -world.field().width() / 2, world.field().width() / 2);
-    speed_slider = std::make_shared<SliderControlElement>("Speed (deg/s)", 0, 1260);
+        "Y Coordinate (m)", -world.field().width() / 2,
+        world.field().width() / 2);
+    speed_slider =
+        std::make_shared<SliderControlElement>("Speed (deg/s)", 0, 1260);
     make_widget();
 }
 

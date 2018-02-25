@@ -29,7 +29,8 @@ MoveTest::MoveTest(World w)
         "X Coordinate (m)", -world.field().length() / 2,
         world.field().length() / 2);
     y_coord_slider = std::make_shared<SliderControlElement>(
-        "Y Coordinate (m)", -world.field().width() / 2, world.field().width() / 2);
+        "Y Coordinate (m)", -world.field().width() / 2,
+        world.field().width() / 2);
     angle_slider =
         std::make_shared<SliderControlElement>("Angle (degrees)", -180, 180);
     time_delta_slider =
