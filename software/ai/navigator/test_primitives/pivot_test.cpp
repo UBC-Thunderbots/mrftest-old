@@ -1,4 +1,4 @@
-#include "pivot_test.h"
+#include "ai/navigator/test_primitives/pivot_test.h"
 
 namespace AI
 {
@@ -7,14 +7,26 @@ namespace Nav
 namespace TestNavigator
 {
 PivotTest::PivotTest(World w)
-    : PrimTest(),
-      centre(Point()),
-      orient(Angle::zero()),
-      swing(Angle::zero()),
-      world(w)
+    : PrimTest(w),
+      centre(Point(0, 0)),
+      orient(Angle::of_degrees(45)),
+      swing(Angle::of_degrees(45))
 {
     tests["Pivot"] = static_cast<testfun_t>(&PivotTest::test_pivot);
-    build_widget();
+
+    x_coord_slider = std::make_shared<SliderControlElement>(
+        "X Coordinate (m)", -world.field().length() / 2,
+        world.field().length() / 2);
+    y_coord_slider = std::make_shared<SliderControlElement>(
+        "Y Coordinate (m)", -world.field().width() / 2,
+        world.field().width() / 2);
+    orient_slider = std::make_shared<SliderControlElement>(
+        "Orientation of robot (degrees)", -180, 180);
+    swing_slider = std::make_shared<SliderControlElement>(
+        "Angle to pivot (degrees)", -180, 180);
+    goto_ball_checkbutton =
+        std::make_shared<CheckbuttonControlElement>("Use ball coordinates");
+    make_widget();
 }
 
 void PivotTest::test_pivot(Player player)
@@ -22,74 +34,40 @@ void PivotTest::test_pivot(Player player)
     player.move_pivot(centre, swing, orient);
 }
 
-void PivotTest::build_widget()
+void PivotTest::make_widget()
 {
-    // set the range of values for the X and Y sliders
-    point_x_slider.set_range(
-        -world.field().length() / 2, world.field().length() / 2);
-    point_y_slider.set_range(
-        -world.field().width() / 2, world.field().width() / 2);
-    angle_entry.set_range(
-        -360, 360);  // change range? 360 degrees sounds excessive
-    swing_angle_entry.set_range(
-        -360, 360);  // change range? 360 degrees sounds excessive
-
-    // make some labels
-    x_label.set_label("X Coordinate");
-    y_label.set_label("Y Coordinate");
-    angle_label.set_label("Robot orientation (degrees)");
-    swing_angle_label.set_label("Angle to pivot (degrees)");
-
-    box.add(x_label);
-    box.add(point_x_slider);  // x for dest
-
-    box.add(y_label);
-    box.add(point_y_slider);  // y for dest
-
-    box.add(angle_label);
-    box.add(angle_entry);  // orient
-
-    box.add(swing_angle_label);
-    box.add(swing_angle_entry);  // pivot angle
-
-    // show the box
-    box.show_all();
-
-    // link signals
-
-    point_x_slider.signal_value_changed().connect(
-        sigc::mem_fun(this, &PivotTest::on_point_x_changed));
-    point_y_slider.signal_value_changed().connect(
-        sigc::mem_fun(this, &PivotTest::on_point_y_changed));
-    angle_entry.signal_value_changed().connect(
-        sigc::mem_fun(this, &PivotTest::on_angle_changed));
-    swing_angle_entry.signal_value_changed().connect(
-        sigc::mem_fun(this, &PivotTest::on_swing_angle_changed));
+    control_elements.push_back(x_coord_slider);
+    control_elements.push_back(y_coord_slider);
+    control_elements.push_back(orient_slider);
+    control_elements.push_back(swing_slider);
+    control_elements.push_back(goto_ball_checkbutton);
+    goto_ball_checkbutton->GetCheckbutton()->signal_clicked().connect(
+        sigc::mem_fun(this, &PivotTest::on_goto_ball_coords_changed));
+    build_widget();
 }
 
-void PivotTest::on_point_x_changed()
+void PivotTest::update_params()
 {
-    centre = Point(point_x_slider.get_value(), centre.y);
+    centre = Point(x_coord_slider->GetValue(), y_coord_slider->GetValue());
+    orient = Angle::of_degrees(orient_slider->GetValue());
+    swing  = Angle::of_degrees(swing_slider->GetValue());
 }
 
-void PivotTest::on_point_y_changed()
+void PivotTest::on_goto_ball_coords_changed()
 {
-    centre = Point(centre.x, point_y_slider.get_value());
-}
-
-void PivotTest::on_angle_changed()
-{
-    orient = Angle::of_degrees(angle_entry.get_value());
-}
-
-void PivotTest::on_swing_angle_changed()
-{
-    swing = Angle::of_degrees(swing_angle_entry.get_value());
-}
-
-Gtk::Widget& PivotTest::get_widget()
-{
-    return box;
+    if (goto_ball_checkbutton->GetCheckbutton()->get_active())
+    {
+        x_coord_slider->GetHScale()->set_sensitive(false);
+        y_coord_slider->GetHScale()->set_sensitive(false);
+        goto_ball = true;
+    }
+    else
+    {
+        x_coord_slider->GetHScale()->set_sensitive(true);
+        y_coord_slider->GetHScale()->set_sensitive(true);
+        centre = Point(x_coord_slider->GetValue(), y_coord_slider->GetValue());
+        goto_ball = false;
+    }
 }
 }
 }

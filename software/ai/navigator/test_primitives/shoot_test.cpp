@@ -7,23 +7,37 @@ namespace Nav
 namespace TestNavigator
 {
 ShootTest::ShootTest(World w)
-    : PrimTest(),
-      dest(Point()),
-      power(0),
+    : PrimTest(world),
+      dest(Point(0, 0)),
+      orient(Angle::of_degrees(45)),
+      power(100),
       chip(false),
-      orient(Angle::zero()),
       world(w),
       goto_ball(false)
 {
-    tests["Shoot"]       = static_cast<testfun_t>(&ShootTest::test_shoot);
-    tests["ShootOrient"] = static_cast<testfun_t>(&ShootTest::test_shoot_ori);
-    build_widget();
+    tests["Shoot"] = static_cast<testfun_t>(&ShootTest::test_shoot_ori);
+
+    x_coord_slider = std::make_shared<SliderControlElement>(
+        "X Coordinate (m)", -world.field().length() / 2,
+        world.field().length() / 2);
+    y_coord_slider = std::make_shared<SliderControlElement>(
+        "Y Coordinate (m)", -world.field().width() / 2,
+        world.field().width() / 2);
+    angle_slider =
+        std::make_shared<SliderControlElement>("Angle (degrees)", -180, 180);
+    power_slider = std::make_shared<SliderControlElement>("Power (%)", 0, 100);
+    chip_checkbutton = std::make_shared<CheckbuttonControlElement>("Chip");
+    goto_ball_checkbutton =
+        std::make_shared<CheckbuttonControlElement>("Use ball coordinates");
+    make_widget();
 }
 
 void ShootTest::test_shoot(Player player)
 {
     if (goto_ball)
+    {
         dest = world.ball().position();
+    }
     Angle orientation =
         (world.field().enemy_goal() - world.ball().position()).orientation();
     player.move_shoot(dest, orientation, power, chip);
@@ -35,101 +49,51 @@ void ShootTest::test_shoot_ori(Player player)
         dest = world.ball().position();
     player.move_shoot(dest, orient, power, chip);
 }
-
-void ShootTest::build_widget()
+// function builds test Nav
+// builds widget
+void ShootTest::make_widget()
 {
-    point_x_slider.set_range(
-        -world.field().length() / 2, world.field().length() / 2);
-    point_y_slider.set_range(
-        -world.field().width() / 2, world.field().width() / 2);
-
-    angle_entry.set_range(-360, 360);
-    power_entry.set_range(0, 50000);
-
-    // point_x_slider.set_name("Field X",false);
-    // point_y_slider.set_name("Field Y",false);
-
-    to_chip.set_label("Chip");
-
-    x_label.set_label("X Coordinate");
-    y_label.set_label("Y Coordinate");
-    angle_label.set_label("Angle (degrees)");
-    powerLbl.set_label("Power");
-    goto_ball_coords_checkbox.set_label("Use ball coordinates");
-
-    // add widgets to vbox
-    box.add(x_label);
-    box.add(point_x_slider);  // x for dest
-
-    box.add(y_label);
-    box.add(point_y_slider);  // y for dest
-
-    box.add(goto_ball_coords_checkbox);
-
-    box.add(to_chip);  // chip
-
-    box.add(angle_label);
-    box.add(angle_entry);  // orient
-
-    box.add(powerLbl);
-    box.add(power_entry);  // power
-
-    box.show_all();
-
-    // link signals
-    point_x_slider.signal_value_changed().connect(
-        sigc::mem_fun(this, &ShootTest::on_point_x_changed));
-    point_y_slider.signal_value_changed().connect(
-        sigc::mem_fun(this, &ShootTest::on_point_y_changed));
-    to_chip.signal_clicked().connect(
-        sigc::mem_fun(this, &ShootTest::on_chip_changed));
-    angle_entry.signal_value_changed().connect(
-        sigc::mem_fun(this, &ShootTest::on_angle_changed));
-    power_entry.signal_value_changed().connect(
-        sigc::mem_fun(this, &ShootTest::on_power_changed));
-    goto_ball_coords_checkbox.signal_clicked().connect(
+    control_elements.push_back(x_coord_slider);
+    control_elements.push_back(y_coord_slider);
+    control_elements.push_back(goto_ball_checkbutton);
+    goto_ball_checkbutton->GetCheckbutton()->signal_clicked().connect(
         sigc::mem_fun(this, &ShootTest::on_goto_ball_coords_changed));
+    control_elements.push_back(angle_slider);
+    control_elements.push_back(power_slider);
+    control_elements.push_back(chip_checkbutton);
+    chip_checkbutton->GetCheckbutton()->signal_clicked().connect(
+        sigc::mem_fun(this, &ShootTest::on_chip_changed));
+    build_widget();
 }
 
-void ShootTest::on_point_x_changed()
+// updates parameters for coords,angle and power
+void ShootTest::update_params()
 {
-    dest = Point(point_x_slider.get_value(), dest.y);
-}
-void ShootTest::on_point_y_changed()
-{
-    dest = Point(dest.x, point_y_slider.get_value());
-}
-
-void ShootTest::on_chip_changed()
-{
-    chip = to_chip.get_active();
-}
-
-void ShootTest::on_angle_changed()
-{
-    orient = Angle::of_degrees(angle_entry.get_value());
-}
-
-void ShootTest::on_power_changed()
-{
-    power = power_entry.get_value();
+    dest   = Point(x_coord_slider->GetValue(), y_coord_slider->GetValue());
+    orient = Angle::of_degrees(angle_slider->GetValue());
+    power  = power_slider->GetValue();
 }
 
 void ShootTest::on_goto_ball_coords_changed()
 {
-    if (goto_ball_coords_checkbox.get_active())
+    if (goto_ball_checkbutton->GetCheckbutton()->get_active())
     {
-        point_x_slider.set_sensitive(false);
-        point_y_slider.set_sensitive(false);
+        x_coord_slider->GetHScale()->set_sensitive(false);
+        y_coord_slider->GetHScale()->set_sensitive(false);
         goto_ball = true;
     }
     else
     {
-        point_x_slider.set_sensitive(true);
-        point_y_slider.set_sensitive(true);
-        dest = Point(point_x_slider.get_value(), point_y_slider.get_value());
+        x_coord_slider->GetHScale()->set_sensitive(true);
+        y_coord_slider->GetHScale()->set_sensitive(true);
+        dest = Point(x_coord_slider->GetValue(), y_coord_slider->GetValue());
         goto_ball = false;
     }
+}
+// enables chipper when checkbutton is selected
+void ShootTest::on_chip_changed()
+{
+    chip = chip_checkbutton->GetCheckbutton()->get_active();
 }
 }
 }

@@ -30,14 +30,15 @@ MPTest::MPTest(AI::Nav::W::World world) : Navigator(world)
 */
 void MPTest::build_gui()
 {
-    combo.append(CHOOSE_PLAY_TEXT);
+    primitives[CHOOSE_PLAY_TEXT] = std::make_shared<PrimTest>(world);
 
-    primitives["MoveSpin"]    = new SpinTest(world);
-    primitives["MoveMove"]    = new MoveTest(world);
-    primitives["MoveShoot"]   = new ShootTest(world);
-    primitives["MoveDribble"] = new DribbleTest(world);
-    primitives["MoveCatch"]   = new CatchTest(world);
-    primitives["MovePivot"]   = new PivotTest(world);
+    // ADD NEW PRIMTESTS HERE
+    primitives["MoveMove"]    = std::make_shared<MoveTest>(world);
+    primitives["MoveCatch"]   = std::make_shared<CatchTest>(world);
+    primitives["MoveShoot"]   = std::make_shared<ShootTest>(world);
+    primitives["MoveSpin"]    = std::make_shared<SpinTest>(world);
+    primitives["MoveDribble"] = std::make_shared<DribbleTest>(world);
+    primitives["MovePivot"]   = std::make_shared<PivotTest>(world);
 
     for (auto const &i : primitives)
     {

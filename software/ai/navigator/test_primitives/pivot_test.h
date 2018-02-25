@@ -23,37 +23,27 @@ class PivotTest : public PrimTest
     */
     Angle swing;
 
-    World world;
+    /**
+    * \brief Whether to use ball coordinates as center of pivot
+    */
+    bool goto_ball;
+
+    std::shared_ptr<SliderControlElement> x_coord_slider;
+    std::shared_ptr<SliderControlElement> y_coord_slider;
+    std::shared_ptr<SliderControlElement> orient_slider;
+    std::shared_ptr<SliderControlElement> swing_slider;
+
+    std::shared_ptr<CheckbuttonControlElement> goto_ball_checkbutton;
 
     PivotTest(World w);
+
+    void make_widget();
+
+    void update_params();
+
     void test_pivot(Player player);
 
-    /**
-    * \brief X and Y sliders
-    */
-    Gtk::HScale point_x_slider;
-    Gtk::HScale point_y_slider;
-    /**
-    * \brief Angle field
-    */
-    Gtk::SpinButton angle_entry;
-    /**
-    * \brief Pivot angle field
-    */
-    Gtk::SpinButton swing_angle_entry;
-
-    Gtk::Label x_label;
-    Gtk::Label y_label;
-    Gtk::Label angle_label;
-    Gtk::Label swing_angle_label;
-
-    void on_point_x_changed();
-    void on_point_y_changed();
-    void on_angle_changed();
-    void on_swing_angle_changed();
-
-    void build_widget();
-    Gtk::Widget& get_widget() override;
+    void on_goto_ball_coords_changed();
 };
 }
 }

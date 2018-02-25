@@ -11,47 +11,35 @@ class DribbleTest : public PrimTest
 {
    public:
     Point dest;
-    Angle orientation;
+    Angle orient;
     double desired_rpm;
-    bool small_kick_allowed;
-
     World world;
+    bool small_kick_allowed;
+    bool use_ball_coords;
 
-    Gtk::HScale point_x_slider;
-    Gtk::HScale point_y_slider;
-    Gtk::SpinButton angle_entry;
-    Gtk::SpinButton rpm_entry;
-    Gtk::CheckButton small_kick_allowed_checkbox;
-    Gtk::CheckButton goto_ball_coords_checkbox;
+    // Shared_ptrs to the control elements
+    std::shared_ptr<SliderControlElement> x_coord_slider;
+    std::shared_ptr<SliderControlElement> y_coord_slider;
+    std::shared_ptr<SliderControlElement> angle_slider;
+    std::shared_ptr<SliderControlElement> desired_rpm_slider;
+    std::shared_ptr<CheckbuttonControlElement> small_kick_allowed_checkbutton;
+    std::shared_ptr<CheckbuttonControlElement> use_ball_coords_checkbutton;
 
-    Gtk::Label x_label;
-    Gtk::Label y_label;
-    Gtk::Label angle_label;
-    Gtk::Label rpm_label;
+    // Constructor
+    DribbleTest(World w);
 
-    bool goto_ball;
+    // Function that creates adds the control widgets to the PrimTest vector
+    void make_widget();
 
-    DribbleTest(World _world);
+    // Callback to update params (overrides default PrimTest impl)
+    void update_params() override;
 
+    // Callback functions used to execute the MPs
     void test_dribble(Player player);
-
-    void test_shoot(Player player);
-
-    void test_shoot_ori(Player player);
-
-    void build_widget();
-
-    void on_point_x_changed();
-
-    void on_point_y_changed();
-
-    void on_rpm_changed();
-
-    void on_angle_changed();
 
     void on_small_kick_allowed_changed();
 
-    void on_goto_ball_coords_changed();
+    void on_use_ball_coordinates_changed();
 };
 }
 }
