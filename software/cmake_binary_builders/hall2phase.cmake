@@ -14,13 +14,5 @@ function(build_specific_binary "binary")
     add_executable(${binary} "${src}")
 
     # link against libraries
-    target_link_libraries(${binary}
-            "${LibXML++_LIBRARIES}"
-            "${GTKMM_LIBRARIES}"
-            "${BZIP2_LIBRARIES}"
-            "${PROTOBUF_LIBRARIES}"
-            "${GLIB_LIBRARIES}"
-            "${LIBUSB_1_LIBRARIES}"
-            "${GSL_LIBRARIES}"
-            )
+    target_link_libraries(${binary})
 endfunction(build_specific_binary)

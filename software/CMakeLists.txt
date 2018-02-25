@@ -22,6 +22,9 @@ include_directories("${CMAKE_SOURCE_DIR}/software")
 # include the get_packages.cmake file to load third party libs
 include("${CMAKE_TOOLS}/get_packages.cmake")
 
+# add the compiler definitions
+include("${CMAKE_TOOLS}/software_definitions.cmake")
+
 # all the libraries you will need to link against if you are using the ${SOFTWARE_SOURCE_DIR}/util folder
 set(UTIL_LIBRARIES
     "${LibXML++_LIBRARIES}"

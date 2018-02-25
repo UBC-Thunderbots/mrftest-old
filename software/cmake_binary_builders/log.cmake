@@ -9,7 +9,7 @@ function(build_specific_binary "binary")
     # get the source files
     search("${PATTERNS}" "${SOURCE_FOLDERS}" "src")
 
-    # do another search for just platype.* files in ai/common
+    # do another search for just playtype.* files in ai/common
     set(SOURCE_FOLDERS "ai/common")
     set(PATTERNS "playtype.*")
     search("${PATTERNS}" "${SOURCE_FOLDERS}" "ai_common_files")

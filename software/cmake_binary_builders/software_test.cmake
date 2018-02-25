@@ -13,14 +13,7 @@ function(build_specific_binary "binary")
 
     # link against libraries
     target_link_libraries(${binary}
-            "${LibXML++_LIBRARIES}"
-            "${GTKMM_LIBRARIES}"
-            "${BZIP2_LIBRARIES}"
-            "${PROTOBUF_LIBRARIES}"
-            "${GLIB_LIBRARIES}"
+            "${UTIL_LIBRARIES}"
             "${GTEST_BOTH_LIBRARIES}"
-            "${CMAKE_THREAD_LIBS_INIT}"
-            "${LIBUSB_1_LIBRARIES}"
-            "${GSL_LIBRARIES}"
-            )
+            "${CMAKE_THREAD_LIBS_INIT}")
 endfunction(build_specific_binary)
