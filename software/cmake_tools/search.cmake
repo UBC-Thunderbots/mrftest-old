@@ -10,7 +10,7 @@ function(search "file_patterns" "folders" "list_name")
     foreach("folder" ${folders})
         # loop through each file pattern to find any matching files within the folder given
         foreach("pattern" ${file_patterns})
-            file(GLOB_RECURSE "folder-src" "${SOFTWARE_SOURCE_DIR}/${folder}/${pattern}")
+            file(GLOB_RECURSE "folder-src" "${CMAKE_CURRENT_SOURCE_DIR}/${folder}/${pattern}")
             # get the length of the GLOBBED files and see if the list length is greater then 0
             list(LENGTH "folder-src" "length")
             if ("${length}" GREATER 0)

@@ -74,6 +74,11 @@ software/.vscode/launch.json
 .vscode/
 tools/fwsim/sim
 
-# CLion
+# CLion/CMake
 cmake-build-debug/
 .idea/
+CMakeCache.txt
+CMakeFiles
+cmake_install.cmake
+*.cbp
+Makefile

@@ -1,7 +1,7 @@
 
 
 
-function(build_specific_binary "binary")
+function(build_specific_binary binary_name)
     # the folders where the source files are
     set(SOURCE_FOLDERS "hall2phase")
     # the file names to match
@@ -11,8 +11,8 @@ function(build_specific_binary "binary")
     search("${PATTERNS}" "${SOURCE_FOLDERS}" "src")
 
     # add the source files
-    add_executable(${binary} "${src}")
+    add_executable(${binary_name} "${src}")
 
     # link against libraries
-    target_link_libraries(${binary})
+    target_link_libraries(${binary_name})
 endfunction(build_specific_binary)

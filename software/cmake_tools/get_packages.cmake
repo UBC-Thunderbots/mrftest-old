@@ -5,13 +5,12 @@ find_package(PkgConfig REQUIRED)
 
 
 ##### BOOST #####
-set(BOOST_LOC "${CMAKE_SOURCE_DIR}/software/boost_1_54_0")
+set(BOOST_LOC "${CMAKE_CURRENT_SOURCE_DIR}/boost_1_54_0")
 # IMPORTANT: must link coroutines before context, the order matters here
 set(BOOST_LIBRARIES
         "${BOOST_LOC}/stage/lib/libboost_coroutine.a"
         "${BOOST_LOC}/stage/lib/libboost_context.a")
-include_directories("${CMAKE_SOURCE_DIR}/software/boost_1_54_0")
-
+include_directories("${BOOST_LOC}")
 
 ##### PROTOBUF #####
 # find the Protobuf package
@@ -19,14 +18,19 @@ find_package("Protobuf" REQUIRED)
 # include Protobuf directories
 include_directories("${PROTOBUF_INCLUDE_DIRS}")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/proto")
 # get the .proto files
-file(GLOB "proto-files" "${CMAKE_SOURCE_DIR}/software/proto/*.proto")
+file(GLOB "proto-files" "${CMAKE_CURRENT_SOURCE_DIR}/proto/*.proto")
+# get existing generated files so we can clean them
+file(GLOB "EXISTING_PROTO" "${CMAKE_CURRENT_SOURCE_DIR}/proto/*.pb.cc" "${CMAKE_CURRENT_SOURCE_DIR}/proto/*.pb.h")
 # Generate the protobuf files
+# They are generated when CMake generates the Makefiles
 # PROTO_SRCS: the *.pb.cc files
 # PROTO_HDRS: the *.pb.h files
-# they are stored in cmake-build-debug/software
-PROTOBUF_GENERATE_CPP("PROTO_SRCS" "PROTO_HDRS" "${proto-files}")
-
+# they are stored in software/proto
+execute_process(
+        COMMAND rm ${EXISTING_PROTO}
+        COMMAND protoc ${proto-files} --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto --cpp_out=${CMAKE_CURRENT_SOURCE_DIR}/proto)
 
 ##### GTK ######
 pkg_check_modules("GTKMM" REQUIRED "gtkmm-3.0")
@@ -56,17 +60,16 @@ add_definitions("${LIBUSB_1_DEFINITIONS}")
 
 
 ##### LIBXML #####
-pkg_search_module("LibXML++" REQUIRED libxml++-2.6)
+pkg_search_module("LibXML++" REQUIRED "libxml++-2.6")
 include_directories("${LibXML++_INCLUDE_DIRS}")
 
 
 ##### ODE #####
-pkg_search_module("ODE" REQUIRED)
-include_directories("${ODE_INCLUDE_DIR}")
+pkg_search_module("ODE" REQUIRED ode)
 
 
 ##### GSL #####
-find_package("GSL" REQUIRED)
+find_package("GSL" REQUIRED "gsl")
 include_directories("${GSL_INCLUDE_DIRS}")
 
 
@@ -76,7 +79,7 @@ include_directories(${CAIROMM_INCLUDE_DIRS})
 
 
 ##### BZIP2 #####
-find_package("BZip2" REQUIRED)
+find_package("BZip2" REQUIRED "bz2")
 include_directories("${BZIP2_INCLUDE_DIR}")
 
 
