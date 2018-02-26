@@ -1,6 +1,6 @@
 # minimum CMake version
-# using version 3.9 as it was bundled with CLion at the time that this CMake file was created
-cmake_minimum_required(VERSION 3.9)
+# using version 3.7 so that it works with gitlab ci
+cmake_minimum_required(VERSION 3.7)
 
 # project name
 project(thunderbots)
