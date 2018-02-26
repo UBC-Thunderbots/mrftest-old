@@ -17,7 +17,6 @@ include_directories("${BOOST_LOC}")
 find_package("Protobuf" REQUIRED)
 # include Protobuf directories
 include_directories("${PROTOBUF_INCLUDE_DIRS}")
-include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/proto")
 # get the .proto files
 file(GLOB "proto-files" "${CMAKE_CURRENT_SOURCE_DIR}/proto/*.proto")
@@ -25,8 +24,6 @@ file(GLOB "proto-files" "${CMAKE_CURRENT_SOURCE_DIR}/proto/*.proto")
 file(GLOB "EXISTING_PROTO" "${CMAKE_CURRENT_SOURCE_DIR}/proto/*.pb.cc" "${CMAKE_CURRENT_SOURCE_DIR}/proto/*.pb.h")
 # Generate the protobuf files
 # They are generated when CMake generates the Makefiles
-# PROTO_SRCS: the *.pb.cc files
-# PROTO_HDRS: the *.pb.h files
 # they are stored in software/proto
 execute_process(
         COMMAND rm ${EXISTING_PROTO}
@@ -37,8 +34,6 @@ pkg_check_modules("GTKMM" REQUIRED "gtkmm-3.0")
 # include the GTK dependencies
 include_directories("${GTKMM_INCLUDE_DIRS}")
 link_directories("${GTKMM_LIBRARY_DIRS}")
-# add the GTK flags
-add_definitions("${GTKMM_CFLAGS_OTHER}")
 
 
 ##### GTEST #####
