@@ -43,7 +43,7 @@ echo "================================================================"
 
 # The list of packages required to build and run grSim
 # See the github repo for the list of dependencies
-# https://github.com/RoboCup-SSL/grSim
+# https://github.com/robime/grSim
 host_software_packages=(
     libqt4-dev
     libqt4-opengl-dev
@@ -129,7 +129,7 @@ if [ -d $grSim_path ]; then
 fi
 
 cd $grSim_location
-git clone https://github.com/RoboCup-SSL/grSim
+git clone https://github.com/roboime/grSim
 cd grSim
 
 # This git command is here because grSim was updated to use a new protobuf

@@ -22,12 +22,19 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/proto")
 file(GLOB "proto-files" "${CMAKE_CURRENT_SOURCE_DIR}/proto/*.proto")
 # get existing generated files so we can clean them
 file(GLOB "EXISTING_PROTO" "${CMAKE_CURRENT_SOURCE_DIR}/proto/*.pb.cc" "${CMAKE_CURRENT_SOURCE_DIR}/proto/*.pb.h")
+set(EXISTING_PROTO_LENGTH)
+list(LENGTH "EXISTING_PROTO" "EXISTING_PROTO_LENGTH")
+# only run rm if there were existing files
+if ("${EXISTING_PROTO_LENGTH}" GREATER 0)
+    execute_process(COMMAND rm ${EXISTING_PROTO})
+endif()
 # Generate the protobuf files
 # They are generated when CMake generates the Makefiles
 # they are stored in software/proto
 execute_process(
-        COMMAND rm ${EXISTING_PROTO}
-        COMMAND protoc ${proto-files} --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto --cpp_out=${CMAKE_CURRENT_SOURCE_DIR}/proto)
+        COMMAND protoc ${proto-files}
+                --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto
+                --cpp_out=${CMAKE_CURRENT_SOURCE_DIR}/proto)
 
 ##### GTK ######
 pkg_check_modules("GTKMM" REQUIRED "gtkmm-3.0")

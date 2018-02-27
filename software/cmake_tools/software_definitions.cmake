@@ -36,3 +36,5 @@ add_definitions("-fno-math-errno")
 # Optimize by assuming pointers do not alias when they are not permitted to do so according to type.
 add_definitions("-fstrict-aliasing")
 add_definitions("-Wall")
+
+#add_definitions("-D_GLIBCXX_USE_C99_MATH=1")
