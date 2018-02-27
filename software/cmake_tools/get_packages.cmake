@@ -36,6 +36,7 @@ execute_process(
                 --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto
                 --cpp_out=${CMAKE_CURRENT_SOURCE_DIR}/proto)
 
+
 ##### GTK ######
 pkg_check_modules("GTKMM" REQUIRED "gtkmm-3.0")
 # include the GTK dependencies
@@ -67,7 +68,7 @@ include_directories("${LibXML++_INCLUDE_DIRS}")
 
 
 ##### ODE #####
-pkg_search_module("ODE" REQUIRED ode)
+pkg_search_module("ODE" REQUIRED "ode")
 
 
 ##### GSL #####
