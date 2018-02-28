@@ -14,8 +14,9 @@ build_feature_branch:
         # -j: compile in parallel as much as possible
         # -l: limit load to stop us running out of virtual memory
         # run makefiles from toplevel
-        - make -j -l 2 -C software
-        - make test -C software
+        - cmake -DCMAKE_BUILD_TYPE=Debug -Bcmake-build-debug -H.
+        - cmake --build cmake-build-debug --target all -- -j 4
+        - software/bin/software_test
         # go into firmware and run the tests
         - make -C firmware/test
 
@@ -30,8 +31,9 @@ build_merged_master:
         # -j: compile in parallel as much as possible
         # -l: limit load to stop us running out of virtual memory
         # run makefiles from top level
-        - make -j -l 2 -C software
-        - make test -C software
+        - cmake -DCMAKE_BUILD_TYPE=Debug -Bcmake-build-debug -H.
+        - cmake --build cmake-build-debug --target all -- -j 4
+        - software/bin/software_test
         # go into firmware and run the tests
         - make -C firmware/test 
 

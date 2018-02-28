@@ -43,7 +43,7 @@ echo "================================================================"
 
 # The list of packages required to build and run grSim
 # See the github repo for the list of dependencies
-# https://github.com/RoboCup-SSL/grSim
+# https://github.com/robime/grSim
 host_software_packages=(
     libqt4-dev
     libqt4-opengl-dev
