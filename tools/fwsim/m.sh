@@ -15,10 +15,14 @@ main.c \
 ../../firmware/main/primitives/jcatch.c \
 ../../firmware/main/primitives/stop.c \
 ../../firmware/main/primitives/dribble.c \
--o sim -lm
-#./sim 
-#./sim test.csv 3 1000 1000 0 0 0 0 
-#python show_sim.py test.csv
+../../firmware/main/util/physbot.c \
+../../firmware/main/util/util.c \
+../../firmware/main/util/log.c \
+-o sim -lm \
+
+#.Phython
+./sim test.csv 1 1000 1000 0 0 0 0 
+python3 show_sim.py test.csv
 
 
 

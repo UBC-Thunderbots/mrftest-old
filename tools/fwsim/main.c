@@ -9,8 +9,15 @@
 
 #define DELTA_T 0.0001
 #define ROBOT_TICK_T 0.005
-#define LOG_TICK_T 0.03
-#define MAX_SIM_T 7.0
+#define MAX_SIM_T 15.0f
+#define HIST_TICK_T 0.03
+#define NUM_PARAMS 3
+#define NUM_ATTEMPTS 1
+
+static const unsigned HIST_SIZE = MAX_SIM_T / HIST_TICK_T + 1;
+const float X_BALL              = -1.0;
+const float Y_BALL              = -2.0;
+
 
 /*
 void prim_tick(unsigned primNum)

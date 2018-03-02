@@ -17,7 +17,10 @@ main.c \
 ../../firmware/main/primitives/jcatch.c \
 ../../firmware/main/primitives/stop.c \
 ../../firmware/main/primitives/dribble.c \
--o sim -lm; \
+../../firmware/main/util/physbot.c \
+../../firmware/main/util/util.c \
+../../firmware/main/util/log.c \
+-o sim -lm \
 then
     if [ $? -ne 0 ]
     then
