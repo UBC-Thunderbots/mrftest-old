@@ -1,9 +1,8 @@
 #include "simulate.h"
-#include "../../firmware/main/physics.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
-
+#include "../../firmware/main/physics.h"
 
 const float MU = 0.6;
 const float SLIP_FORCE = 0.8 * /* MU */ ROBOT_POINT_MASS * 9.8 * 0.25 /*weight distribution (not entirely accurate)*/;

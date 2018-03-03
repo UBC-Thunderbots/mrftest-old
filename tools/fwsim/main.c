@@ -1,11 +1,11 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "../../firmware/main/simulate.h" 
 #include "../../firmware/main/log.h"
 #include "../../firmware/main/primitives/move.h"
 #include "../../firmware/main/primitives/primitive.h"
 #include "../../firmware/main/primitives/shoot.h"
+#include "../../firmware/main/simulate.h"
 
 #define DELTA_T 0.0001
 #define ROBOT_TICK_T 0.005
@@ -17,7 +17,6 @@
 static const unsigned HIST_SIZE = MAX_SIM_T / HIST_TICK_T + 1;
 const float X_BALL              = -1.0;
 const float Y_BALL              = -2.0;
-
 
 /*
 void prim_tick(unsigned primNum)
