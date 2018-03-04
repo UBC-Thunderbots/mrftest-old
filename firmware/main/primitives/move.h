@@ -5,8 +5,9 @@
 #ifndef FWSIM
 #include "physics.h"
 #endif
-#include "../physics.h" 
+#include "../physics.h"
 #include "../util/physbot.h"
+
 
 extern const primitive_t MOVE_PRIMITIVE;
 
@@ -17,7 +18,10 @@ static const float CLOSEST_WHEEL_ANGLE = 30.0f * M_PI / 180.0f;
 
 // The minimum distance away from our destination that we must be if we
 // are going to rotate the bot onto its wheel axis
-static const float APPROACH_LIMIT = 2 * M_PI * ROBOT_RADIUS;
+// 2 * M_PI * ROBOT_RADIUS = robot circumference, which is approximately
+// how far the bot would have to turn for one full rotation, so we 
+// set it a litle larger than that.
+static const float APPROACH_LIMIT = 3 * M_PI * ROBOT_RADIUS;
 
 #define VAL_EQUIVALENT_2_ZERO (5e-3f)
 #define CONTROL_TICK (1.0f/CONTROL_LOOP_HZ)
@@ -25,15 +29,18 @@ static const float APPROACH_LIMIT = 2 * M_PI * ROBOT_RADIUS;
 #define LOOK_AHEAD_T 10
 
 /**
- * If we are far enough away from our destination, then we should try
- * rotating onto a wheel axis so that we can move faster.
- * 
- * @param pb The data container that housld contain information about
- * the direction the robot will move along.
- * @param angle The angle that the robot is currently facing
- * @return void
- */ 
-void choose_rotation_destination(PhysBot *pb, float angle);
+ * call from move_start to choose which wheel axis we will be 
+ * using for preliminary rotation. The idea is to pick the wheel
+ * axis that will result in the minimum remaining rotation onto
+ * the bot's final destination angle.
+ *
+ * @param dx the global x position of the bot
+ * @param dy the global y position of the bot
+ * @param current_angle the current angle of the bot
+ * @param final_angle the final destination angle
+ * @return the index of the wheel axis to use
+ */
+unsigned choose_wheel_axis(float dx, float dy, float current_angle, float final_angle);
 
 /**
  * Calculates the rotation time, velocity, and acceleration to be stored 
