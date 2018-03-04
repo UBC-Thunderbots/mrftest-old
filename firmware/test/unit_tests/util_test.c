@@ -1,6 +1,6 @@
 #include "check.h"
 #include "test.h"
-#include "../main/util/util.h"
+#include "main/util/util.h"
 
 
 START_TEST(test_fmax_of_array)
