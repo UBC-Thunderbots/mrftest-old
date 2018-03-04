@@ -1,6 +1,6 @@
 #include "test.h"
 #include "check.h"
-#include "../main/util/quadratic.h"
+#include "main/util/quadratic.h"
 #include <math.h>
 
 // This is an M matrix that is used for multiple tests

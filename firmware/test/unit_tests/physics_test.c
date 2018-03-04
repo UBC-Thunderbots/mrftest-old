@@ -1,4 +1,4 @@
-#include "../main/physics.h"
+#include "main/physics.h"
 #include "test.h"
 #include "check.h"
  

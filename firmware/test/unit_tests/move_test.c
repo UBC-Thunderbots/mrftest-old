@@ -1,10 +1,10 @@
 #include "test.h"
 #include "check.h"
-#include "../main/util/physbot.h"
-#include "../main/primitives/move.h"
-#include "../util/robot_constants.h"
-#include "../main/physics.h"
-#include "../util/util.h"
+#include "main/util/physbot.h"
+#include "main/primitives/move.h"
+#include "util/robot_constants.h"
+#include "main/physics.h"
+#include "util/util.h"
 
 // Common PhysBot to use throughout tests
 static PhysBot pb;

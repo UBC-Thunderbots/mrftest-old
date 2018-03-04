@@ -1,5 +1,6 @@
 before_script:
-    - ./EnvironmentSetup/setup_software.sh 
+    - ./EnvironmentSetup/setup_software.sh
+    - ./EnvironmentSetup/setup_firmware.sh
 
 stages:
     - build
@@ -13,12 +14,14 @@ build_feature_branch:
         - git config --global user.name "Christopher Head"
         # -j: compile in parallel as much as possible
         # -l: limit load to stop us running out of virtual memory
-        # run makefiles from toplevel
+        # process the cmake script
         - cmake -DCMAKE_BUILD_TYPE=Debug -Bcmake-build-debug -H.
-        - cmake --build cmake-build-debug --target all -- -j 4
+        # build and test software from top level
+        - cmake --build cmake-build-debug --target all -- -C software -j 4
         - software/bin/software_test
-        # go into firmware and run the tests
-        - make -C firmware/test
+        # build and test firmware from top level
+        - cmake --build cmake-build-debug --target all -- -C firmware -j 4
+        - cmake-build-debug/firmware/test/fw_test
 
 # Check that dev will build when we merge our feature branch in
 build_merged_master:
@@ -30,12 +33,14 @@ build_merged_master:
         - git merge origin/dev --no-commit --no-ff
         # -j: compile in parallel as much as possible
         # -l: limit load to stop us running out of virtual memory
-        # run makefiles from top level
+        # process the cmake script
         - cmake -DCMAKE_BUILD_TYPE=Debug -Bcmake-build-debug -H.
-        - cmake --build cmake-build-debug --target all -- -j 4
+        # build and test software from top level
+        - cmake --build cmake-build-debug --target all -- -C software -j 4
         - software/bin/software_test
-        # go into firmware and run the tests
-        - make -C firmware/test 
+        # build and test firmware from top level
+        - cmake --build cmake-build-debug --target all -- -C firmware -j 4
+        - cmake-build-debug/firmware/test/fw_test
 
 # Merge our branch into dev and check that we still pass clang-format
 check_formatting_master:

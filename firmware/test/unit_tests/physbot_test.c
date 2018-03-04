@@ -1,8 +1,6 @@
-#include "../main/util/physbot.h"
+#include "main/util/physbot.h"
+#include "main/physics.h"
 #include "test.h"
-#include "check.h"
-#include "../dr.h"
-#include <math.h>
 
 START_TEST(test_setup_bot)
 {
