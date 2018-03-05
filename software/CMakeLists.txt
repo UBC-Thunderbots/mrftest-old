@@ -35,6 +35,11 @@ set(UTIL_LIBRARIES
     "${LIBUSB_1_LIBRARIES}"
     "${GSL_LIBRARIES}")
 
+
+# common file patterns that are used amongst the executables. We include headers here to allow for full code
+# completion across all of our source files.
+set(COMMON_PATTERNS "*.cpp" "*.h")
+
 # a list of all the executables we want to compile
 set(ALL_BINARIES "ai" "mrftest" "software_test" "buildid" "getcore" "hall2phase" "log" "mrfcap" "nulltest" "sdutil")
 
