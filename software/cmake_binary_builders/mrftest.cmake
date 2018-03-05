@@ -3,7 +3,7 @@ function(build_specific_binary binary_name)
     # the folders where the source files are
     set(SOURCE_FOLDERS "drive" "mrf" "test/common" "test/mrf" "uicomponents" "util")
     # the file names to match
-    set(PATTERNS "*.cpp")
+    set(PATTERNS "${COMMON_PATTERNS}")
 
     # get the source files
     search("${PATTERNS}" "${SOURCE_FOLDERS}" "src")

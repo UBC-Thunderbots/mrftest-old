@@ -3,7 +3,7 @@ function(build_specific_binary binary_name)
     # the folders where the source files are
     set(SOURCE_FOLDERS "test/unit-tests" "geom" "util")
     # the file names to match
-    set(PATTERNS "*.cpp" "param.*" "string.*" "config.*" "exception.*" "misc.*" "dprint.*" "hungarian.*" "matrix.*" "codec.*")
+    set(PATTERNS "${COMMON_PATTERNS} param.*" "string.*" "config.*" "exception.*" "misc.*" "dprint.*" "hungarian.*" "matrix.*" "codec.*")
 
     # get the source files
     search("${PATTERNS}" "${SOURCE_FOLDERS}" "src")

@@ -10,6 +10,7 @@ file(GLOB_RECURSE dongle-src
         "${FIRMWARE_SOURCE_DIR}/stm32lib/*.c"
         "${FIRMWARE_SOURCE_DIR}/freertos/source/*.c"
         "${FIRMWARE_SOURCE_DIR}/dongle/*.c"
+        "${FIRMWARE_SOURCE_DIR}/dongle/*.h"
         )
 # include the headers from dongle
 include_directories("${FIRMWARE_SOURCE_DIR}/dongle")

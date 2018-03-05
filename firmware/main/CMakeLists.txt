@@ -9,6 +9,7 @@ file(GLOB_RECURSE firmware-src
         "${FIRMWARE_SOURCE_DIR}/stm32lib/*.c"
         "${FIRMWARE_SOURCE_DIR}/cdcacm/*.c"
         "${FIRMWARE_SOURCE_DIR}/freertos/source/*.c"
+        "${FIRMWARE_SOURCE_DIR}/main/*.h"
         )
 
 # add robot firmware specific include directories
