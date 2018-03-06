@@ -44,7 +44,7 @@ include_directories(${TEST_SOURCE_DIR}/check/src)
 # firmware/main
 set(_MAIN "physics.c")
 # firmware/main/util
-set(_UTIL "quadratic.c" "log.c" "physbot.c" "util.c")
+set(_UTIL "quadratic.c" "log.c" "physbot.c" "util.c" "matrix.c")
 # firmware/main/cvxgen
 set(_CVXGEN "solver.c" "ldl.c" "matrix_support.c")
 # firmware/main/primitives
