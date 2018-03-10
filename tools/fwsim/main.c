@@ -9,7 +9,7 @@
 #define ROBOT_TICK_T 0.005
 #define MAX_SIM_T 15.0f
 #define HIST_TICK_T 0.03
-#define	LOG_TICK_T 0.03
+#define LOG_TICK_T 0.03
 #define NUM_PARAMS 3
 #define NUM_ATTEMPTS 1
 
