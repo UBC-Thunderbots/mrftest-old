@@ -2,15 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "../../firmware/main/log.h"
-#include "../../firmware/main/primitives/move.h"
 #include "../../firmware/main/primitives/primitive.h"
-#include "../../firmware/main/primitives/shoot.h"
 #include "../../firmware/main/simulate.h"
 
 #define DELTA_T 0.0001
 #define ROBOT_TICK_T 0.005
 #define MAX_SIM_T 15.0f
 #define HIST_TICK_T 0.03
+#define	LOG_TICK_T 0.03
 #define NUM_PARAMS 3
 #define NUM_ATTEMPTS 1
 

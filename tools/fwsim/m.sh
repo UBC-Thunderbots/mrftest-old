@@ -21,7 +21,7 @@ main.c \
 -o sim -lm \
 
 #.Phython
-./sim test.csv 1 1000 1000 0 0 0 0 
+./sim test.csv 3 1000 1000 0 0 0 0 
 python3 show_sim.py test.csv
 
 

@@ -135,4 +135,4 @@ float get_pos_x() {
 	return pos[0];
 }
 
-#endif
+#endif // FWSIm
