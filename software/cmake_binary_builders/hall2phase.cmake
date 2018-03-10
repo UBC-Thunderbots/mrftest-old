@@ -5,7 +5,7 @@ function(build_specific_binary binary_name)
     # the folders where the source files are
     set(SOURCE_FOLDERS "hall2phase")
     # the file names to match
-    set(PATTERNS "*.cpp")
+    set(PATTERNS "${COMMON_PATTERNS}")
 
     # get the source files
     search("${PATTERNS}" "${SOURCE_FOLDERS}" "src")
