@@ -1,4 +1,5 @@
-gcc -DFWSIM -std=c99 \
+gcc -DFWSIM -std=gnu99 -I../../firmware/main \
+-I../../firmware/main/primitives \
 main.c \
 ../../firmware/main/physics.c \
 ../../firmware/main/simulate.c \
@@ -18,10 +19,10 @@ main.c \
 ../../firmware/main/util/physbot.c \
 ../../firmware/main/util/util.c \
 ../../firmware/main/util/log.c \
--o sim -lm \
+-o sim -lm\
 
 #.Phython
-./sim test.csv 3 1000 1000 0 0 0 0 
+./sim test.csv 2 1000 1000 0 0 0 0 
 python3 show_sim.py test.csv
 
 

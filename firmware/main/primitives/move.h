@@ -2,11 +2,8 @@
 #define PRIMITIVES_MOVE_H
 
 #include "primitive.h"
-#ifndef FWSIM
 #include "physics.h"
-#endif
-#include "../physics.h"
-#include "../util/physbot.h"
+#include "util/physbot.h"
 
 
 extern const primitive_t MOVE_PRIMITIVE;

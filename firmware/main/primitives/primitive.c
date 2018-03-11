@@ -14,10 +14,10 @@
 #include "shoot.h"
 #include "spin.h"
 #include "stop.h"
-#include "../chicker.h"
-#include "../dr.h"
-#include "../dribbler.h"
-#include "../receive.h"
+#include "chicker.h"
+#include "dr.h"
+#include "dribbler.h"
+#include "receive.h"
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -122,13 +122,11 @@ void primitive_start(unsigned int primitive, const primitive_params_t *params) {
 void primitive_tick(log_record_t *log) {
 #ifndef FWSIM
 	xSemaphoreTake(primitive_mutex, portMAX_DELAY);
-#endif // FWSIM
 	if (log) {
-#ifndef FWSIM
 		log->tick.drive_serial = receive_last_serial();
-#endif // FWSIM
 		log->tick.primitive = (uint8_t)primitive_current_index;
 	}
+#endif // FWSIM
 	if (primitive_current) {
 		primitive_current->tick(log);
 	}
