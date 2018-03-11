@@ -1,20 +1,20 @@
 #include "shoot.h"
-#include "../control.h"
-#include "../physics.h"
-#include "../bangbang.h"
+#include "control.h"
+#include "physics.h"
+#include "bangbang.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "../util/physbot.h"
-#include "../util/log.h"
+#include "util/physbot.h"
+#include "util/log.h"
 
 #ifndef FWSIM
-#include "../chicker.h"
-#include "../dr.h"
-#include "../dribbler.h"
-#include "../leds.h"
+#include "chicker.h"
+#include "dr.h"
+#include "dribbler.h"
+#include "leds.h"
 #else
-#include "../simulate.h"
+#include "simulate.h"
 #endif
 
 // these are set to decouple the 3 axis from each other

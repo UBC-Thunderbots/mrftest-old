@@ -1,9 +1,5 @@
 #include "util.h"
-#ifndef FWSIM
-#include "math.h"
-#else
-#include "../physics.h"
-#endif
+#include <math.h>
 
 float fmax_of_array(float array[], unsigned size) {
     unsigned i;

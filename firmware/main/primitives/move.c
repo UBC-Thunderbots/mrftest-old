@@ -1,21 +1,21 @@
 #include "move.h"
-#include "../control.h"
-#include "../physics.h"
-#include "../bangbang.h"
-#include "../util/physbot.h"
-#include "../util/robot_constants.h"
-#include "../util/log.h"
-#include "../util/util.h"
+#include "control.h"
+#include "physics.h"
+#include "bangbang.h"
+#include "util/physbot.h"
+#include "util/robot_constants.h"
+#include "util/log.h"
+#include "util/util.h"
 #include <math.h>
 #include <stdio.h>
 
 #ifndef FWSIM
-#include "../chicker.h"
-#include "../dr.h"
-#include "../dribbler.h"
-#include "../leds.h"
+#include "chicker.h"
+#include "dr.h"
+#include "dribbler.h"
+#include "leds.h"
 #else
-#include "../simulate.h"
+#include "simulate.h"
 #endif
 
 

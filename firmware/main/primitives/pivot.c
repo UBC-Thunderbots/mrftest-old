@@ -1,8 +1,8 @@
 #include "pivot.h"
-#include "../bangbang.h"
-#include "../control.h"
-#include "../dr.h"
-#include "../physics.h"
+#include "bangbang.h"
+#include "control.h"
+#include "dr.h"
+#include "physics.h"
 #include <math.h>
 
 //params from host
