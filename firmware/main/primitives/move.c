@@ -1,9 +1,5 @@
 #include "move.h"
-#include "../chicker.h"
 #include "../control.h"
-#include "../dr.h"
-#include "../dribbler.h"
-#include "../leds.h"
 #include "../physics.h"
 #include "../bangbang.h"
 #include "../util/physbot.h"
@@ -12,6 +8,16 @@
 #include "../util/util.h"
 #include <math.h>
 #include <stdio.h>
+
+#ifndef FWSIM
+#include "../chicker.h"
+#include "../dr.h"
+#include "../dribbler.h"
+#include "../leds.h"
+#else
+#include "../simulate.h"
+#endif
+
 
 // these are set to decouple the 3 axis from each other
 // the idea is to clamp the maximum velocity and acceleration

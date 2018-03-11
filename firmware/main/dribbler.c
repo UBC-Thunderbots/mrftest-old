@@ -90,6 +90,7 @@ void dribbler_set_speed(uint32_t desired_rpm) {
  * \param[out] record the log record whose dribbler-related fields will be updated
  */
 void dribbler_tick(log_record_t *record) {
+#ifndef FWSIM
 	int32_t dribbler_speed_rpm = 0; 
 	// Decide whether this is a dribbler tick time.
 	if (dribbler_tick_counter == 0) {
@@ -169,6 +170,7 @@ void dribbler_tick(log_record_t *record) {
 			*/
 		}
 	}
+#endif // FWSIM
 }
 
 /**

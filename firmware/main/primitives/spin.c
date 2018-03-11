@@ -1,10 +1,15 @@
 #include "spin.h"
 #include "../bangbang.h"
 #include "../control.h"
-#include "../dr.h"
 #include "../physics.h"
 #include <math.h>
 #include <stdio.h>
+
+#ifndef FWSIM
+#include "../dr.h"
+#else
+#include "../simulate.h"
+#endif
 
 #define TIME_HORIZON 0.5f
 

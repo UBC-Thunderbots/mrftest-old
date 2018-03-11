@@ -1,3 +1,9 @@
+#ifndef FWSIM
+#include "imu_test.h"
+#include <FreeRTOS.h>
+#include <semphr.h>
+#endif // FWSIM
+
 #include "primitive.h"
 #include "catch.h"
 #include "direct_velocity.h"
@@ -8,14 +14,11 @@
 #include "shoot.h"
 #include "spin.h"
 #include "stop.h"
-#include "imu_test.h"
 #include "../chicker.h"
 #include "../dr.h"
 #include "../dribbler.h"
 #include "../receive.h"
-#include <FreeRTOS.h>
 #include <assert.h>
-#include <semphr.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -34,16 +37,20 @@
  * Make sure stop is always the first primitive.
  */
 static const primitive_t * const PRIMITIVES[] = {
-	&STOP_PRIMITIVE,
-	&MOVE_PRIMITIVE,
-	&DRIBBLE_PRIMITIVE,
-	&SHOOT_PRIMITIVE,
-	&CATCH_PRIMITIVE,
-	&PIVOT_PRIMITIVE,
-	&SPIN_PRIMITIVE,
-	&DIRECT_WHEELS_PRIMITIVE,
-	&DIRECT_VELOCITY_PRIMITIVE,
+	&STOP_PRIMITIVE, // index 0, do not change the order of stuff in this one
+	&MOVE_PRIMITIVE, // 1
+	&DRIBBLE_PRIMITIVE, // 2 this should be unessisary for FWSIM, but keep it here to make the order still correct
+	&SHOOT_PRIMITIVE, // 3
+	&CATCH_PRIMITIVE, // 4
+	&PIVOT_PRIMITIVE, // 5
+	&SPIN_PRIMITIVE, // 6
+#ifndef FWSIM // Should be useless for simualtion?
+	&DIRECT_WHEELS_PRIMITIVE, // 7
+	&DIRECT_VELOCITY_PRIMITIVE, // 8
+#endif
+#ifndef FWSIM // not useful for simlation at all, so get rid of it
   &IMU_TEST_PRIMITIVE,
+#endif // FWSIM
 };
 
 /**
@@ -55,7 +62,9 @@ static const primitive_t * const PRIMITIVES[] = {
  * \brief The mutex that prevents multiple entries into the same primitive at
  * the same time.
  */
+#ifndef FWSIM
 static SemaphoreHandle_t primitive_mutex;
+#endif // FWSIM
 
 /**
  * \brief The primitive that is currently operating.
@@ -71,8 +80,10 @@ static unsigned int primitive_current_index;
  * \brief Initializes the movement primitive manager and all the primitives.
  */
 void primitive_init(void) {
+#ifndef FWSIM
 	static StaticSemaphore_t primitive_mutex_storage;
 	primitive_mutex = xSemaphoreCreateMutexStatic(&primitive_mutex_storage);
+#endif // FWSIM
 	for (size_t i = 0; i != PRIMITIVE_COUNT; ++i) {
 		PRIMITIVES[i]->init();
 	}
@@ -86,16 +97,20 @@ void primitive_init(void) {
  */
 void primitive_start(unsigned int primitive, const primitive_params_t *params) {
 	assert(primitive < PRIMITIVE_COUNT);
+#ifndef FWSIM
 	xSemaphoreTake(primitive_mutex, portMAX_DELAY);
 	if (primitive_current) {
 		primitive_current->end();
 	}
 	chicker_auto_disarm();
 	dribbler_set_speed(0);
+#endif // FWSIM
 	primitive_current = PRIMITIVES[primitive];
 	primitive_current_index = primitive;
 	primitive_current->start(params);
+#ifndef FWSIM
 	xSemaphoreGive(primitive_mutex);
+#endif
 }
 
 /**
@@ -105,16 +120,22 @@ void primitive_start(unsigned int primitive, const primitive_params_t *params) {
  * \c NULL if no record is to be filled
  */
 void primitive_tick(log_record_t *log) {
+#ifndef FWSIM
 	xSemaphoreTake(primitive_mutex, portMAX_DELAY);
+#endif // FWSIM
 	if (log) {
+#ifndef FWSIM
 		log->tick.drive_serial = receive_last_serial();
+#endif // FWSIM
 		log->tick.primitive = (uint8_t)primitive_current_index;
 	}
 	if (primitive_current) {
 		primitive_current->tick(log);
 	}
+#ifndef FWSIM
 	dr_tick(log);
 	xSemaphoreGive(primitive_mutex);
+#endif // FWSIM
 }
 
 /**

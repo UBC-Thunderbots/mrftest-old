@@ -84,9 +84,8 @@ float ConstantJerkCompute(float Vinit, float Vfinal, float Distance, float time,
 
 
 //Computes how long a movement will take
-inline float GetBBTime(BBProfile *b) {
-	return b->t1+b->t2+b->t3;
-}
+float GetBBTime(BBProfile *b);
+
 
 //koko's magic function
 float BBKokoComputeAccel(const BBProfile *B, float Horizon);

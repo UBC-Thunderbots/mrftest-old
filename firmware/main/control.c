@@ -1,11 +1,20 @@
 #include "control.h"
-#include "adc.h"
+
 #include "physics.h"
+
+
+#include "wheels.h"
+#include <math.h>
+
+#ifndef FWSIM
+#include "adc.h"
 #include "dsp.h"
 #include "dr.h"
-#include "wheels.h"
 #include "encoder.h"
-#include <math.h>
+#else
+#include "simulate.h"
+#include <stdio.h>
+#endif
 
 
 //adjust the force on the wheels such that it compensates for a high center
@@ -49,6 +58,7 @@ void correct_wheel_force(const float force[4], float new_force[4]) {
  * \param[in] per wheel force in newtons
  */
 void apply_wheel_force(const float force[4]) {
+#ifndef FWSIM
 	float battery = adc_battery();
 	//float new_force[4];
 	//correct_wheel_force(force, new_force);
@@ -59,6 +69,9 @@ void apply_wheel_force(const float force[4]) {
 		float back_emf = (float)encoder_speed(i)*QUARTERDEGREE_TO_VOLT;
 		wheels_drive(i,(voltage+back_emf)/battery*255);
 	}
+#else
+	sim_apply_wheel_force(force);
+#endif
 }
 
 
@@ -83,10 +96,15 @@ void Clamp(float *input, float limit) {
  */
 void apply_accel(float linear_accel[2], float angular_accel) {
 	//check for max acceleration in direction of the vel difference
+#ifndef FWSIM
 	float scaling = get_maximal_accel_scaling(linear_accel, angular_accel);
-	
 	// Give the applied accels (in robot coordinates) to dead reckoning.
   dr_setaccel(linear_accel, angular_accel);
+#else
+	float scaling = 10.0; // Assume no motor limitations. Main limiter will be wheel slip
+	// Todo: might want to get rid of the line above, just use the accelleration from before
+#endif
+
   
   //if the naive 1 tick acceleration violates the limits of the robot
 	//scale it to maximum

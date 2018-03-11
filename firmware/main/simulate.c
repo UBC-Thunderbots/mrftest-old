@@ -1,3 +1,4 @@
+#ifdef FWSIM
 #include "simulate.h"
 #include "physics.h"
 #include <stdbool.h>
@@ -52,6 +53,7 @@ void sim_apply_wheel_force(const float new_wheel_force[4]){
             slip[i]   = false;
         }
     }
+
     // printf("\nWF0:%f, WF2:%f, WF2:%f,
     // WF3:%f",force4[0],force4[1],force4[2],force4[3]);
     force4_to_force3(force4, force3);
@@ -132,3 +134,5 @@ void sim_reset(){
 float get_pos_x() {
 	return pos[0];
 }
+
+#endif // FWSIm

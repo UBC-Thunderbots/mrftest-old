@@ -1,8 +1,13 @@
 #ifndef PRIMITIVES_PRIMITIVE_H
 #define PRIMITIVES_PRIMITIVE_H
 
-#include "../log.h"
 #include <stdint.h>
+
+//#ifndef FWSIM
+#include "../log.h"
+//#else
+//#include <stdbool.h>
+//#endif
 
 /**
  * \brief The information about a movement sent from the host computer.
@@ -32,6 +37,8 @@ typedef struct {
  * Therefore, it is safe to, for example, access global variables in both the
  * \ref start and the \ref tick functions.
  */
+
+//#ifndef FWSIM
 typedef struct {
 	/**
 	 * \brief Whether or not the primitive is a type of direct-mode operation.
@@ -83,5 +90,6 @@ void primitive_tick(log_record_t *log);
 bool primitive_is_direct(unsigned int primitive);
 unsigned int get_primitive_index();
 bool primitive_params_are_equal(primitive_params_t* params1,primitive_params_t* params);
+//#endif // FWSIM
 
 #endif

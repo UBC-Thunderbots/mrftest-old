@@ -9,8 +9,9 @@
 #include "../dr.h"
 #include "../dribbler.h"
 #include "../wheels.h"
+#ifndef FWSIM
 #include <unused.h>
-
+#endif // FWSIM
 /**
  * \brief Initializes the stop primitive.
  *

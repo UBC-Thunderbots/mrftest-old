@@ -1,21 +1,29 @@
 #include "shoot.h"
-#include "../chicker.h"
 #include "../control.h"
-#include "../dr.h"
-#include "../dribbler.h"
-#include "../leds.h"
 #include "../physics.h"
 #include "../bangbang.h"
-#include "../util/physbot.h"
-#include "../util/log.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "../util/physbot.h"
+#include "../util/log.h"
+
+#ifndef FWSIM
+#include "../chicker.h"
+#include "../dr.h"
+#include "../dribbler.h"
+#include "../leds.h"
+#else
+#include "../simulate.h"
+#endif
 
 // these are set to decouple the 3 axis from each other
 // the idea is to clamp the maximum velocity and acceleration
 // so that the axes would never have to compete for resources
 #define TIME_HORIZON 0.05f //s
+#ifdef FWSIM
+#define NUM_SPLINE_POINTS 50
+#endif
 
 static float destination[3], major_vec[2], minor_vec[2], total_rot;
 
@@ -23,8 +31,8 @@ static float destination[3], major_vec[2], minor_vec[2], total_rot;
  * Scales the major acceleration by the distance from the major axis and the
  * amount required left to rotate. Total roation and the distance vector should
  * not be zero so as to avoid divide by zero errors.
- * 
- * @param pb The PhysBot data container that contains information about the 
+ *
+ * @param pb The PhysBot data container that contains information about the
  * major and minor axis.
  * @return void
  */
@@ -49,8 +57,8 @@ void scale(PhysBot *pb) {
  * plan_move has been done along the minor axis. The minor time from bangbang
  * is used to determine the rotation time, and thus the rotation velocity and
  * acceleration. The rotational acceleration is clamped under the MAX_T_A.
- * 
- * @param pb The PhysBot data container that should have minor axis time and 
+ *
+ * @param pb The PhysBot data container that should have minor axis time and
  * will store the rotational information
  * @param avel The rotational velocity of the bot
  * @return void
@@ -131,7 +139,9 @@ static void shoot_start(const primitive_params_t *params) {
     total_rot = min_angle_delta(destination[2], states.angle);	
 
 	// arm the chicker
+#ifndef FWSIM
 	chicker_auto_arm((params->extra & 1) ? CHICKER_CHIP : CHICKER_KICK, params->params[3]);
+#endif
 	
 }
 
@@ -142,7 +152,9 @@ static void shoot_start(const primitive_params_t *params) {
  * shoot movement is already in progress.
  */
 static void shoot_end(void) {
+#ifndef FWSIM
 	chicker_auto_disarm();
+#endif
 }
 
 /**
@@ -170,7 +182,9 @@ static void shoot_tick(log_record_t *log) {
     scale(&pb);
     to_local_coords(accel, pb, states.angle, major_vec, minor_vec);
     apply_accel(accel, accel[2]);
+#ifndef FWSIm
     if (log) { to_log(log, pb.rot.time, accel); }
+#endif
 }
 
 

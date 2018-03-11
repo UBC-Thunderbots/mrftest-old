@@ -4,7 +4,9 @@
 #include "../dr.h"
 #include "../physics.h"
 #include <math.h>
+#ifndef FWSIM
 #include <unused.h>
+#endif // FWSIM
 
 #define CATCH_MAX_X_V (MAX_X_V/2)
 #define CATCH_MAX_Y_V (MAX_Y_V/2)
@@ -99,8 +101,10 @@ static void catch_tick(log_record_t *log) {
     // Grab variables	
 	dr_data_t current_states;
 	dr_get(&current_states);
+#ifndef FWSIM // TODO: figure out why this is causing problem for FWSIM
 	dr_ball_data_t current_ball_states;
 	dr_get_ball(&current_ball_states);
+#endif
 
     //TODO: actually update this
     float ball_vel[2] = {0.0,0.0};

@@ -1,10 +1,12 @@
 #ifndef WHEELS_H
 #define WHEELS_H
 
-#include "log.h"
+
 #include "physics.h"
 
 #include <math.h>
+
+#include "log.h"
 
 /**
  * \ingroup WHEELS
