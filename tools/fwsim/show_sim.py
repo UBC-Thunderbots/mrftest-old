@@ -1,10 +1,7 @@
 import matplotlib.pyplot as plt
-import os
 import sys
 import numpy as np
 from matplotlib.animation import FuncAnimation
-import tkinter as tk
-from threading import Thread
 import csv
 import re
 
@@ -17,23 +14,19 @@ The CSV should be fed in through sys.argv[1];
 You will need to adjust X_BALL and Y_BALL to match the ball position that you
 specified in your simulation parameters.
 """
-# parses constants from x and y position of the ball from the main.c file
-f = open("main.c")
+# parses constants from x and y position of the ball from the m.sh file
+f = open("m.sh")
 txt = f.readlines()
 X_BALL = None
 Y_BALL = None
 for line in txt:
-    if re.search("^const float X_BALL", line):
-        X_BALL = float(line.split('=')[-1].replace(' ', '').split(';')[0])
-    if re.search("^const float Y_BALL", line):
-       Y_BALL = float(line.split('=')[-1].replace(' ', '').split(';')[0])
+    if re.search("^X_FINAL", line):
+        X_BALL = np.float(line.split("=")[1].replace(" ", "")) / 1000
+    if re.search("^Y_FINAL", line):
+        Y_BALL = np.float(line.split("=")[1].replace(" ", "")) / 1000
 
 if (X_BALL is None or Y_BALL is None):
-    print("X and Y positions not found for ball.\n"
-        + "Please specify them in main.c as:\n"
-        + "    const float X_BALL = ...;\n"
-        + "    const float Y_BALL = ...;\n"
-        + "and replace ... with numbers.")
+    print("X and Y positions for final position not found. They should be specified as X_FINAL and Y_FINAL in m.sh")
     sys.exit()
 
 with open(sys.argv[1]) as file:
@@ -59,13 +52,21 @@ first_points, last_points = 5, 5
 def main():
     """Select your plot in here."""
     try:
+        print("Instructions:")
+        print("- Press the space bar to pause the animation.")
+        print("- Press r to restart the animation.")
+        print("- Use the scroll wheel to step through the animation.")
+        print("- Click a plot and press q to close all plots.")
         plot_xy()
         plot_vxvy_vs_t()
         plot_xy_vs_t()
-        # plot_theta()
+        plot_theta()
         anim = Animate()
         anim.animate_xy()
-        plt.show()
+        try:
+            plt.show()
+        except AttributeError:
+            pass
     except IndexError:
         print("Error plotting data.")
 
@@ -179,8 +180,8 @@ class Animate():
         self.fig.canvas.mpl_connect("scroll_event", self.move)
         self.fig.canvas.mpl_connect("key_press_event", self.playpause)
         self.fig.canvas.mpl_connect("key_press_event", self.restart)
+        self.fig.canvas.mpl_connect("key_press_event", self.close_plots)
         plt.legend()
-        plt.show()
 
     def move(self, e):
         """
@@ -259,6 +260,12 @@ class Animate():
             self.fig.canvas.draw()
         else:
             self.index += 1
+
+    def close_plots(self, e):
+        print("Closing fwsim")
+        if (e.key == "q"):
+            self.playing = False
+            plt.close()
 
 if __name__ == '__main__':
     main()

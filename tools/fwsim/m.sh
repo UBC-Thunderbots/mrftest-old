@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 gcc -DFWSIM -std=gnu99 -I../../firmware/main \
 -I../../firmware/main/primitives \
 main.c \
@@ -21,8 +22,10 @@ main.c \
 ../../firmware/main/util/log.c \
 -o sim -lm\
 
-#.Phython
-./sim test.csv 2 1000 1000 0 0 0 0 
+# Python
+X_FINAL=2000
+Y_FINAL=1000
+./sim test.csv 2 $X_FINAL $Y_FINAL 0 0 0 0
 python3 show_sim.py test.csv
 
 
