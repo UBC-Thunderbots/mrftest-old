@@ -31,7 +31,7 @@
 
 #define HALL_PHASE_TO_MS (0.00171*CONTROL_LOOP_HZ)
 
-#define QUARTERDEGREE_TO_VOLT QUARTERDEGREE_TO_RPM*RPM_TO_VOLT
+#define QUARTERDEGREE_TO_VOLT (QUARTERDEGREE_TO_RPM*RPM_TO_VOLT)
 
 #define ROBOT_RADIUS 0.085f
 #define TICK_TIME (1.0f / CONTROL_LOOP_HZ)
@@ -47,8 +47,8 @@
 //factor for steel motor mounts
 #define STEEL_INTERTIAL_FACTOR 0.3858f
 
-#define ROT_MASS INERTIAL_FACTOR*ROBOT_POINT_MASS
-#define INERTIA ROT_MASS*ROBOT_RADIUS*ROBOT_RADIUS
+#define ROT_MASS (INERTIAL_FACTOR*ROBOT_POINT_MASS)
+#define INERTIA (ROT_MASS*ROBOT_RADIUS*ROBOT_RADIUS)
 
 #define CURRENT_PER_TORQUE 39.21f //from motor data sheet (1/25.5 mNm)
 #define PHASE_RESISTANCE 1.6f //adjust this number as calculated
@@ -81,14 +81,14 @@ extern const float MAX_ACC[3];
 //61.0 millidegrees/second / LSB
 #define DEGREES_PER_GYRO (61.0f/1000.0f)
 #define MS_PER_DEGREE (2.0f*(float)M_PI*ROBOT_RADIUS/360.0f)
-#define MS_PER_GYRO MS_PER_DEGREE*DEGREES_PER_GYRO
+#define MS_PER_GYRO (MS_PER_DEGREE*DEGREES_PER_GYRO)
 
 // Accelerometer is running at +/- 2G's, 32767 is 2G's
 // ~61.0 uG per accelerometer LSB
 #define GRAVITY 9.807f
 #define ACCEL_RANGE 2.0f
 #define NUM_DIVISIONS 32767
-#define G_PER_ACCEL ACCEL_RANGE/NUM_DIVISIONS
+#define G_PER_ACCEL (ACCEL_RANGE/NUM_DIVISIONS)
 #define M_S_2_PER_ACCEL (GRAVITY*G_PER_ACCEL)
 
 extern const float ROBOT_MASS[3];
