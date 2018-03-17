@@ -25,3 +25,38 @@ void matmul(float A[n_rows][n_cols], float B[m_rows][m_cols],
         }
     }
 }
+
+/**
+ * Rotates the given vector by using the given rotation matrix.
+ *
+ * @param vector a 2D vector to rotate
+ * @param rotation_matrix the rotation operator
+ */
+void do_rotation(float vector[2], float rotation_matrix[2][2]) {
+    float transposed_vector[2][1] = {
+            {vector[0]},
+            {vector[1]}
+    };
+    set_vars(2, 2, 2, 1, 2, 1);
+    float vector_in_rotated_axis[2][1];
+    matmul(rotation_matrix, transposed_vector, vector_in_rotated_axis);
+    vector[0] = vector_in_rotated_axis[0][0];
+    vector[1] = vector_in_rotated_axis[1][0];
+}
+
+void rotate_axis_2D(float vector[2], float unit_vector[2]) {
+    float rotation_matrix[2][2] = {
+            {unit_vector[0], unit_vector[1]},
+            {-unit_vector[1], unit_vector[0]}
+    };
+    do_rotation(vector, rotation_matrix);
+}
+
+void rotate_vector_2D(float vector[2], float unit_vector[2]) {
+    float rotation_matrix[2][2] = {
+            {unit_vector[0], -unit_vector[1]},
+            {unit_vector[1], unit_vector[0]}
+    };
+    do_rotation(vector, rotation_matrix);
+}
+
