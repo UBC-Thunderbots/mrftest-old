@@ -28,3 +28,24 @@ void set_vars(int _n_rows, int _n_cols, int _m_rows, int _m_cols,
  */
 void matmul(float A[n_rows][n_cols], float B[m_rows][m_cols], 
             float C[out_rows][out_cols]);
+
+/**
+ * Rotates the coordinate axis through the angle represented by the given
+ * unit vector such that the given vector is in a new reference frame.
+ * The unit vector should be of the form {cos(theta), sin(theta)},
+ * where theta is the angle you want to rotate the axis by.
+ *
+ * @param vector the vector to rotate
+ * @param unit_vector {cos(theta), sin(theta)} of the angle you want to rotate the axis by
+ */
+void rotate_axis_2D(float vector[2], float unit_vector[2]);
+
+/**
+ * Rotates the given vector through the angle represented by the given
+ * unit vector. The unit vector should be of the form {cos(theta), sin(theta)},
+ * where theta is the angle you want to rotate the vector by.
+ *
+ * @param vector the vector to rotate
+ * @param unit_vector {cos(theta), sin(theta)} of the angle you want to rotate the vector by
+ */
+void rotate_vector_2D(float vector[2], float unit_vector[2]);
