@@ -1,12 +1,15 @@
 #include "particle_filter.h"
+#include <chrono>
 #include "geom/util.h"
 
-#include <math.h>
-#include <algorithm>
-#include <chrono>
-
-using namespace AI::BE::Vision::Particle;
-
+namespace AI
+{
+namespace BE
+{
+namespace Vision
+{
+namespace Particle
+{
 /* Notes on the weights and evaluation:
  * - PREDICTION_WEIGHT should always be greater than PREVIOUS_BALL_WEIGHT
  * because
@@ -23,41 +26,44 @@ using namespace AI::BE::Vision::Particle;
  * detection closest to the ball
  *   (which should be the detection for the real ball)
  */
-IntParam AI::BE::Vision::Particle::PARTICLE_FILTER_NUM_CONDENSATIONS(
+IntParam PARTICLE_FILTER_NUM_CONDENSATIONS(
     u8"Particle Filter number of condensations", u8"AI/Backend/Vision/Particle",
     5, 1, 50);
 // TOP_PERCENTAGE_OF_PARTICLES SHOULD ***NEVER*** be > 1.0, OTHERWISE THE FILTER
 // WILL TRY SELECT MORE BASEPOINTS THEN THERE ARE PARTICLES
-DoubleParam AI::BE::Vision::Particle::TOP_PERCENTAGE_OF_PARTICLES(
+DoubleParam TOP_PERCENTAGE_OF_PARTICLES(
     u8"The top fraction of particles that are used as basepoints for the next "
     u8"sample",
     u8"AI/Backend/Vision/Particle", 0.1, 0.0, 1.0);
-DoubleParam AI::BE::Vision::Particle::MAX_DETECTION_WEIGHT(
+DoubleParam MAX_DETECTION_WEIGHT(
     u8"The weight of vision detections", u8"AI/Backend/Vision/Particle", 100.0,
     0.0, 1000.0);
-DoubleParam AI::BE::Vision::Particle::DETECTION_WEIGHT_DECAY(
+DoubleParam DETECTION_WEIGHT_DECAY(
     u8"The decay rate (per meter) of the detection weight",
     u8"AI/Backend/Vision/Particle", 200.0, 0.0, 10000.0);
-DoubleParam AI::BE::Vision::Particle::PREVIOUS_BALL_WEIGHT(
+DoubleParam PREVIOUS_BALL_WEIGHT(
     u8"The weight of the previous ball's position",
     u8"AI/Backend/Vision/Particle", 1.0, 0.0, 1000.0);
-DoubleParam AI::BE::Vision::Particle::PREDICTION_WEIGHT(
+DoubleParam PREDICTION_WEIGHT(
     u8"The weight of the previous ball's predicted position",
     u8"AI/Backend/Vision/Particle", 15.0, 0.0, 1000.0);
-DoubleParam AI::BE::Vision::Particle::BALL_DIST_THRESHOLD(
+DoubleParam BALL_DIST_THRESHOLD(
     u8"How close a particle must be to the ball to get the extra "
     u8"PREVIOUS_BALL_WEIGHT",
     u8"AI/Backend/Vision/Particle", 0.5, 0.0, 100.0);
-DoubleParam AI::BE::Vision::Particle::BALL_CONFIDENCE_THRESHOLD(
+DoubleParam BALL_CONFIDENCE_THRESHOLD(
     u8"The confidence threshold for being confident or not of the ball's "
     u8"position",
     u8"AI/Backend/Vision/Particle", 60.0, 0.0, 100.0);
-DoubleParam AI::BE::Vision::Particle::BALL_VALID_DIST_THRESHOLD(
+DoubleParam BALL_VALID_DIST_THRESHOLD(
     u8"How much the detected ball can move per tick without losing confidence",
     u8"AI/Backend/Vision/Particle", 0.1, 0.0, 100.0);
-DoubleParam AI::BE::Vision::Particle::BALL_CONFIDENCE_DELTA(
+DoubleParam BALL_CONFIDENCE_DELTA(
     u8"How much the ball's confidence changes at a time",
     u8"AI/Backend/Vision/Particle", 5.0, 0.0, 100.0);
+DoubleParam BALL_MAX_VARIANCE(
+    u8"The max variance a ball detection can have without losing confidence",
+    u8"AI/Backend/Vision/Particle", 1.0, 0.0, 10.0);
 
 ParticleFilter::ParticleFilter(double length, double width)
 {
@@ -178,25 +184,62 @@ void ParticleFilter::update(Point ballPredictedPos)
     Point newBallPosition          = getPointsMean(basepoints);
     double newBallPositionVariance = getPointsVariance(basepoints);
 
-    // If there are no balls detected, lose a bit of confidence in the ball. If
-    // we can't see the ball it could
-    // be covered, be being moved, or be off the field, and we don't know.
+    // If there are no balls detected, the ball could be covered, be being
+    // moved,
+    // or be off the field, and we don't know. If we already don't have
+    // confidence in
+    // the ball's location, we use the old position since we can't find a new
+    // ball to
+    // be more confident in. Otherwise, we lose confidence in the current ball
+    // but still use
+    // the predicted position, so we are tolerant to the ball disappearing for a
+    // few frames.
     if (detections.empty())
     {
-        updateBallConfidence(-BALL_CONFIDENCE_DELTA);
+        if (ballConfidence < BALL_CONFIDENCE_THRESHOLD)
+        {
+            updateBallConfidence(-BALL_CONFIDENCE_DELTA);
+            ballPosition         = ballPosition;
+            ballPositionVariance = ballPositionVariance;
+        }
+        else
+        {
+            updateBallConfidence(-BALL_CONFIDENCE_DELTA);
+            ballPosition         = newBallPosition;
+            ballPositionVariance = newBallPositionVariance;
+        }
     }
-
-    // If something indicates we might have noise / be filtering incorrectly,
-    // lose confidence.
-    // If this happens, don't use the newly calculated position as it might be
-    // bad.
-    if ((newBallPosition - ballPosition).len() > BALL_VALID_DIST_THRESHOLD ||
-        newBallPositionVariance >
-            MAX_PARTICLE_STANDARD_DEV * MAX_PARTICLE_STANDARD_DEV)
+    // If the ball suddenly moved a large distance, or the variance of the
+    // newest ball detection
+    // is very high, something might be wrong with our latest ball
+    // detection/filter. In this case we
+    // lose some confidence in our current ball detection and use the ball's
+    // predicted position rather
+    // than the filtered on since it's more likely to be correct. If we already
+    // don't have enough confidence
+    // in the ball, we use the ball's filtered position since if we don't, we
+    // can get stuck in this "state"
+    // if the ball reappears far away.
+    else if (
+        (newBallPosition - ballPosition).len() > BALL_VALID_DIST_THRESHOLD ||
+        newBallPositionVariance > BALL_MAX_VARIANCE)
     {
-        updateBallConfidence(-BALL_CONFIDENCE_DELTA);
-        // TODO: possibly use the ball's predicted position here
+        if (ballConfidence < BALL_CONFIDENCE_THRESHOLD)
+        {
+            updateBallConfidence(-BALL_CONFIDENCE_DELTA);
+            ballPosition         = newBallPosition;
+            ballPositionVariance = newBallPositionVariance;
+        }
+        else
+        {
+            updateBallConfidence(-BALL_CONFIDENCE_DELTA);
+            ballPosition         = ballPredictedPosition;
+            ballPositionVariance = newBallPositionVariance;
+        }
     }
+    // In this case, we have good data to filter with. We use the ball's
+    // predicted position
+    // and increase our confidence in the ball.
     else
     {
         ballPosition         = newBallPosition;
@@ -204,31 +247,11 @@ void ParticleFilter::update(Point ballPredictedPos)
         updateBallConfidence(BALL_CONFIDENCE_DELTA);
     }
 
-    if (ballConfidence < BALL_CONFIDENCE_THRESHOLD)
-    {
-        if (detections.empty())
-        {
-            // Don't update the ball
-            // We could also set the position to TMP_POINT, but in some cases
-            // this might result
-            // in ai thinking the ball has a really high velocity for 1 tick.
-            // Probably better to do nothing.
-        }
-        else
-        {
-            ballPosition         = newBallPosition;
-            ballPositionVariance = newBallPositionVariance;
-            ballConfidence =
-                BALL_CONFIDENCE_THRESHOLD +
-                (MAX_BALL_CONFIDENCE - BALL_CONFIDENCE_THRESHOLD) / 2.0;
-        }
-    }
-
     detections.clear();  // Clear the detections for the next tick
 }
 
 void ParticleFilter::generateParticles(
-    const std::vector<Point>& basepoints, double standard_dev)
+    const std::vector<Point> &basepoints, double standard_dev)
 {
     if (basepoints.empty())
     {
@@ -320,7 +343,7 @@ void ParticleFilter::updateParticleConfidences()
     }
 }
 
-double ParticleFilter::evaluateParticle(const Point& particle)
+double ParticleFilter::evaluateParticle(const Point &particle)
 {
     double detectionScore = 0.0;
     for (unsigned int i = 0; i < detections.size(); i++)
@@ -384,7 +407,7 @@ double ParticleFilter::getDetectionWeight(const double dist)
     return weight < 0.0 ? 0.0 : weight;
 }
 
-bool ParticleFilter::isInField(const Point& p)
+bool ParticleFilter::isInField(const Point &p)
 {
     return fabs(p.x) <= length_ / 2 && fabs(p.y) <= width_ / 2;
 }
@@ -397,4 +420,8 @@ Point ParticleFilter::getEstimate()
 double ParticleFilter::getEstimateVariance()
 {
     return ballPositionVariance;
+}
+}
+}
+}
 }

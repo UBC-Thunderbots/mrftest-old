@@ -28,6 +28,7 @@ extern DoubleParam BALL_DIST_THRESHOLD;
 extern DoubleParam BALL_CONFIDENCE_THRESHOLD;
 extern DoubleParam BALL_VALID_DIST_THRESHOLD;
 extern DoubleParam BALL_CONFIDENCE_DELTA;
+extern DoubleParam BALL_MAX_VARIANCE;
 
 // This is used as a placeholder point for when we don't have real data
 const Point TMP_POINT = Point(-99.99, -99.99);
