@@ -1,33 +1,51 @@
 
-// the variables that determine the size of the matrices used
-// in matmul
-static int n_rows, n_cols, m_rows, m_cols, out_rows, out_cols;
 
 /**
- * Initialize all of values we need for matrix multiplication
- * 
- * @param _n_rows   rows in the left matrix
- * @param _n_cols   cols in the left matrix
- * @param _m_rows   rows in the right matrix
- * @param _m_cols   cols in the right matrix
- * @param _out_rows rows in the output matrix
- * @param _out_cols cols in the output matrix
+ * A row that would typically go into the Matrix struct. This row can have an arbitrary number of items in it, but
+ * that should be specified in the Matrix that this row would be a part of.
+ */
+typedef struct {
+    float *data;
+} MatrixRow;
+
+/**
+ * A representation of a matrix that has an arbitrary number of rows and columns specified by n_cols and n_rows.
+ * The recommended way to use this struct is to use the get_matrix function, which will allocate the memory required
+ * for each of the rows in the matrix and each of the entries in each of those rows. It will also assign the n_cols
+ * and n_rows for the matrix. Then when you are done with the matrix, you will need to call free_matrix.
+ */
+typedef struct {
+    MatrixRow *rows;
+    int n_cols;
+    int n_rows;
+} Matrix;
+
+/**
+ * Gets a matrix of the given size. This uses dynamic memory allocation so make sure to call
+ * free_matrix when you are done using it if you don't want memory leaks.
+ *
+ * @param n_rows the number of rows in the matrix
+ * @param n_cols the number of columns in the matrix
+ * @return a Matrix object
+ */
+Matrix create_matrix(int n_rows, int n_cols);
+
+/**
+ * Frees the memory used up by a matrix.
+ *
+ * @param matrix the matrix to free
  * @return void
  */
-void set_vars(int _n_rows, int _n_cols, int _m_rows, int _m_cols, 
-              int _out_rows, int _out_cols);
+void free_matrix(Matrix matrix);
 
 /**
- * Multiplies two matrices together. Must have called set_vars first to
- * set the sizes of the input and output matrices.
+ * Multiplies two matrices together and returns the resulting matrix, which is of size A.n_rows x B.n_cols
  * 
  * @param A the left matrix
  * @param B the right matrix
- * @param C the output matrix
- * @return void
+ * @return the resulting Matrix from the matrix multiplication
  */
-void matmul(float A[n_rows][n_cols], float B[m_rows][m_cols], 
-            float C[out_rows][out_cols]);
+Matrix matmul(Matrix A, Matrix B);
 
 /**
  * Rotates the coordinate axis through the angle represented by the given
@@ -37,8 +55,9 @@ void matmul(float A[n_rows][n_cols], float B[m_rows][m_cols],
  *
  * @param vector the vector to rotate
  * @param unit_vector {cos(theta), sin(theta)} of the angle you want to rotate the axis by
+ * @return void
  */
-void rotate_axis_2D(float vector[2], float unit_vector[2]);
+void rotate_axis_2D(float vector[2], const float unit_vector[2]);
 
 /**
  * Rotates the given vector through the angle represented by the given
@@ -47,16 +66,15 @@ void rotate_axis_2D(float vector[2], float unit_vector[2]);
  *
  * @param vector the vector to rotate
  * @param unit_vector {cos(theta), sin(theta)} of the angle you want to rotate the vector by
+ * @return void
  */
-void rotate_vector_2D(float vector[2], float unit_vector[2]);
+void rotate_vector_2D(float vector[2], const float unit_vector[2]);
 
 /**
- * Creates a transpose of the given in_matrix and stores it in out_matrix.
- *
- * Must set n_rows, n_cols, out_rows, and out_cols using set vars before hand.
+ * Creates a transpose of the given in_matrix.
  *
  * @param in_matrix the matrix to transpose
- * @param out_matrix the transposed matrix
+ * @return the transpose of the given matrix
  */
-void transpose(float in_matrix[n_rows][n_cols], float out_matrix[out_rows][out_cols]);
+Matrix transpose(Matrix in_matrix);
 

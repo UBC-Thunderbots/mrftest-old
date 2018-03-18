@@ -1,29 +1,41 @@
+#include <stdlib.h>
 #include "matrix.h"
 
-void set_vars(int _n_rows, int _n_cols, int _m_rows, int _m_cols, 
-              int _out_rows, int _out_cols) {
-    n_rows = _n_rows;
-    n_cols = _n_cols;
-    m_rows = _m_rows;
-    m_cols = _m_cols;
-    out_rows = _out_rows;
-    out_cols = _out_cols;
+
+Matrix create_matrix(int n_rows, int n_cols) {
+    Matrix matrix;
+    matrix.rows = (MatrixRow *) malloc(sizeof(MatrixRow) * n_rows);
+    matrix.n_rows = n_rows;
+    matrix.n_cols = n_cols;
+    int i;
+    for (i = 0; i < n_rows; i++) {
+        matrix.rows[i].data = (float *) malloc(sizeof(float) * n_cols);
+    }
+    return matrix;
 }
 
+void free_matrix(Matrix matrix) {
+    int i, j;
+    for (i = 0; i < matrix.n_rows; i++) {
+        free(matrix.rows[i].data);
+    }
+    free(matrix.rows);
+}
 
-void matmul(float A[n_rows][n_cols], float B[m_rows][m_cols], 
-            float C[out_rows][out_cols]) {
+Matrix matmul(Matrix A, Matrix B) {
     int i;
     int j;
     int k;
-    for (i = 0; i < m_cols; i++) {
-        for (j = 0; j < n_rows; j++) {
-            C[j][i] = 0.0f;
-            for (k = 0; k < n_cols; k++) {
-                C[j][i] += A[j][k] * B[k][i];
+    Matrix C = create_matrix(A.n_rows, B.n_cols);
+    for (i = 0; i < B.n_cols; i++) {
+        for (j = 0; j < A.n_rows; j++) {
+            C.rows[j].data[i] = 0.0f;
+            for (k = 0; k < A.n_cols; k++) {
+                C.rows[j].data[i] += A.rows[j].data[k] * B.rows[k].data[i];
             }
         }
     }
+    return C;
 }
 
 /**
@@ -31,42 +43,47 @@ void matmul(float A[n_rows][n_cols], float B[m_rows][m_cols],
  *
  * @param vector a 2D vector to rotate
  * @param rotation_matrix the rotation operator
+ * @return void
  */
-void do_rotation(float vector[2], float rotation_matrix[2][2]) {
-    float transposed_vector[2][1] = {
-            {vector[0]},
-            {vector[1]}
-    };
-    set_vars(2, 2, 2, 1, 2, 1);
-    float vector_in_rotated_axis[2][1];
-    matmul(rotation_matrix, transposed_vector, vector_in_rotated_axis);
-    vector[0] = vector_in_rotated_axis[0][0];
-    vector[1] = vector_in_rotated_axis[1][0];
+void do_rotation(float vector_array[2], Matrix rotation_matrix) {
+    Matrix vector = create_matrix(2, 1);
+    vector.rows[0].data[0] = vector_array[0];
+    vector.rows[1].data[0] = vector_array[1];
+    Matrix rotated = matmul(rotation_matrix, vector);
+    vector_array[0] = rotated.rows[0].data[0];
+    vector_array[1] = rotated.rows[1].data[0];
+    free_matrix(vector);
+    free_matrix(rotated);
+    free_matrix(rotation_matrix);
 }
 
-void rotate_axis_2D(float vector[2], float unit_vector[2]) {
-    float rotation_matrix[2][2] = {
-            {unit_vector[0], unit_vector[1]},
-            {-unit_vector[1], unit_vector[0]}
-    };
+void rotate_axis_2D(float vector[2], const float unit_vector[2]) {
+    Matrix rotation_matrix = create_matrix(2, 2);
+    rotation_matrix.rows[0].data[0] = unit_vector[0];
+    rotation_matrix.rows[0].data[1] = unit_vector[1];
+    rotation_matrix.rows[1].data[0] = -unit_vector[1];
+    rotation_matrix.rows[1].data[1] = unit_vector[0];
     do_rotation(vector, rotation_matrix);
 }
 
-void rotate_vector_2D(float vector[2], float unit_vector[2]) {
-    float rotation_matrix[2][2] = {
-            {unit_vector[0], -unit_vector[1]},
-            {unit_vector[1], unit_vector[0]}
-    };
+void rotate_vector_2D(float vector[2], const float unit_vector[2]) {
+    Matrix rotation_matrix = create_matrix(2, 2);
+    rotation_matrix.rows[0].data[0] = unit_vector[0];
+    rotation_matrix.rows[0].data[1] = -unit_vector[1];
+    rotation_matrix.rows[1].data[0] = unit_vector[1];
+    rotation_matrix.rows[1].data[1] = unit_vector[0];
     do_rotation(vector, rotation_matrix);
 }
 
 
-void transpose(float in_matrix[n_rows][n_cols], float out_matrix[out_rows][out_cols]) {
-    int i; 
+Matrix transpose(Matrix in_matrix) {
+    int i;
     int j;
-    for (i = 0; i < n_rows; i++) {
-        for (j = 0; j < n_cols; j++) {
-            out_matrix[j][i] = in_matrix[i][j];
+    Matrix out_matrix = create_matrix(in_matrix.n_cols, in_matrix.n_rows);
+    for (i = 0; i < in_matrix.n_rows; i++) {
+        for (j = 0; j < in_matrix.n_cols; j++) {
+            out_matrix.rows[j].data[i] = in_matrix.rows[i].data[j];
         }
     }
+    return out_matrix;
 }
