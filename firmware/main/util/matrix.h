@@ -49,3 +49,14 @@ void rotate_axis_2D(float vector[2], float unit_vector[2]);
  * @param unit_vector {cos(theta), sin(theta)} of the angle you want to rotate the vector by
  */
 void rotate_vector_2D(float vector[2], float unit_vector[2]);
+
+/**
+ * Creates a transpose of the given in_matrix and stores it in out_matrix.
+ *
+ * Must set n_rows, n_cols, out_rows, and out_cols using set vars before hand.
+ *
+ * @param in_matrix the matrix to transpose
+ * @param out_matrix the transposed matrix
+ */
+void transpose(float in_matrix[n_rows][n_cols], float out_matrix[out_rows][out_cols]);
+
