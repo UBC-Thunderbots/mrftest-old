@@ -17,7 +17,7 @@
 				200.000000
 			</Var>
 			<Var name="Boundary Width" type="double" minval="" maxval="">
-				250.000000
+				100.000000
 			</Var>
 			<Var name="Number of Line Segments" type="int" minval="" maxval="">
 				8
@@ -151,16 +151,16 @@
 						LeftPenaltyStretch
 					</Var>
 					<Var name="P1.x" type="double" minval="" maxval="">
-						-2000.000000
+						-2200.000000
 					</Var>
 					<Var name="P1.y" type="double" minval="" maxval="">
-						-250.000000
+						-175.000000
 					</Var>
 					<Var name="P2.x" type="double" minval="" maxval="">
-						-2000.000000
+						-2200.000000
 					</Var>
 					<Var name="P2.y" type="double" minval="" maxval="">
-						250.000000
+						175.000000
 					</Var>
 					<Var name="Line thickness" type="double" minval="" maxval="">
 						10.000000
@@ -171,16 +171,16 @@
 						RightPenaltyStretch
 					</Var>
 					<Var name="P1.x" type="double" minval="" maxval="">
-						2000.000000
+						2200.000000
 					</Var>
 					<Var name="P1.y" type="double" minval="" maxval="">
-						-250.000000
+						-175.000000
 					</Var>
 					<Var name="P2.x" type="double" minval="" maxval="">
-						2000.000000
+						2200.000000
 					</Var>
 					<Var name="P2.y" type="double" minval="" maxval="">
-						250.000000
+						175.000000
 					</Var>
 					<Var name="Line thickness" type="double" minval="" maxval="">
 						10.000000
@@ -196,10 +196,10 @@
 						-2995.000000
 					</Var>
 					<Var name="Center.y" type="double" minval="" maxval="">
-						250.000000
+						175.000000
 					</Var>
 					<Var name="Radius" type="double" minval="" maxval="">
-						995.000000
+						800.000000
 					</Var>
 					<Var name="Start angle" type="double" minval="" maxval="">
 						0.000000
@@ -219,10 +219,10 @@
 						-2995.000000
 					</Var>
 					<Var name="Center.y" type="double" minval="" maxval="">
-						-250.000000
+						-175.000000
 					</Var>
 					<Var name="Radius" type="double" minval="" maxval="">
-						995.000000
+						800.000000
 					</Var>
 					<Var name="Start angle" type="double" minval="" maxval="">
 						4.712389
@@ -242,10 +242,10 @@
 						3005.000000
 					</Var>
 					<Var name="Center.y" type="double" minval="" maxval="">
-						-250.000000
+						-175.000000
 					</Var>
 					<Var name="Radius" type="double" minval="" maxval="">
-						995.000000
+						800.000000
 					</Var>
 					<Var name="Start angle" type="double" minval="" maxval="">
 						3.141593
@@ -265,10 +265,10 @@
 						3005.000000
 					</Var>
 					<Var name="Center.y" type="double" minval="" maxval="">
-						250.000000
+						175.000000
 					</Var>
 					<Var name="Radius" type="double" minval="" maxval="">
-						995.000000
+						800.000000
 					</Var>
 					<Var name="Start angle" type="double" minval="" maxval="">
 						1.570796
@@ -352,7 +352,7 @@
 				3025
 			</Var>
 			<Var name="Half Field Width" type="int" minval="" maxval="">
-				4050
+				2025
 			</Var>
 			<Var name="Half Line Width" type="int" minval="" maxval="">
 				5
@@ -1807,7 +1807,7 @@
 				true
 			</Var>
 			<Var name="calibration result" type="bool">
-				false
+				true
 			</Var>
 			<Var name="detected edges" type="bool">
 				true
