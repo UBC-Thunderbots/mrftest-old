@@ -57,8 +57,8 @@ void build_c_matrix(float a_req[3], float M[3][4], float c[4]) {
     }
 }
 
-void transpose(float M[3][4], float M_T[4][3]) {
-    int i; 
+void transpose_qp(float M[3][4], float M_T[4][3]) {
+    int i;
     int j;
     for (i = 0; i < 3; i++) {
         for (j = 0; j < 4; j++) {
@@ -98,7 +98,7 @@ void quad_optimize(PhysBot pb, dr_data_t state, float a_req[3]) {
     float Q[4][4];
     float c[4];
     build_M_matrix(pb, state, M);
-    transpose(M, M_T);
+    transpose_qp(M, M_T);
     build_c_matrix(a_req, M, c);
     put_c_matrix_in_params(c);
     build_Q_matrix(M, M_T, Q);

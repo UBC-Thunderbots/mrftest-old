@@ -49,7 +49,7 @@ END_TEST
 START_TEST(test_transpose)
 {
     float M_T[4][3];
-    transpose(M, M_T);
+    transpose_qp(M, M_T);
     float expected_result[4][3] = {
         {1, 5, 9},
         {2, 6, 10},
@@ -68,7 +68,7 @@ START_TEST(test_build_Q_matrix)
 {
     float M_T[4][3];
     float Q[4][4];
-    transpose(M, M_T);
+    transpose_qp(M, M_T);
     build_Q_matrix(M, M_T, Q);
     float expected_result[4][4] = {
         {107, 122, 137, 152},

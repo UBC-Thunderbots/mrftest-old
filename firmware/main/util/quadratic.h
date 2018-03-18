@@ -46,7 +46,7 @@ void build_c_matrix(float a_req[3], float M[3][4], float c[4]);
  * @param M_T the transpose of the M matrix
  * @return void
  */ 
-void transpose(float M[3][4], float M_T[4][3]);
+void transpose_qp(float M[3][4], float M_T[4][3]);
 
 /**
  * Multiplies the M.T * M to get the Q matrix for the optimization.

@@ -86,14 +86,37 @@ START_TEST(test_rotate_axis_2D)
 END_TEST
 
 START_TEST(test_rotate_vector_2D)
-    {
-        float vector[2] = {1.0f, 1.0f};
-        float angle = (float) M_PI / 4.0f;
-        float unit_vector[2] = {cosf(angle), sinf(angle)};
-        rotate_vector_2D(vector, unit_vector);
-        ck_assert_float_eq_tol(0.0f, vector[0], TOL);
-        ck_assert_float_eq_tol(sqrtf(2.0f), vector[1], TOL);
+{
+    float vector[2] = {1.0f, 1.0f};
+    float angle = (float) M_PI / 4.0f;
+    float unit_vector[2] = {cosf(angle), sinf(angle)};
+    rotate_vector_2D(vector, unit_vector);
+    ck_assert_float_eq_tol(0.0f, vector[0], TOL);
+    ck_assert_float_eq_tol(sqrtf(2.0f), vector[1], TOL);
+}
+END_TEST
+
+START_TEST(test_transpose)
+{
+    float in_matrix[3][2] = {
+            {3.0f, 5.0f},
+            {4.0f, 10.0f},
+            {2.0f, 6.0f}
+    };
+    float expected_result[2][3] = {
+            {3.0f, 4.0f, 2.0f},
+            {5.0f, 10.0f, 6.0f}
+    };
+    float out_matrix[2][3];
+    set_vars(3, 2, 0, 0, 2, 3);
+    transpose(in_matrix, out_matrix);
+    int i, j;
+    for (i = 0; i < 2; i++) {
+        for (j = 0; j < 3; j++) {
+            ck_assert_float_eq_tol(expected_result[i][j], out_matrix[i][j], TOL);
+        }
     }
+}
 END_TEST
 
 void run_matrix_test() {
@@ -107,6 +130,7 @@ void run_matrix_test() {
     tcase_add_test(tc, test_matmul_same_size);
     tcase_add_test(tc, test_rotate_axis_2D);
     tcase_add_test(tc, test_rotate_vector_2D);
+    tcase_add_test(tc, test_transpose);
     // run the tests
     run_test(tc, s);
 }

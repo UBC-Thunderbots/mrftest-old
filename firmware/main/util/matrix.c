@@ -60,3 +60,13 @@ void rotate_vector_2D(float vector[2], float unit_vector[2]) {
     do_rotation(vector, rotation_matrix);
 }
 
+
+void transpose(float in_matrix[n_rows][n_cols], float out_matrix[out_rows][out_cols]) {
+    int i; 
+    int j;
+    for (i = 0; i < n_rows; i++) {
+        for (j = 0; j < n_cols; j++) {
+            out_matrix[j][i] = in_matrix[i][j];
+        }
+    }
+}
