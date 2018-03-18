@@ -296,8 +296,8 @@ inline void AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam>::update_ball(
             bool any_ball_inside = false;
             for (const SSL_DetectionBall &b : det.balls())
             {
-                if (fabs(b.x()) <= field_.length() * 500 &&
-                    fabs(b.y()) <= field_.width() * 500)
+                if (fabs(b.x()) <= field_.total_length() * 500 &&
+                    fabs(b.y()) <= field_.total_width() * 500)
                 {
                     any_ball_inside = true;
                     break;
@@ -306,8 +306,8 @@ inline void AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam>::update_ball(
 
             for (const SSL_DetectionBall &b : det.balls())
             {
-                if ((fabs(b.x()) > field_.length() * 500 ||
-                     fabs(b.y()) > field_.width() * 500) &&
+                if ((fabs(b.x()) > field_.total_length() * 500 ||
+                     fabs(b.y()) > field_.total_width() * 500) &&
                     any_ball_inside)
                 {
                     continue;
