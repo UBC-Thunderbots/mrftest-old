@@ -9,7 +9,7 @@ Matrix create_matrix(int n_rows, int n_cols) {
     matrix.n_cols = n_cols;
     int i;
     for (i = 0; i < n_rows; i++) {
-        matrix.rows[i].data = (float *) malloc(sizeof(float) * n_cols);
+        matrix.rows[i].data = (float *) calloc((unsigned) n_cols, sizeof(float));
     }
     return matrix;
 }
