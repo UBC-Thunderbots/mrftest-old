@@ -49,7 +49,7 @@ void to_local_coords(float accel[3], PhysBot pb, float angle, float major_vec[2]
     float minor_vec[2]) {
     float local_norm_vec[2][2] = {
         {cosf(angle), sinf(angle)}, 
-        {cosf(angle + M_PI / 2), sinf(angle + M_PI / 2)}
+        {cosf(angle + P_PI / 2), sinf(angle + P_PI / 2)}
     };
     for (int i = 0; i < 2; i++) {
         accel[i] =  pb.min.accel * dot2D(local_norm_vec[i], minor_vec);

@@ -13,7 +13,7 @@ START_TEST(test_plan_move_rotation_large)
 {
     // expected values were determined from manually
     // doing the math that plan_move_rotation does
-    pb.rot.disp = 20.0f * M_PI / 180.0f;
+    pb.rot.disp = 20.0f * P_PI / 180.0f;
     plan_move_rotation(&pb, 3.0f);
     ck_assert_double_eq(TIME_HORIZON, pb.rot.time);
     ck_assert_double_eq_tol(6.98132, pb.rot.vel, 0.001);
@@ -25,7 +25,7 @@ START_TEST(test_plan_move_rotation_small)
 {
     // expected values were determined from manually
     // doing the math that plan_move_rotation does
-    pb.rot.disp = 2.0f * M_PI / 180.0f;
+    pb.rot.disp = 2.0f * P_PI / 180.0f;
     plan_move_rotation(&pb, 2.0f);
     ck_assert_double_eq(TIME_HORIZON, pb.rot.time);
     ck_assert_double_eq_tol(0.698132, pb.rot.vel, 0.001);
@@ -81,7 +81,7 @@ START_TEST(test_choose_wheel_axis_case_5)
 {
     // moving along x-axis, facing forward
     // final angle chooses wheel index 5
-    unsigned index = choose_wheel_axis(1, 0, 0, M_PI / 2.0f);
+    unsigned index = choose_wheel_axis(1, 0, 0, P_PI / 2.0f);
     ck_assert_int_eq(5, index);
 }
 END_TEST

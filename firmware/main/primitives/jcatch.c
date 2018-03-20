@@ -136,7 +136,7 @@ static void catch_tick(log_record_t *log) {
 
     minor_vec[0] = major_vec[0];
 	minor_vec[1] = major_vec[1];
-	rotate(minor_vec, M_PI/2);	
+	rotate(minor_vec, P_PI/2);	
 
 		
     // plan getting onto the minor with 0 end vel
@@ -187,7 +187,7 @@ static void catch_tick(log_record_t *log) {
     
     // get robot local coordinates
 	float local_x_norm_vec[2] = {cosf(current_states.angle), sinf(current_states.angle)}; 
-	float local_y_norm_vec[2] = {cosf(current_states.angle + M_PI/2), sinf(current_states.angle + M_PI/2)}; 
+	float local_y_norm_vec[2] = {cosf(current_states.angle + P_PI/2), sinf(current_states.angle + P_PI/2)}; 
 
     // rotate acceleration onto robot local coordinates
 	accel[0] = minor_accel*(local_x_norm_vec[0]*minor_vec[0] + local_x_norm_vec[1]*minor_vec[1] );
@@ -199,7 +199,7 @@ static void catch_tick(log_record_t *log) {
     // Calculate the angular acceleration
     float major_angle = atan2f(major_vec[1], major_vec[0]);
     // robot must face opposite of ball velocity
-	float angle_disp = min_angle_delta(pos[2], major_angle + M_PI);
+	float angle_disp = min_angle_delta(pos[2], major_angle + P_PI);
 
     // orientate the robot in half the time
 	float targetVel = 2*angle_disp/timeTarget; 

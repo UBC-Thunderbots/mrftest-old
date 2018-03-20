@@ -116,12 +116,12 @@ static void pivot_tick(log_record_t *log) {
 	vectorSub(pos,center,2); //rebase pos to center of coord system (only x,y)
 	Cart2Pol(pos); //working in polar coordinates because pivot
 	float thetaDiff = pos[1] - prevTheta;
-	if (thetaDiff > (float)M_PI) {
-		thetaDiff -= 2.0f*(float)M_PI;
+	if (thetaDiff > (float)P_PI) {
+		thetaDiff -= 2.0f*(float)P_PI;
 	} 
 
-	if (thetaDiff < -(float)M_PI) {
-		thetaDiff += 2.0f*(float)M_PI;
+	if (thetaDiff < -(float)P_PI) {
+		thetaDiff += 2.0f*(float)P_PI;
 	}
 	pos[1] = prevTheta + thetaDiff;
 	prevTheta = pos[1]; 

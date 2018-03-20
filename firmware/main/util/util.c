@@ -1,5 +1,5 @@
 #include "util.h"
-#include <math.h>
+#include "physics.h"
 
 float fmax_of_array(float array[], unsigned size) {
     unsigned i;
@@ -76,5 +76,5 @@ void limit(float *value, float limiting_value) {
 }
 
 float radians(float degrees) {
-    return degrees * M_PI / 180.0f;
+    return degrees * P_PI / 180.0f;
 }

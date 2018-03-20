@@ -132,7 +132,7 @@ static void shoot_start(const primitive_params_t *params) {
 	major_vec[1] = sinf(destination[2]);
 	minor_vec[0] = major_vec[0];
 	minor_vec[1] = major_vec[1];
-	rotate(minor_vec, M_PI / 2);
+	rotate(minor_vec, P_PI / 2);
 
     dr_data_t states;
     dr_get(&states);

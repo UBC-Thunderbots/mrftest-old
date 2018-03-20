@@ -24,7 +24,7 @@
 // so that the axes would never have to compete for resources
 #define TIME_HORIZON 0.05f //s
 
-const float PI_2 = M_PI / 2.0f;
+const float PI_2 = P_PI / 2.0f;
 static float destination[3], end_speed, major_vec[2], minor_vec[2];
 // store a wheel index here so we only have to calculate the axis
 // we want to use when move start is called
@@ -56,7 +56,7 @@ unsigned choose_wheel_axis(float dx, float dy, float current_angle, float final_
 	// the angle on the global axis corresponding to the bot's movement
 	float theta_norm = atan2f(dy, dx);
 	// initialize a variable to store the minimum rotation
-	float minimum_rotation = 2 * M_PI;
+	float minimum_rotation = 2 * P_PI;
 	// the index that corresponds to the minimum rotation
 	unsigned min_index = 0;
 	unsigned i;
@@ -172,7 +172,7 @@ static void move_start(const primitive_params_t *params)
 	major_vec[1] = dy / total_disp;
 	minor_vec[0] = major_vec[0];
 	minor_vec[1] = major_vec[1];
-	rotate(minor_vec, M_PI / 2);
+	rotate(minor_vec, P_PI / 2);
 
 	// pick the wheel axis that will be used for faster movement
 	wheel_index = choose_wheel_axis(dx, dy, current_states.angle, destination[2]);
