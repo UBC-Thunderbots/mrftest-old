@@ -90,8 +90,8 @@ void dr_tick(log_record_t *log) {
   current_state.y += current_state.vy*TICK_TIME;
   current_state.angle += current_state.avel*TICK_TIME;
 
-  if(current_state.angle > M_PI) current_state.angle -= 2*M_PI;
-  else if(current_state.angle < -M_PI) current_state.angle += 2*M_PI;  
+  if(current_state.angle > P_PI) current_state.angle -= 2*P_PI;
+  else if(current_state.angle < -P_PI) current_state.angle += 2*P_PI;  
 
   //Update ball positions
   current_ball_state.x += current_ball_state.vx*TICK_TIME;
@@ -166,8 +166,8 @@ void dr_apply_cam() {
     angle += wheel_speeds[2]*TICK_TIME;
   }
   
-  angle = fmod(angle, 2*M_PI);
-  if(angle > M_PI) angle -= 2*M_PI;
+  angle = fmod(angle, 2*P_PI);
+  if(angle > P_PI) angle -= 2*P_PI;
 
   current_state.x = x;
   current_state.y = y;
@@ -235,9 +235,9 @@ void dr_set_ball_timestamp(uint64_t timestamp) {
 
 
 void dr_do_maneuver(){
-  int16_t dests[3][3] = {{700,-700,(int16_t)(M_PI*100)},
+  int16_t dests[3][3] = {{700,-700,(int16_t)(P_PI*100)},
 			 {2000,1000,30},
-			 {0,0,(int16_t)(M_PI/2.0)}};
+			 {0,0,(int16_t)(P_PI/2.0)}};
 
 
 

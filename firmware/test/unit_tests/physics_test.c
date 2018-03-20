@@ -29,25 +29,25 @@ END_TEST
 
 START_TEST(test_min_angle_delta_lt_90) 
 {
-    ck_assert_float_eq(30 * M_PI / 180.0f, min_angle_delta(0, 30 * M_PI / 180.0f));
+    ck_assert_float_eq(30 * P_PI / 180.0f, min_angle_delta(0, 30 * P_PI / 180.0f));
 }
 END_TEST
 
 START_TEST(test_min_angle_delta_gt_90) 
 {
-    ck_assert_float_eq(117 * M_PI / 180.0f, min_angle_delta(0, 117 * M_PI / 180.0f));
+    ck_assert_float_eq(117 * P_PI / 180.0f, min_angle_delta(0, 117 * P_PI / 180.0f));
 }
 END_TEST
 
 START_TEST(test_min_angle_delta_both_non_zero)
 {
-    ck_assert_float_eq_tol(-47 * M_PI / 180.0f, min_angle_delta(15 * M_PI / 180.0f, -32 * M_PI / 180.0f), TOL);
+    ck_assert_float_eq_tol(-47 * P_PI / 180.0f, min_angle_delta(15 * P_PI / 180.0f, -32 * P_PI / 180.0f), TOL);
 }
 END_TEST
 
 START_TEST(test_min_angle_delta_big_angles)
 {
-    ck_assert_float_eq_tol(-173 * M_PI / 180.0f, min_angle_delta(4 * M_PI, 187 * M_PI / 180.0f), TOL);
+    ck_assert_float_eq_tol(-173 * P_PI / 180.0f, min_angle_delta(4 * P_PI, 187 * P_PI / 180.0f), TOL);
 }
 END_TEST
 

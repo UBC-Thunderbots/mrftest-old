@@ -3,7 +3,8 @@
 
 #include <math.h>
 
-#define M_PI 3.14159265f
+// define our own PI value here that is a float because M_PI in math.h is a double
+#define P_PI 3.14159265f
 
 #ifdef FWSIM
 #define max(a, b)                                                              \
@@ -80,7 +81,7 @@ extern const float MAX_ACC[3];
 //gyro running at 2000/second and in integers such that 32767 is 2000
 //61.0 millidegrees/second / LSB
 #define DEGREES_PER_GYRO (61.0f/1000.0f)
-#define MS_PER_DEGREE (2.0f*(float)M_PI*ROBOT_RADIUS/360.0f)
+#define MS_PER_DEGREE (2.0f*(float)P_PI*ROBOT_RADIUS/360.0f)
 #define MS_PER_GYRO (MS_PER_DEGREE*DEGREES_PER_GYRO)
 
 // Accelerometer is running at +/- 2G's, 32767 is 2G's

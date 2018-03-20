@@ -18,8 +18,8 @@ void build_M_matrix(PhysBot pb, dr_data_t state, float M[3][4]) {
     }
     int i;
     for (i = 0; i < 4; i++) {
-        float radians = rel_wheel_angles[i] * M_PI / 180.0f;
-        float wheel_direction = state.angle + radians + (M_PI / 2.0f);
+        float radians = rel_wheel_angles[i] * P_PI / 180.0f;
+        float wheel_direction = state.angle + radians + (P_PI / 2.0f);
         float wheel_vector[2] = { cos(wheel_direction), sin(wheel_direction) };
         float major_row = dot2D(pb.major_vec, wheel_vector);
         float minor_row = dot2D(pb.minor_vec, wheel_vector);

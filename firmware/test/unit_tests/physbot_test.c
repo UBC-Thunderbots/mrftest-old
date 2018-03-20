@@ -9,7 +9,7 @@ START_TEST(test_setup_bot)
     states.vy = -3.0f;
     states.x = 1.1f;
     states.y = 0.3f;
-    states.angle = M_PI;
+    states.angle = P_PI;
 
     float destination[3] = {0.0f, 0.0f, 0.0f};
     float major_vec[2] = {1.0f, 0.0f};
@@ -27,7 +27,7 @@ START_TEST(test_setup_bot)
     ck_assert_float_eq_tol(minor_vec[0], pb.minor_vec[0], TOL);
     ck_assert_float_eq_tol(minor_vec[1], pb.minor_vec[1], TOL);
 
-    ck_assert_float_eq_tol(M_PI, pb.rot.disp, TOL);
+    ck_assert_float_eq_tol(P_PI, pb.rot.disp, TOL);
 
     ck_assert_float_eq_tol(dot2D(major_vec, dr), pb.maj.disp, TOL);
     ck_assert_float_eq_tol(dot2D(major_vec, v), pb.maj.vel, TOL);
@@ -47,7 +47,7 @@ START_TEST(test_to_local_coords)
     PhysBot pb;
     pb.maj.accel = 1.5f;
     pb.min.accel = 0.25f;
-    float angle = M_PI;
+    float angle = P_PI;
     float major_vec[2] = {1.0f, 0.0f};
     float minor_vec[2] = {0.0f, -1.0f};
     to_local_coords(accel, pb, angle, major_vec, minor_vec);

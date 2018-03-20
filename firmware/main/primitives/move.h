@@ -11,14 +11,14 @@ extern const primitive_t MOVE_PRIMITIVE;
 // TODO: Find out actual wheel angle
 // this should be the angle between the front of the bot and either
 // the closest right or left wheel
-static const float CLOSEST_WHEEL_ANGLE = 30.0f * M_PI / 180.0f;
+static const float CLOSEST_WHEEL_ANGLE = 30.0f * P_PI / 180.0f;
 
 // The minimum distance away from our destination that we must be if we
 // are going to rotate the bot onto its wheel axis
-// 2 * M_PI * ROBOT_RADIUS = robot circumference, which is approximately
+// 2 * P_PI * ROBOT_RADIUS = robot circumference, which is approximately
 // how far the bot would have to turn for one full rotation, so we 
 // set it a litle larger than that.
-static const float APPROACH_LIMIT = 3 * M_PI * ROBOT_RADIUS;
+static const float APPROACH_LIMIT = 3 * P_PI * ROBOT_RADIUS;
 
 #define VAL_EQUIVALENT_2_ZERO (5e-3f)
 #define CONTROL_TICK (1.0f/CONTROL_LOOP_HZ)
