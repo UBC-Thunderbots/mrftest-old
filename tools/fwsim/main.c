@@ -13,41 +13,6 @@
 #define NUM_PARAMS 3
 #define NUM_ATTEMPTS 1
 
-static const unsigned HIST_SIZE = MAX_SIM_T / HIST_TICK_T + 1;
-const float X_BALL              = 2.0;
-const float Y_BALL              = 1.0;
-
-/*
-void prim_tick(unsigned primNum)
-{
-    switch (primNum)
-    {
-        case 1:
-            move_tick();
-            break;
-        case 3:
-            shoot_tick();
-            break;
-        default:
-            printf("this primitive not yet implemented in fwsim");
-    }
-}
-void prim_start(unsigned primNum, primitive_params_t *p)
-{
-    switch (primNum)
-    {
-        case 1:
-            move_start(p);
-            break;
-        case 3:
-            shoot_start(p);
-            break;
-        default:
-            printf("this primitive not yet implemented in fwsim");
-    }
-}
-*/
-
 unsigned runSim(char *logFile, const int primNum, const primitive_params_t *p)
 {
     sim_reset();
@@ -83,7 +48,6 @@ unsigned runSim(char *logFile, const int primNum, const primitive_params_t *p)
 
 int main(int argc, char **argv)
 {
-    // printf("\n\n\npparam0: %f", argv[4]);
     if (argc < 7)
     {
         printf("Need more arguments: logfile, prim num, prim params 0:3");
