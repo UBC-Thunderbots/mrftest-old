@@ -9,16 +9,16 @@
 START_TEST(test_matmul_vectors)
 {
     Matrix A = create_matrix(1, 2);
-    A.rows[0].data[0] = 5.0f;
-    A.rows[0].data[1] = 3.0f;
+    A.rows[0][0] = 5.0f;
+    A.rows[0][1] = 3.0f;
 
     Matrix B = create_matrix(2, 1);
-    B.rows[0].data[0] = 4.0f;
-    B.rows[1].data[0] = 6.0f;
+    B.rows[0][0] = 4.0f;
+    B.rows[1][0] = 6.0f;
 
     Matrix C = matmul(A, B);
 
-    ck_assert_float_eq_tol(38.0f, C.rows[0].data[0], TOL);
+    ck_assert_float_eq_tol(38.0f, C.rows[0][0], TOL);
     free_matrix(A);
     free_matrix(B);
     free_matrix(C);
@@ -35,7 +35,7 @@ START_TEST(test_matmul_different_size)
     };
     for (i = 0; i < 2; i++) {
         for (j = 0; j < 3; j++) {
-            A.rows[i].data[j] = A_array[i][j];
+            A.rows[i][j] = A_array[i][j];
         }
     }
     Matrix B = create_matrix(3, 2);
@@ -47,7 +47,7 @@ START_TEST(test_matmul_different_size)
 
     for (i = 0; i < 3; i++) {
         for (j = 0; j < 2; j++) {
-            B.rows[i].data[j] = B_array[i][j];
+            B.rows[i][j] = B_array[i][j];
         }
     }
     float expected_C[2][2] = {
@@ -57,7 +57,7 @@ START_TEST(test_matmul_different_size)
     Matrix C = matmul(A, B);
     for (i = 0; i < 2; i++) {
         for (j = 0; j < 2; j++) {
-            ck_assert_float_eq_tol(expected_C[i][j], C.rows[i].data[j], TOL);
+            ck_assert_float_eq_tol(expected_C[i][j], C.rows[i][j], TOL);
         }
     }
     free_matrix(A);
@@ -85,8 +85,8 @@ START_TEST(test_matmul_same_size)
 
     for (i = 0; i < 3; i++) {
         for (j = 0; j < 3; j++) {
-            A.rows[i].data[j] = A_array[i][j];
-            B.rows[i].data[j] = B_array[i][j];
+            A.rows[i][j] = A_array[i][j];
+            B.rows[i][j] = B_array[i][j];
         }
     }
 
@@ -98,7 +98,7 @@ START_TEST(test_matmul_same_size)
     Matrix C = matmul(A, B);
     for (i = 0; i < 3; i++) {
         for (j = 0; j < 3; j++) {
-            ck_assert_float_eq_tol(expected_C[i][j], C.rows[i].data[j], TOL);
+            ck_assert_float_eq_tol(expected_C[i][j], C.rows[i][j], TOL);
         }
     }
 }
@@ -137,7 +137,7 @@ START_TEST(test_transpose)
     Matrix in = create_matrix(3, 2);
     for (i = 0; i < 3; i++) {
         for (j = 0; j < 2; j++) {
-           in.rows[i].data[j] = in_matrix[i][j];
+           in.rows[i][j] = in_matrix[i][j];
         }
     }
     float expected_result[2][3] = {
@@ -147,7 +147,7 @@ START_TEST(test_transpose)
     Matrix out = transpose(in);
     for (i = 0; i < 2; i++) {
         for (j = 0; j < 3; j++) {
-            ck_assert_float_eq_tol(expected_result[i][j], out.rows[i].data[j], TOL);
+            ck_assert_float_eq_tol(expected_result[i][j], out.rows[i][j], TOL);
         }
     }
     free_matrix(in);
@@ -158,10 +158,10 @@ END_TEST
 START_TEST(test_matrix_struct)
 {
     Matrix matrix = create_matrix(2, 2);
-    matrix.rows[0].data[0] = 1.0f;
-    matrix.rows[0].data[1] = 2.0f;
-    matrix.rows[1].data[0] = 3.0f;
-    matrix.rows[1].data[1] = 4.0f;
+    matrix.rows[0][0] = 1.0f;
+    matrix.rows[0][1] = 2.0f;
+    matrix.rows[1][0] = 3.0f;
+    matrix.rows[1][1] = 4.0f;
 
     float expected[2][2] = {
             {1.0f, 2.0f},
@@ -171,7 +171,7 @@ START_TEST(test_matrix_struct)
     int j;
     for (i = 0; i < matrix.n_rows; i++) {
         for (j = 0; j < matrix.n_cols; j++) {
-            ck_assert_float_eq_tol(expected[i][j], matrix.rows[i].data[j], TOL);
+            ck_assert_float_eq_tol(expected[i][j], matrix.rows[i][j], TOL);
         }
     }
     free_matrix(matrix);
