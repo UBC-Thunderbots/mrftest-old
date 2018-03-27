@@ -4,8 +4,10 @@
 #include <cairomm/refptr.h>
 #include <utility>
 #include <vector>
+#include "ai/backend/robot.h"
 #include "ai/navigator/rrt_navigator.h"
 #include "ai/navigator/world.h"
+#include "geom/angle.h"
 #include "geom/point.h"
 #include "geom/util.h"
 
@@ -41,14 +43,14 @@ std::pair<Point, AI::Timestamp> get_ramball_location(
 /**
  * whether the primitive has a destination
  */
-bool has_destination(const AI::BE::Primitives::PrimitiveDescriptor& prim);
+bool has_destination(const AI::BE::Primitives::PrimitiveDescriptor &prim);
 
 /**
  * whether the primitive is done
  */
 bool is_done(
     AI::Nav::W::Player player,
-    const AI::BE::Primitives::PrimitiveDescriptor& prim);
+    const AI::BE::Primitives::PrimitiveDescriptor &prim);
 
 /**
  * returns true if the destination is valid
@@ -127,7 +129,7 @@ std::vector<Point> get_obstacle_boundaries(
  * \param[in] target_velocity the desired velocity we want when we get there
  */
 AI::Timestamp get_next_ts(
-    AI::Timestamp now, Point& p1, Point& p2, Point target_velocity);
+    AI::Timestamp now, Point &p1, Point &p2, Point target_velocity);
 
 /**
  * handle the cases where ball is not moving or, moving towards target slowly
@@ -147,6 +149,8 @@ bool intercept_flag_stationary_ball_handler(
 bool intercept_flag_handler(
     AI::Nav::W::World world, AI::Nav::W::Player player,
     AI::Nav::RRT::PlayerData::Ptr player_data);
+
+double get_final_velocity(Point point_a, Point point_b, Point point_c);
 }
 }
 }

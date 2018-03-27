@@ -118,12 +118,12 @@ void Move::execute(caller_t& caller)
     {
         if (bHasOrientation)
         {
-            Action::move(caller, world, player(), dest, orientation);
+            Action::move(caller, world, player(), dest, orientation, true);
             yield(caller);
         }
         else
         {
-            Action::move(caller, world, player(), dest);
+            Action::move(caller, world, player(), dest, true);
             yield(caller);
         }
     }

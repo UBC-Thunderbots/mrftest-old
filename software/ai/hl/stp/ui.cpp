@@ -2,9 +2,9 @@
 #include <cmath>
 #include "ai/hl/stp/evaluation/ball.h"
 #include "ai/hl/stp/evaluation/enemy.h"
+#include "ai/hl/stp/evaluation/move.h"
 #include "ai/hl/stp/evaluation/offense.h"
 #include "ai/hl/stp/evaluation/pass.h"
-#include "ai/hl/stp/evaluation/shoot.h"
 #include "ai/hl/stp/predicates.h"
 #include "ai/hl/util.h"
 #include "ai/util.h"

@@ -2,6 +2,7 @@
 .project
 .cproject
 .settings/
+.vscode/
 
 # Firmware
 firmware/stm32lib/internal
