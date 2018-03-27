@@ -865,6 +865,36 @@ double AI::Nav::Util::estimate_action_duration(
     return total_time;
 }
 
+double AI::Nav::Util::get_final_velocity(
+    Point point_a, Point point_b, Point point_c)
+{
+    double side_a = (point_c - point_b).len();
+    double side_b = (point_c - point_a).len();
+    double side_c = (point_a - point_b).len();
+
+    double side_a_sq = (point_c - point_b).lensq();
+    double side_b_sq = (point_c - point_a).lensq();
+    double side_c_sq = (point_a - point_b).lensq();
+
+    // cosine law
+
+    Angle theta =
+        Angle::acos(
+            (side_b_sq - side_a_sq - side_c_sq) / (-2 * side_a + side_c))
+            .mod(Angle::half());
+
+    if (theta > Angle::quarter())
+        return 0;
+    else
+    {
+        theta = theta.mod(Angle::quarter());
+
+        double frac = theta / Angle::quarter();
+
+        return frac * AI::Nav::W::Player::MAX_LINEAR_VELOCITY;
+    }
+}
+
 #warning needs to be fixed for movement primitives
 /*
 bool AI::Nav::Util::intercept_flag_handler(AI::Nav::W::World world,

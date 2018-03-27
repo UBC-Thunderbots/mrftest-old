@@ -1,7 +1,7 @@
 #include "ai/hl/stp/evaluation/offense.h"
 #include "ai/hl/stp/evaluation/ball.h"
+#include "ai/hl/stp/evaluation/move.h"
 #include "ai/hl/stp/evaluation/pass.h"
-#include "ai/hl/stp/evaluation/shoot.h"
 #include "ai/hl/stp/param.h"
 #include "ai/hl/util.h"
 #include "geom/angle.h"

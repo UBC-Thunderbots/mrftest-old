@@ -9,7 +9,7 @@
 #include <iostream>
 #include "ai/hl/stp/evaluation/enemy_risk.h"
 #include "ai/hl/stp/evaluation/friendly_capability.h"
-#include "ai/hl/stp/evaluation/shoot.h"
+#include "ai/hl/stp/evaluation/move.h"
 #include "ai/hl/stp/evaluation/static_position_quality.h"
 #include "ai/hl/stp/gradient_approach/PassInfo.h"
 

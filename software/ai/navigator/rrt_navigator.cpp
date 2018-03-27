@@ -43,6 +43,7 @@ class RRTNavigator final : public Navigator
 
    private:
     void plan(Player player);
+
     enum ShootActionType
     {
         NO_ACTION_OR_PIVOT = 0,
@@ -130,7 +131,10 @@ void RRTNavigator::plan(Player player)
 
     // starting a primitive
     PrimitiveDescriptor nav_request = hl_request;
+
     PrimitiveDescriptor nav_dest    = hl_request;
+
+    std::vector<Point> plan;
 
     switch (hl_request.prim)
     {
@@ -148,7 +152,7 @@ void RRTNavigator::plan(Player player)
                     player.position(), hl_request.field_point(), world, player))
             {
 #warning Do we need flags here, e.g. to let the goalie into the defense area?
-                const std::vector<Point> &plan = planner.plan(
+                plan = planner.plan(
                     player, hl_request.field_point(),
                     AI::Flags::MoveFlags::NONE);
 
@@ -204,6 +208,8 @@ void RRTNavigator::plan(Player player)
     Point target_position =
         Point::of_angle(hl_request.field_angle()) + hl_request.field_point();
 
+    double final_velocity = 0.0F;
+
     switch (nav_request.prim)
     {
         case Drive::Primitive::STOP:
@@ -218,25 +224,21 @@ void RRTNavigator::plan(Player player)
             break;
         case Drive::Primitive::MOVE:
             if (nav_request.extra & 1)
-            {  // care angle
-                LOG_DEBUG(Glib::ustring::compose(
-                    "Time for new move robot %3, point %1, angle %2",
-                    nav_request.field_point(), nav_request.field_angle(),
-                    player.pattern()));
-                player.move_move(
-                    nav_request.field_point(), nav_request.field_angle(),
-                    hl_request.params[3] * nav_request_len / hl_request_len);
-            }
-            else
-            {
                 nav_request.field_angle() =
                     Angle();  // fill in angle so the function doesn't crash
-                LOG_DEBUG(Glib::ustring::compose(
-                    "Time for new move, point %1", nav_request.field_point()));
-                player.move_move(
-                    nav_request.field_point(), nav_request.field_angle(),
-                    hl_request.params[3] * nav_request_len / hl_request_len);
+            LOG_DEBUG(Glib::ustring::compose(
+                "Time for new move, point %1", nav_request.field_point()));
+
+            if (plan.size() >= 2)
+            {
+                final_velocity = AI::Nav::Util::get_final_velocity(
+                    player.position(), plan[0], plan[1]);
             }
+
+            player.move_move(
+                nav_request.field_point(), nav_request.field_angle(),
+                final_velocity);
+
             break;
         case Drive::Primitive::DRIBBLE:
             LOG_DEBUG(Glib::ustring::compose(

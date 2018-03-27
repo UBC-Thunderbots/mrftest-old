@@ -1,5 +1,6 @@
 #include "ai/hl/stp/tactic/tactic.h"
 #include <stdexcept>
+#include "ai/hl/stp/action/action.h"
 #include "util/dprint.h"
 #include "util/param.h"
 
@@ -13,7 +14,8 @@ Tactic::~Tactic() = default;
 
 bool Tactic::done() const
 {
-    return !coroutine_;
+    // this is probably a hack
+    return false;
 }
 
 Player Tactic::player() const
@@ -69,5 +71,5 @@ void Tactic::player_changed()
 
 void Tactic::yield(caller_t& ca)
 {
-    yield(ca);
+    Action::yield(ca);
 }
