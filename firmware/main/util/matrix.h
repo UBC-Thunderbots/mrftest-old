@@ -1,21 +1,13 @@
 
 
 /**
- * A row that would typically go into the Matrix struct. This row can have an arbitrary number of items in it, but
- * that should be specified in the Matrix that this row would be a part of.
- */
-typedef struct {
-    float *data;
-} MatrixRow;
-
-/**
  * A representation of a matrix that has an arbitrary number of rows and columns specified by n_cols and n_rows.
  * The recommended way to use this struct is to use the get_matrix function, which will allocate the memory required
  * for each of the rows in the matrix and each of the entries in each of those rows. It will also assign the n_cols
  * and n_rows for the matrix. Then when you are done with the matrix, you will need to call free_matrix.
  */
 typedef struct {
-    MatrixRow *rows;
+    float **rows;
     int n_cols;
     int n_rows;
 } Matrix;
