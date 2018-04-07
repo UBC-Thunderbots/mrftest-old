@@ -15,7 +15,7 @@ class Control:
         self.animator = Animate(self)
 
     def animate(self):
-        self.animator.animate_xy()
+        self.animator.animateXY()
         try:
             plt.show()
         except:
@@ -24,48 +24,48 @@ class Control:
     def main(self, file):
         """Select your plot in here."""
         arr = np.float_(np.loadtxt(file, delimiter=",", dtype=str)[1:][:,1:])
-        self.first_points, self.last_points = 5, 5
+        self.firstPoints, self.lastPoints = 5, 5
         self.arr = arr
 
-    def create_quiver(self, skip=10):
+    def createQuiver(self, skip=10):
         """Creates a set of quivers to be plotted."""
-        for_quiver = []
+        forQuiver = []
         for i in range(0, len(self.arr), skip):
             if not np.any(np.isnan(self.arr[i])):
-                for_quiver.append([*self.arr[i][1:4]])
+                forQuiver.append([*self.arr[i][1:4]])
             else:
-                for_quiver.append([0, 0, 0])
-        for_quiver = np.array(for_quiver)
-        return for_quiver
+                forQuiver.append([0, 0, 0])
+        forQuiver = np.array(forQuiver)
+        return forQuiver
 
-    def plot_xy(self):
+    def plotXY(self):
         """Plots the xy positions of the bot and the ball."""
         fig, ax = plt.subplots()
         ax.scatter(
-            self.arr[:,1][:self.first_points],
-            self.arr[:,2][:self.first_points],
+            self.arr[:,1][:self.firstPoints],
+            self.arr[:,2][:self.firstPoints],
             c='g',
-            label='First {} points'.format(self.first_points),
+            label='First {} points'.format(self.firstPoints),
             s=1)
         ax.scatter(
-            self.arr[:,1][self.first_points:-self.last_points],
-            self.arr[:,2][self.first_points:-self.last_points],
+            self.arr[:,1][self.firstPoints:-self.lastPoints],
+            self.arr[:,2][self.firstPoints:-self.lastPoints],
             c='b',
             label='Position on global xy plane',
             s=1)
         ax.scatter(
-            self.arr[:,1][-self.last_points:],
-            self.arr[:,2][-self.last_points:],
+            self.arr[:,1][-self.lastPoints:],
+            self.arr[:,2][-self.lastPoints:],
             c='r',
-            label='Last {} points'.format(self.last_points),
+            label='Last {} points'.format(self.lastPoints),
             s=1)
         ax.scatter(self.x, self.y, c='k', label='Destination')
-        for_quiver = self.create_quiver()
+        forQuiver = self.createQuiver()
         ax.quiver(
-            for_quiver[:,0],
-            for_quiver[:,1],
-            np.cos(for_quiver[:,2]),
-            np.sin(for_quiver[:,2]),
+            forQuiver[:,0],
+            forQuiver[:,1],
+            np.cos(forQuiver[:,2]),
+            np.sin(forQuiver[:,2]),
             width=0.0025)
         ax.set_xlim(self.xmin, self.xmax)
         ax.set_ylim(self.ymin, self.ymax)
@@ -75,7 +75,7 @@ class Control:
         plt.ylabel("y")
         plt.show()
 
-    def plot_theta(self):
+    def plotTheta(self):
         """Plot theta relative to global x-axis as a function of time"""
         plt.figure()
         plt.plot(self.arr[:,0], self.arr[:,3] * 180 / np.pi)
@@ -84,7 +84,7 @@ class Control:
         plt.title("Robot Angle")
         plt.show()
 
-    def plot_xy_vs_t(self):
+    def plotXYvsT(self):
         """Plot x and y as a function of time on separate plots"""
         plt.figure()
         plt.subplot(211)
@@ -100,7 +100,7 @@ class Control:
         plt.tight_layout()
         plt.show()
 
-    def plot_vxvy_vs_t(self):
+    def plotVXVYvsT(self):
         """Plot V_x and V_y as a function of time on separate plots"""
         plt.figure()
         plt.subplot(211)
@@ -123,30 +123,30 @@ class Animate():
     Attributes:
         index (int): The index of the current frame in the animation.
         playing (boolean): True if the animation is playing, false otherwise.
-        ball_size (float): The size of the ball on the plot.
+        ballSize (float): The size of the ball on the plot.
         size (float): The size of the bot on the plot.
     """
     def __init__(self, control):
         self.index = 0
         self.playing = True
-        self.ball_size = 20
-        self.size = self.ball_size * 8.5
+        self.ballSize = 20
+        self.size = self.ballSize * 8.5
         self.control = control
 
-    def animate_xy(self):
+    def animateXY(self):
         """
         Initializes the plot with scatter and quiver data then starts the
         animation. Also binds mouse and key events to the figure canvas.
         """
         self.fig, ax = plt.subplots()
-        self.for_quiver = self.control.create_quiver(skip=1)
+        self.forQuiver = self.control.createQuiver(skip=1)
         self.scat = ax.scatter(self.control.arr[:,1][0], self.control.arr[:,2][0], s=self.size)
         self.quiv = plt.quiver(
-            self.for_quiver[0][0],
-            self.for_quiver[0][1],
-            np.cos(self.for_quiver[0][2]),
-            np.sin(self.for_quiver[0][2]))
-        ax.scatter(self.control.x, self.control.y, c='k', label="ball", s=self.ball_size)
+            self.forQuiver[0][0],
+            self.forQuiver[0][1],
+            np.cos(self.forQuiver[0][2]),
+            np.sin(self.forQuiver[0][2]))
+        ax.scatter(self.control.x, self.control.y, c='k', label="ball", s=self.ballSize)
         ax.set_xlim(self.control.xmin, self.control.xmax)
         ax.set_ylim(self.control.ymin, self.control.ymax)
         self.t = ax.text(ax.get_xlim()[0], ax.get_ylim()[1], "0.0 seconds")
@@ -158,7 +158,7 @@ class Animate():
         self.fig.canvas.mpl_connect("scroll_event", self.move)
         self.fig.canvas.mpl_connect("key_press_event", self.playpause)
         self.fig.canvas.mpl_connect("key_press_event", self.restart)
-        self.fig.canvas.mpl_connect('close_event', self.close_plots)
+        self.fig.canvas.mpl_connect('close_event', self.closePlots)
 
     def move(self, e):
         """
@@ -206,34 +206,34 @@ class Animate():
             self.index = 0
             self.update(self.index, True)
 
-    def update(self, i, is_slider=False):
+    def update(self, i, isSlider=False):
         """
         Updates the animation.
         Constrain the self.index to be less then len(arr) - 1 and update the
         quiver and scatter plots with the next point in the array. Also set
         the text label to update the time of the simulation.
 
-        If is_slider is True, then it is assumed that the user is scrolling
+        If isSlider is True, then it is assumed that the user is scrolling
         through the animation so the canvas should be redrawn.
         Else, the index should be incremented to match the animation index.
         Args:
             i (int): The zero-index for the animation to get data from the
                 arrays.
-            is_slider (boolean, Optional): Determines whether the user is
+            isSlider (boolean, Optional): Determines whether the user is
                 scrolling or not.
         """
         self.index = max(0, min(self.index, len(self.control.arr) - 1))
         self.quiv.set_UVC(
-            np.cos(self.for_quiver[self.index][2]),
-            np.sin(self.for_quiver[self.index][2]))
+            np.cos(self.forQuiver[self.index][2]),
+            np.sin(self.forQuiver[self.index][2]))
         self.quiv.set_offsets(
-            [self.for_quiver[self.index][0],
-             self.for_quiver[self.index][1]])
+            [self.forQuiver[self.index][0],
+             self.forQuiver[self.index][1]])
         self.scat.set_offsets(
             [self.control.arr[:,1][self.index],
              self.control.arr[:,2][self.index]])
         self.t.set_text('{:.1f} seconds'.format(self.control.arr[:,0][self.index]))
-        if is_slider:
+        if isSlider:
             self.fig.canvas.draw()
         else:
             self.index += 1
@@ -242,7 +242,7 @@ class Animate():
         plt.xlabel("x")
         plt.ylabel("y")
 
-    def close_plots(self, e):
+    def closePlots(self, e):
         self.playing = False
         plt.close()
 
