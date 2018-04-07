@@ -49,15 +49,31 @@ class FinalValueSlider(QSlider):
         :param scaling: The scaling for the values of the slider to be divided by
         """
         super().__init__(interface)
-        slider_label = self.Label(label, scaling, interface)
-        slider_label.setGeometry(x, y, self.LABEL_WIDTH, self.HEIGHT)
-        self.setGeometry(x + self.LABEL_WIDTH, y, width - 1.1 * (x + self.LABEL_WIDTH), self.HEIGHT)
+        sliderLabel = self.Label(label, scaling, interface)
+        sliderLabel.setGeometry(x, y, self.LABEL_WIDTH, self.HEIGHT)
+        self.setGeometry(x + self.LABEL_WIDTH, y, width / 1.5 - 1.1 * (x + self.LABEL_WIDTH), self.HEIGHT)
         self.setOrientation(self.HORIZONTAL)
         self.setMinimum(minval)
         self.setMaximum(maxval)
-        self.valueChanged.connect(lambda: slider_label.setText(self.value()))
-        interface.store_slider(self)
+        self.valueChanged.connect(self.updateSlider)
+        interface.storeSlider(self)
+        self.scaling = scaling
+        self.sliderLabel = sliderLabel
+        self.interface = interface
 
+    def updateSlider(self):
+        """
+        Update the text of the slider to display its new value, and then also update the box so that the robot is now
+        position at the new location given by the slider.
+
+        :return: None
+        """
+        self.sliderLabel.setText(self.value())
+        rect = self.interface.field.rect
+        xInput, yInput = self.interface.xInput, self.interface.yInput
+        self.interface.field.lastx = rect.width() * (1 + xInput.value() / xInput.maximum()) / 2
+        self.interface.field.lasty = rect.height() * (1 - yInput.value() / yInput.maximum()) / 2
+        self.interface.field.update()
 
 
 class PrimButton(QPushButton):
@@ -79,7 +95,7 @@ class PrimButton(QPushButton):
         Sets the main applications primitive number and then runs the simulation.
         :return: None
         """
-        self.interface.prim_num = self.num
+        self.interface.primNum = self.num
         self.interface.run()
 
 class Visualization(QRadioButton):
@@ -94,9 +110,9 @@ class Visualization(QRadioButton):
         self.label = label
         self.interface = interface
         self.visualization = visualization
-        self.clicked.connect(self.set_parent_visualization)
+        self.clicked.connect(self.setParentVisualization)
 
-    def set_parent_visualization(self):
+    def setParentVisualization(self):
         """
         Sets the visualization function in the main application.
         :return: None
