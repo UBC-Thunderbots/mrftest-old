@@ -110,7 +110,7 @@ class Field
      * \return the radius of the arcs at the top and bottom of the defense area,
      * in metres.
      */
-    virtual double defense_area_radius() const = 0;
+    virtual double defense_area_width() const = 0;
 
     /**
      * Returns the width of the straight part of the defense area.

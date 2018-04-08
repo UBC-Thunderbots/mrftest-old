@@ -37,7 +37,7 @@ class Field final : public AI::Common::Field, public Visualizable::Field
      *
      * \param[in] centre_circle_radius the radius of the centre circle
      *
-     * \param[in] defense_area_radius the radius of the defense area
+     * \param[in] defense_area_width the width of the defense area
      *
      * \param[in] defense_area_stretch the width of the straight part of the
      * defense area
@@ -45,7 +45,7 @@ class Field final : public AI::Common::Field, public Visualizable::Field
     void update(
         double length, double total_length, double width, double total_width,
         double goal_width, double centre_circle_radius,
-        double defense_area_radius, double defense_area_stretch);
+        double defense_area_width, double defense_area_stretch);
 
     /**
      * \brief Checks if the field data is valid yet
@@ -100,12 +100,11 @@ class Field final : public AI::Common::Field, public Visualizable::Field
     double centre_circle_radius() const override;
 
     /**
-     * \brief Gets the radius of the arcs at the top and bottom of the defense
-     * areas
+     * \brief Gets the width of the defense area.
      *
-     * \return the radius of the arcs in metres
+     * \return the width of the defense area in metres
      */
-    double defense_area_radius() const override;
+    double defense_area_width() const override;
 
     /**
      * \brief Gets the width of the straight parts of the defense areas between
@@ -123,7 +122,7 @@ class Field final : public AI::Common::Field, public Visualizable::Field
     double total_width_;
     double goal_width_;
     double centre_circle_radius_;
-    double defense_area_radius_;
+    double defense_area_width_;
     double defense_area_stretch_;
 
     bool operator==(const Field &other) const;
@@ -167,9 +166,9 @@ inline double AI::BE::Field::centre_circle_radius() const
     return centre_circle_radius_;
 }
 
-inline double AI::BE::Field::defense_area_radius() const
+inline double AI::BE::Field::defense_area_width() const
 {
-    return defense_area_radius_;
+    return defense_area_width_;
 }
 
 inline double AI::BE::Field::defense_area_stretch() const

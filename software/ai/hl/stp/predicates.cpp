@@ -146,7 +146,7 @@ bool Predicates::BallInOurCorner::compute(World world)
     return world.ball().position().x <= -world.field().length() / 4 &&
            std::fabs(world.ball().position().y) >
                world.field().goal_width() / 2 +
-                   world.field().defense_area_radius();
+                   world.field().defense_area_stretch() / 2;
 }
 
 Predicates::BallInOurCorner Predicates::ball_in_our_corner;
@@ -156,7 +156,7 @@ bool Predicates::BallInTheirCorner::compute(World world)
     return world.ball().position().x >= world.field().length() / 4 &&
            std::fabs(world.ball().position().y) >
                world.field().goal_width() / 2 +
-                   world.field().defense_area_radius();
+                   world.field().defense_area_stretch() / 2;
 }
 
 Predicates::BallInTheirCorner Predicates::ball_in_their_corner;

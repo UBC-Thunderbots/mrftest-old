@@ -120,31 +120,33 @@ bool Visualizer::on_draw(const Cairo::RefPtr<Cairo::Context> &ctx)
         ctx->stroke();
 
         // Draw the west defense area.
-        ctx->arc(
+        ctx->move_to(
             -data.field().length() / 2.0,
-            -data.field().defense_area_stretch() / 2.0,
-            data.field().defense_area_radius(), -M_PI_2, 0);
-        ctx->line_to(
-            -data.field().length() / 2.0 + data.field().defense_area_radius(),
             data.field().defense_area_stretch() / 2.0);
-        ctx->arc(
+        ctx->line_to(
+            -data.field().length() / 2.0 + data.field().defense_area_width(),
+            data.field().defense_area_stretch() / 2.0);
+        ctx->line_to(
+            -data.field().length() / 2.0 + data.field().defense_area_width(),
+            -data.field().defense_area_stretch() / 2.0);
+        ctx->line_to(
             -data.field().length() / 2.0,
-            data.field().defense_area_stretch() / 2.0,
-            data.field().defense_area_radius(), 0, M_PI_2);
+            -data.field().defense_area_stretch() / 2.0);
         ctx->stroke();
 
         // Draw the east defense area.
-        ctx->arc(
+        ctx->move_to(
             data.field().length() / 2.0,
-            data.field().defense_area_stretch() / 2.0,
-            data.field().defense_area_radius(), M_PI_2, M_PI);
+            data.field().defense_area_stretch() / 2.0);
         ctx->line_to(
-            data.field().length() / 2.0 - data.field().defense_area_radius(),
+            data.field().length() / 2.0 - data.field().defense_area_width(),
+            data.field().defense_area_stretch() / 2.0);
+        ctx->line_to(
+            data.field().length() / 2.0 - data.field().defense_area_width(),
             -data.field().defense_area_stretch() / 2.0);
-        ctx->arc(
+        ctx->line_to(
             data.field().length() / 2.0,
-            -data.field().defense_area_stretch() / 2.0,
-            data.field().defense_area_radius(), M_PI, 3 * M_PI_2);
+            -data.field().defense_area_stretch() / 2.0);
         ctx->stroke();
 
         // Draw the east goal.

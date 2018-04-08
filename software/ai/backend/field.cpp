@@ -10,14 +10,14 @@ Field::Field()
       total_width_(0),
       goal_width_(0),
       centre_circle_radius_(0),
-      defense_area_radius_(0),
+      defense_area_width_(0),
       defense_area_stretch_(0)
 {
 }
 
 void Field::update(
     double length, double total_length, double width, double total_width,
-    double goal_width, double centre_circle_radius, double defense_area_radius,
+    double goal_width, double centre_circle_radius, double defense_area_width,
     double defense_area_stretch)
 {
     Field old(*this);
@@ -29,7 +29,7 @@ void Field::update(
     total_width_          = total_width;
     goal_width_           = goal_width;
     centre_circle_radius_ = centre_circle_radius;
-    defense_area_radius_  = defense_area_radius;
+    defense_area_width_   = defense_area_width;
     defense_area_stretch_ = defense_area_stretch;
 
     if (*this != old)
@@ -47,7 +47,7 @@ bool Field::operator==(const Field &other) const
         &Field::total_width_,
         &Field::goal_width_,
         &Field::centre_circle_radius_,
-        &Field::defense_area_radius_,
+        &Field::defense_area_width_,
         &Field::defense_area_stretch_,
     };
     if (valid_ != other.valid_)
