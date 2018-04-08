@@ -97,9 +97,9 @@ class Field final : public NonCopyable, public Visualizable::Field
         return centre_circle_radius_;
     }
 
-    double defense_area_radius() const override
+    double defense_area_width() const override
     {
-        return defense_area_radius_;
+        return defense_area_width_;
     }
 
     double defense_area_stretch() const override
@@ -117,7 +117,7 @@ class Field final : public NonCopyable, public Visualizable::Field
         goal_width_   = decode_micros_unsigned(field.goal_width());
         centre_circle_radius_ =
             decode_micros_unsigned(field.centre_circle_radius());
-        defense_area_radius_ =
+        defense_area_width_ =
             decode_micros_unsigned(field.defense_area_radius());
         defense_area_stretch_ =
             decode_micros_unsigned(field.defense_area_stretch());
@@ -127,7 +127,7 @@ class Field final : public NonCopyable, public Visualizable::Field
    private:
     bool valid_;
     double length_, total_length_, width_, total_width_, goal_width_,
-        centre_circle_radius_, defense_area_radius_, defense_area_stretch_;
+        centre_circle_radius_, defense_area_width_, defense_area_stretch_;
 };
 
 class Ball final : public NonCopyable, public Visualizable::Ball

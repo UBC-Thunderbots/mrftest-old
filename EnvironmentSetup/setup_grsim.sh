@@ -84,7 +84,7 @@ fi
 # and perform the clone here so we end up with only 1 vartypes subfolder
 # (no nested vartypes folders)
 cd $vartypes_location
-git clone https://github.com/roboime/vartypes
+git clone https://github.com/szi/vartypes
 cd vartypes
 make
 make install
@@ -129,20 +129,10 @@ if [ -d $grSim_path ]; then
 fi
 
 cd $grSim_location
-git clone https://github.com/roboime/grSim
+git clone https://github.com/RoboCup-SSL/grSim
 cd grSim
 
-# This git command is here because grSim was updated to use a new protobuf
-# protocol that our AI does not support yet. Until our AI is updated, we need to
-# revert to a grSim version before this protobuf change was made and build that
-# version instead
-git reset --hard 68b322d085a84690b965815b1e035a908ebc75ee
-if [ $? -eq 0 ]; then
-    echo grSim reverted to working version
-else
-    echo grSim revert failed
-fi
-
+# Build grSim
 mkdir build
 cd build
 cmake ..

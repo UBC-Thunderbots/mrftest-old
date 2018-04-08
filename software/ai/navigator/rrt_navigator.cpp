@@ -118,9 +118,9 @@ void RRTNavigator::plan(Player player)
     // just a hack for now, defense logic should be implemented somewhere else
     // positive x is enemy goal
     double x_limit =
-        world.field().enemy_goal().x - world.field().defense_area_radius() / 2;
+        world.field().enemy_goal().x - world.field().defense_area_width() / 2;
     double y_limit = (world.field().defense_area_stretch() +
-                      world.field().defense_area_radius() * 2) /
+                      world.field().defense_area_width() * 2) /
                      2;
 
     bool defense_area_violation =

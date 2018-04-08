@@ -68,7 +68,7 @@ class Field
      *
      * \return the radius of the arcs in metres.
      */
-    virtual double defense_area_radius() const = 0;
+    virtual double defense_area_width() const = 0;
 
     /**
      * Gets the width of the straight parts of the defense areas between their

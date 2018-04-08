@@ -257,21 +257,100 @@ inline void AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam>::update_geometry(
     const SSL_GeometryData &geom)
 {
     const SSL_GeometryFieldSize &fsize(geom.field());
+    std::map<std::string, SSL_FieldCicularArc> circular_arcs;
+    std::map<std::string, SSL_FieldLineSegment> field_lines;
+
+    // Specified in the rules, unfortunately not in the new protocol
+    const double referee_width = 400;
+
     double length = fsize.field_length() / 1000.0;
     double total_length =
-        length +
-        (2.0 * fsize.boundary_width() + 2.0 * fsize.referee_width()) / 1000.0;
+        length + (2.0 * fsize.boundary_width() + 2.0 * referee_width) / 1000.0;
+
     double width = fsize.field_width() / 1000.0;
     double total_width =
-        width +
-        (2.0 * fsize.boundary_width() + 2.0 * fsize.referee_width()) / 1000.0;
-    double goal_width           = fsize.goal_width() / 1000.0;
-    double centre_circle_radius = fsize.center_circle_radius() / 1000.0;
-    double defense_area_radius  = fsize.defense_radius() / 1000.0;
-    double defense_area_stretch = fsize.defense_stretch() / 1000.0;
+        width + (2.0 * fsize.boundary_width() + 2.0 * referee_width) / 1000.0;
+
+    double goal_width = fsize.goal_width() / 1000.0;
+
+    // Circular arcs
+    /*
+    Arc names:
+    CenterCircle
+    */
+    // Add all circular arcs to a map
+    // std::cout << "Field arcs" << std::endl;
+    for (int i = 0; i < fsize.field_arcs_size(); i++)
+    {
+        const SSL_FieldCicularArc &arc = fsize.field_arcs(i);
+        std::string arcName            = arc.name();
+        // std::cout << arcName << std::endl;
+        circular_arcs[arcName] = arc;
+    }
+    // std::cout << "-------------" << std::endl;
+
+    // Get center circle radius, including line thickness
+    const SSL_FieldCicularArc &center_circle_arc =
+        circular_arcs["CenterCircle"];
+    double centre_circle_radius =
+        (center_circle_arc.radius() + center_circle_arc.thickness() / 2.0) /
+        1000.0;
+
+    // Field Lines
+    /*
+    Line names:
+    TopTouchLine
+    BottomTouchLine
+    LeftGoalLine
+    RightGoalLine
+    HalfwayLine
+    CenterLine
+    LeftPenaltyStretch
+    RightPenaltyStretch
+    RightGoalTopLine
+    RightGoalBottomLine
+    RightGoalDepthLine
+    LeftGoalTopLine
+    LeftGoalBottomLine
+    LeftGoalDepthLine
+    LeftFieldLeftPenaltyStretch
+    LeftFieldRightPenaltyStretch
+    RightFieldLeftPenaltyStretch
+    RightFieldRightPenaltyStretch
+    */
+    // Add field line segments to map
+    // std::cout << "Field lines" << std::endl;
+    for (int i = 0; i < fsize.field_lines_size(); i++)
+    {
+        const SSL_FieldLineSegment &line = fsize.field_lines(i);
+        std::string lineName             = line.name();
+        // std::cout << lineName << " "<< std::endl;
+        field_lines[lineName] = line;
+    }
+    // std::cout << "------------" << std::endl;
+    // Get defense stretch, based on left side
+    const SSL_FieldLineSegment &left_penalty_stretch_line =
+        field_lines["LeftPenaltyStretch"];
+    double defense_area_stretch = (Point(
+                                       left_penalty_stretch_line.p2().x(),
+                                       left_penalty_stretch_line.p2().y()) -
+                                   Point(
+                                       left_penalty_stretch_line.p1().x(),
+                                       left_penalty_stretch_line.p1().y()))
+                                      .len() /
+                                  1000.0;
+
+    // Get defense area width, including line thickness
+    const SSL_FieldLineSegment &left_penalty_height =
+        field_lines["LeftFieldLeftPenaltyStretch"];
+    double defense_area_width =
+        (Point(left_penalty_height.p2().x(), left_penalty_height.p2().y()) -
+         Point(left_penalty_height.p1().x(), left_penalty_height.p1().y()))
+            .len() /
+        1000.0;
     field_.update(
         length, total_length, width, total_width, goal_width,
-        centre_circle_radius, defense_area_radius, defense_area_stretch);
+        centre_circle_radius, defense_area_width, defense_area_stretch);
 }
 
 template <typename FriendlyTeam, typename EnemyTeam>

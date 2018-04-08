@@ -191,12 +191,12 @@ double ball_regular(AI::Nav::W::Player player)
 }
 double friendly_defense(AI::Nav::W::World world, AI::Nav::W::Player player)
 {
-    return world.field().defense_area_radius() + player.MAX_RADIUS +
+    return world.field().defense_area_width() + player.MAX_RADIUS +
            DEFENSE_AREA_BUFFER;
 }
 double friendly_kick(AI::Nav::W::World world, AI::Nav::W::Player player)
 {
-    return world.field().defense_area_radius() + player.MAX_RADIUS +
+    return world.field().defense_area_width() + player.MAX_RADIUS +
            FRIENDLY_KICK_BUFFER;
 }
 double own_half(AI::Nav::W::Player player)
@@ -334,13 +334,40 @@ double get_defense_area_trespass(
     Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player player)
 {
     const Field &f      = world.field();
-    double defense_dist = friendly_defense(world, player);
-    Point defense_point1(-f.length() / 2, -f.defense_area_stretch() / 2);
-    Point defense_point2(-f.length() / 2, f.defense_area_stretch() / 2);
-    return std::max(
-        0.0,
-        defense_dist -
-            dist(Seg(cur, dst), Seg(defense_point1, defense_point2)));
+
+    Point defense_point1(
+        -f.length() / 2,
+        -(f.defense_area_stretch() / 2) - DEFENSE_AREA_BUFFER);  // SW corner
+    Point defense_point2(
+        -f.length() / 2,
+        (f.defense_area_stretch() / 2) + DEFENSE_AREA_BUFFER);  // NW corner
+    Point defense_point3(
+        -(f.length() / 2) + f.defense_area_width() + DEFENSE_AREA_BUFFER,
+        -(f.defense_area_stretch() / 2) - DEFENSE_AREA_BUFFER);  // SE corner
+    Point defense_point4(
+        -(f.length() / 2) + f.defense_area_width() + DEFENSE_AREA_BUFFER,
+        (f.defense_area_stretch() / 2) + DEFENSE_AREA_BUFFER);  // NE corner
+    Rect defense_area(defense_point1, defense_point4);
+
+    double violation = 0.0;
+
+    // If path ends in defense area
+    if (defense_area.point_inside(dst))
+    {
+        violation = std::max(violation, defense_area.dist_to_boundary(dst));
+        return violation;
+    }
+
+    // project goal point onto path segment, to handle case where path passes
+    // through defense area
+    Point proj = (f.friendly_goal() - cur).project((dst - cur)) + cur;
+    if (defense_area.point_inside(proj))
+    {
+        violation = std::max(violation, defense_area.dist_to_boundary(proj));
+        return violation;
+    }
+
+    return violation;
 }
 
 double get_own_half_trespass(
@@ -472,6 +499,8 @@ struct Violation final
         {
             friendly_defense =
                 get_defense_area_trespass(cur, dst, world, player);
+            if (friendly_defense > 0.0)
+                printf("Defense Violation %f\n", friendly_defense);
         }
         if ((flags & MoveFlags::AVOID_ENEMY_DEFENSE) != MoveFlags::NONE)
         {

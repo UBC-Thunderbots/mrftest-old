@@ -456,7 +456,7 @@ void AI::Logger::on_field_changed()
     record.mutable_field()->set_centre_circle_radius(
         encode_micros_unsigned(field.centre_circle_radius()));
     record.mutable_field()->set_defense_area_radius(
-        encode_micros_unsigned(field.defense_area_radius()));
+        encode_micros_unsigned(field.defense_area_width()));
     record.mutable_field()->set_defense_area_stretch(
         encode_micros_unsigned(field.defense_area_stretch()));
     write_record(record);
