@@ -148,7 +148,7 @@ bool intercept_flag_stationary_ball_handler(
  */
 bool intercept_flag_handler(
     AI::Nav::W::World world, AI::Nav::W::Player player,
-    AI::Nav::RRT::PlayerData::Ptr player_data);
+    AI::Nav::W::PlayerData::Ptr player_data);
 
 double get_final_velocity(Point point_a, Point point_b, Point point_c);
 }

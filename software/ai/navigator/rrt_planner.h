@@ -1,7 +1,6 @@
 #include <glibmm/nodetree.h>
 #include <memory>
 #include "ai/navigator/plan.h"
-#include "util/object_store.h"
 
 namespace AI
 {
@@ -22,17 +21,6 @@ enum MovePrimType
 
 namespace Nav
 {
-class Waypoints final : public ObjectStore::Element
-{
-   public:
-    typedef std::shared_ptr<Waypoints> Ptr;
-    static constexpr std::size_t NUM_WAYPOINTS = 50;
-    Point points[NUM_WAYPOINTS];
-    AI::Flags::MoveFlags added_flags;
-    Timestamp lastSentTime;
-    Point move_dest;
-};
-
 class RRTPlanner : public Plan
 {
    public:

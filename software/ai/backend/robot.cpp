@@ -29,11 +29,6 @@ void Robot::add_field_data(Point pos, Angle ori, AI::Timestamp ts)
     update_caches();
 }
 
-ObjectStore &Robot::object_store() const
-{
-    return object_store_;
-}
-
 unsigned int Robot::pattern() const
 {
     return pattern_;

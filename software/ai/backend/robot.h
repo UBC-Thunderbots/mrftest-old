@@ -10,7 +10,6 @@
 #include "proto/grSim_Replacement.pb.h"
 #include "uicomponents/visualizer.h"
 #include "util/box_ptr.h"
-#include "util/object_store.h"
 
 namespace AI
 {
@@ -40,7 +39,6 @@ class Robot : public Visualizable::Robot
      */
     void add_field_data(Point pos, Angle ori, AI::Timestamp ts);
 
-    ObjectStore &object_store() const;
     static constexpr std::size_t NUM_WAYPOINTS = 50;
     Point way_points[NUM_WAYPOINTS];
 
@@ -90,7 +88,6 @@ class Robot : public Visualizable::Robot
 
    private:
     const unsigned int pattern_;
-    mutable ObjectStore object_store_;
     mutable AI::Flags::AvoidDistance avoid_distance_;
     Predictor3 pred;
     Point position_cached;
