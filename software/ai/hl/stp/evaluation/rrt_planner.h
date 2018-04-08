@@ -6,7 +6,6 @@
 #include <vector>
 #include "ai/hl/stp/world.h"
 #include "geom/param.h"
-#include "util/object_store.h"
 
 namespace AI
 {
@@ -18,7 +17,7 @@ namespace Evaluation
 {
 namespace RRT
 {
-class Waypoints final : public ObjectStore::Element
+class Waypoints
 {
    public:
     AI::Flags::MoveFlags added_flags;

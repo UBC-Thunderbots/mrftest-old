@@ -10,7 +10,6 @@
 #include "geom/angle.h"
 #include "geom/point.h"
 #include "util/box_ptr.h"
-#include "util/object_store.h"
 
 namespace AI
 {

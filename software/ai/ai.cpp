@@ -3,7 +3,6 @@
 #include "ai/setup.h"
 #include "util/cacheable.h"
 #include "util/dprint.h"
-#include "util/object_store.h"
 
 using AI::AIPackage;
 using AI::BE::Backend;

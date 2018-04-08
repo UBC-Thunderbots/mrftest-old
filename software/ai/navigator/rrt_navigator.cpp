@@ -72,15 +72,7 @@ void RRTNavigator::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx)
 
     for (const Player player : world.friendly_team())
     {
-        if (!std::dynamic_pointer_cast<PlayerData>(
-                player.object_store()[typeid(*this)]))
-        {
-            player.object_store()[typeid(*this)] =
-                std::make_shared<PlayerData>();
-        }
-
-        PlayerData::Ptr player_data = std::dynamic_pointer_cast<PlayerData>(
-            player.object_store()[typeid(*this)]);
+        auto player_data = player.playerdata;
 
         if (has_destination(player_data->hl_request))
         {
@@ -98,14 +90,7 @@ void RRTNavigator::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx)
 
 void RRTNavigator::plan(Player player)
 {
-    if (!std::dynamic_pointer_cast<PlayerData>(
-            player.object_store()[typeid(*this)]))
-    {
-        player.object_store()[typeid(*this)] = std::make_shared<PlayerData>();
-    }
-
-    PlayerData::Ptr player_data = std::dynamic_pointer_cast<PlayerData>(
-        player.object_store()[typeid(*this)]);
+    auto player_data = player.playerdata;
 
     PrimitiveDescriptor hl_request(Drive::Primitive::STOP, 0, 0, 0, 0, 1);
 

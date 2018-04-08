@@ -117,16 +117,6 @@ class Robot
     virtual bool replace(
         double x, double y, double dir, int id, bool is_yellow);
 
-    /**
-     * \brief Returns an object store for the robot.
-     *
-     * AI entities can use this object store to hold opaque data on
-     * a per-robot basis, without worrying about keeping parallel
-     * data structures up-to-date and dealing with team changes.
-     *
-     * \return an object store
-     */
-    ObjectStore &object_store() const;
 
     /**
      * \brief Gets the predicted current position of the object.
@@ -291,10 +281,6 @@ inline unsigned int AI::Common::Robot::pattern() const
     return impl->pattern();
 }
 
-inline ObjectStore &AI::Common::Robot::object_store() const
-{
-    return impl->object_store();
-}
 
 inline bool AI::Common::Robot::replace(
     double x, double y, double dir, int id, bool is_yellow)

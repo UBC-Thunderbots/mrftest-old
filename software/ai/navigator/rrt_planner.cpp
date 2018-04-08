@@ -66,9 +66,7 @@ Point RRTPlanner::choose_target(Point goal, Player player)
 
     if (p > 0 && p <= WAYPOINT_PROB)
     {
-        return std::dynamic_pointer_cast<Waypoints>(
-                   player.object_store()[typeid(*this)])
-            ->points[i];
+        return player.waypoints->points[i];
     }
     else if (p > WAYPOINT_PROB && p < (WAYPOINT_PROB + RAND_PROB))
     {
@@ -120,9 +118,7 @@ Point RRTPlanner::extend(
 
     if (!valid_path(
             start->data(), extend_point, world, player,
-            std::dynamic_pointer_cast<Waypoints>(
-                player.object_store()[typeid(*this)])
-                ->added_flags))
+            player.waypoints->added_flags))
     {
         return empty_state();
     }
@@ -141,14 +137,12 @@ std::vector<Point> RRTPlanner::rrt_plan(
 {
     Point initial = player.position();
 
-    if (!std::dynamic_pointer_cast<Waypoints>(
-            player.object_store()[typeid(*this)]))
+    if (!player.waypoints)
     {
-        player.object_store()[typeid(*this)] = std::make_shared<Waypoints>();
+        player.waypoints = std::make_shared<Waypoints>();
     }
 
-    std::dynamic_pointer_cast<Waypoints>(player.object_store()[typeid(*this)])
-        ->added_flags = added_flags;
+    player.waypoints->added_flags = added_flags;
 
     Point nearest_point, extended, target;
     Glib::NodeTree<Point> *nearest_node;
@@ -206,11 +200,9 @@ std::vector<Point> RRTPlanner::rrt_plan(
         // with random replacement
         if (found_path)
         {
-            std::dynamic_pointer_cast<Waypoints>(
-                player.object_store()[typeid(*this)])
-                ->points
-                    [static_cast<std::size_t>(std::rand()) %
-                     Waypoints::NUM_WAYPOINTS] = iterator->data();
+            player.waypoints->points
+                [static_cast<std::size_t>(std::rand()) %
+                 Waypoints::NUM_WAYPOINTS] = iterator->data();
         }
     }
 
@@ -232,9 +224,7 @@ std::vector<Point> RRTPlanner::rrt_plan(
     {
         if (!valid_path(
                 path_points[sub_path_index], path_points[i], world, player,
-                std::dynamic_pointer_cast<Waypoints>(
-                    player.object_store()[typeid(*this)])
-                    ->added_flags))
+                player.waypoints->added_flags))
         {
             sub_path_index = i - 1;
             final_points.push_back(path_points[i - 1]);

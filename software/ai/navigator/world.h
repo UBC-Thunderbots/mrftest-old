@@ -12,6 +12,17 @@ namespace AI
 {
 namespace Nav
 {
+class Waypoints
+{
+   public:
+    typedef std::shared_ptr<Waypoints> Ptr;
+    static constexpr std::size_t NUM_WAYPOINTS = 50;
+    Point points[NUM_WAYPOINTS];
+    AI::Flags::MoveFlags added_flags;
+    Timestamp lastSentTime;
+    Point move_dest;
+};
+
 namespace W
 {
 /**
@@ -65,12 +76,40 @@ class Robot : public AI::Common::Robot
     AI::Flags::AvoidDistance avoid_distance() const;
 };
 
+class PlayerData
+{
+   public:
+    inline PlayerData()
+    {
+    }
+
+    typedef std::shared_ptr<PlayerData> Ptr;
+    AI::Flags::MovePrio prev_move_prio;
+    AI::Flags::AvoidDistance prev_avoid_distance;
+    Point previous_dest;
+    Angle previous_orient;
+
+    AI::BE::Primitives::PrimitiveDescriptor last_shoot_primitive;
+    AI::BE::Primitives::PrimitiveDescriptor hl_request;
+    AI::BE::Primitives::PrimitiveDescriptor nav_request;
+    bool fancy_shoot_maneuver;
+};
+
 /**
  * \brief A player, as seen by a Navigator
  */
 class Player final : public AI::Common::Player, public Robot
 {
    public:
+    /**
+     * \brief Planner waypoints
+     */
+    std::shared_ptr<Waypoints> waypoints;
+    /**
+     * \brief PlayerData for the navigator
+     */
+    std::shared_ptr<PlayerData> playerdata;
+
     /**
      * \brief The type of a complete path
      */
@@ -163,9 +202,13 @@ class Player final : public AI::Common::Player, public Robot
     void display_path(const std::vector<Point> &p);
 
     void push_prim(AI::BE::Primitives::Primitive *prim);
+
     void erase_prim(AI::BE::Primitives::Primitive *prim);
+
     void pop_prim();
+
     bool has_prim() const;
+
     AI::BE::Primitives::Primitive *top_prim() const;
 
     /**
@@ -467,10 +510,14 @@ inline AI::Flags::AvoidDistance AI::Nav::W::Robot::avoid_distance() const
     return impl->avoid_distance();
 }
 
-inline AI::Nav::W::Player::Player() = default;
+inline AI::Nav::W::Player::Player() : playerdata(std::make_shared<PlayerData>())
+{
+}
 
 inline AI::Nav::W::Player::Player(AI::BE::Player::Ptr impl)
-    : AI::Common::Player(impl), AI::Nav::W::Robot(impl)
+    : AI::Common::Player(impl),
+      AI::Nav::W::Robot(impl),
+      playerdata(std::make_shared<PlayerData>())
 {
 }
 
@@ -506,18 +553,22 @@ inline void AI::Nav::W::Player::push_prim(AI::BE::Primitives::Primitive *prim)
 {
     AI::Common::Player::impl->push_prim(prim);
 }
+
 inline void AI::Nav::W::Player::erase_prim(AI::BE::Primitives::Primitive *prim)
 {
     AI::Common::Player::impl->erase_prim(prim);
 }
+
 inline void AI::Nav::W::Player::pop_prim()
 {
     AI::Common::Player::impl->pop_prim();
 }
+
 inline bool AI::Nav::W::Player::has_prim() const
 {
     return AI::Common::Player::impl->has_prim();
 }
+
 inline AI::BE::Primitives::Primitive *AI::Nav::W::Player::top_prim() const
 {
     return AI::Common::Player::impl->top_prim();
