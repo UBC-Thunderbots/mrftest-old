@@ -9,6 +9,11 @@ namespace Common
 {
 class Player;
 }
+
+namespace BE
+{
+class Player;
+}
 }
 
 namespace std
@@ -135,7 +140,6 @@ class Player
      */
     bool autokick_fired() const;
 
-   protected:
     AI::BE::Player::Ptr impl;
 
     friend struct std::less<Player>;
