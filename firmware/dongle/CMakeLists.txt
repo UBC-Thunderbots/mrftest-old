@@ -19,6 +19,9 @@ include_directories("${FIRMWARE_SOURCE_DIR}/dongle")
 # this function is included in firmware/CMakeLists.txt which this CMakeLists.txt file is a subdirectory of
 build_firmware("${FIRMWARE_SOURCE_DIR}" "${dongle-src}" "${DONGLE_BINARY}" "dongle")
 
+# path to the compiled file without the file extensions
+set(FULL_BIN_PATH ${FIRMWARE_SOURCE_DIR}/dongle/${DONGLE_BINARY})
+
 ##### BUILD FOR DFUSE #####
 add_custom_target(${DONGLE_BINARY}.dfu)
 include("${FIRMWARE_SOURCE_DIR}/cmake_binary_builders/dfu.cmake")
