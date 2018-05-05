@@ -31,7 +31,6 @@ Primitive::Primitive(AI::Common::Player player, PrimitiveDescriptor desc)
       active_(false),
       moved_(false)
 {
-    player_.impl->push_prim(this);
 }
 
 Primitive::Primitive(
@@ -44,7 +43,6 @@ Primitive::Primitive(
       active_(false),
       moved_(false)
 {
-    player_.impl->push_prim(this);
 }
 
 Primitive::Primitive(Primitive&& other)
@@ -55,15 +53,9 @@ Primitive::Primitive(Primitive&& other)
       active_(other.active_),
       moved_(other.moved_)
 {
-    other.player_.impl->erase_prim(&other);
     other.moved_ = true;
-    player_.impl->push_prim(this);
 }
 
 Primitive::~Primitive()
 {
-    if (!moved_ && player_)
-    {
-        player_.impl->erase_prim(this);
-    }
 }

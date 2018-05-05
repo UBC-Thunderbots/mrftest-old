@@ -201,15 +201,15 @@ class Player final : public AI::Common::Player, public Robot
      */
     void display_path(const std::vector<Point> &p);
 
-    void push_prim(AI::BE::Primitives::Primitive *prim);
+    void push_prim(AI::BE::Primitives::Ptr prim);
 
-    void erase_prim(AI::BE::Primitives::Primitive *prim);
+    void erase_prim(AI::BE::Primitives::Ptr prim);
 
     void pop_prim();
 
     bool has_prim() const;
 
-    AI::BE::Primitives::Primitive *top_prim() const;
+    AI::BE::Primitives::Ptr top_prim() const;
 
     /**
      * \brief Coasts the robot’s wheels.
@@ -549,12 +549,12 @@ inline void AI::Nav::W::Player::display_path(const std::vector<Point> &p)
     AI::Common::Player::impl->display_path(p);
 }
 
-inline void AI::Nav::W::Player::push_prim(AI::BE::Primitives::Primitive *prim)
+inline void AI::Nav::W::Player::push_prim(AI::BE::Primitives::Ptr prim)
 {
     AI::Common::Player::impl->push_prim(prim);
 }
 
-inline void AI::Nav::W::Player::erase_prim(AI::BE::Primitives::Primitive *prim)
+inline void AI::Nav::W::Player::erase_prim(AI::BE::Primitives::Ptr prim)
 {
     AI::Common::Player::impl->erase_prim(prim);
 }
@@ -569,7 +569,7 @@ inline bool AI::Nav::W::Player::has_prim() const
     return AI::Common::Player::impl->has_prim();
 }
 
-inline AI::BE::Primitives::Primitive *AI::Nav::W::Player::top_prim() const
+inline AI::BE::Primitives::Ptr AI::Nav::W::Player::top_prim() const
 {
     return AI::Common::Player::impl->top_prim();
 }

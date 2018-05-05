@@ -56,7 +56,8 @@ inline Angle PrimitiveDescriptor::field_angle_2() const
 }
 
 /**
- * \brief A primitive is an object that "abuses" C++'s deterministic destruction
+ * \brief A primitive is an object that NO LONGER "abuses" C++'s deterministic
+ * destruction
  * to place itself on the robot's execution queue. When created, it is added to
  * the queue,
  * and when deleted, it is removed. If a primitive is destroyed when it isn't
@@ -66,7 +67,6 @@ inline Angle PrimitiveDescriptor::field_angle_2() const
 class Primitive : public NonCopyable
 {
    public:
-    using Ptr = std::unique_ptr<Primitive>;
 
     Primitive() = delete;
 
@@ -154,6 +154,8 @@ inline const PrimitiveDescriptor& Primitive::desc() const
 {
     return desc_;
 }
+
+typedef std::shared_ptr<AI::BE::Primitives::Primitive> Ptr;
 }
 }
 }

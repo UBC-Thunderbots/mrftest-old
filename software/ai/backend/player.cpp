@@ -70,8 +70,11 @@ bool Player::highlight() const
     return has_ball();
 }
 
-void Player::push_prim(AI::BE::Primitives::Primitive* prim)
+void Player::push_prim(AI::BE::Primitives::Ptr prim)
 {
+    // limit prims_ size to 1
+    prims_.clear();
+
     prims_.push_back(prim);
 }
 
@@ -80,7 +83,7 @@ void Player::clear_prims()
     prims_.clear();
 }
 
-void Player::erase_prim(AI::BE::Primitives::Primitive* prim)
+void Player::erase_prim(AI::BE::Primitives::Ptr prim)
 {
     if (prims_.size() <= 0)
     {
@@ -116,7 +119,7 @@ void Player::pop_prim()
     }
 }
 
-AI::BE::Primitives::Primitive* Player::top_prim() const
+AI::BE::Primitives::Ptr Player::top_prim() const
 {
     if (prims_.size() > 0)
     {

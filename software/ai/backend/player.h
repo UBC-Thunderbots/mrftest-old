@@ -18,6 +18,7 @@ namespace BE
 namespace Primitives
 {
 class Primitive;
+typedef std::shared_ptr<Primitive> Ptr;
 }
 
 /**
@@ -88,12 +89,12 @@ class Player : public AI::BE::Robot
     void pre_tick();
     void update_predictor(AI::Timestamp ts);
 
-    void push_prim(Primitives::Primitive* prim);
-    void erase_prim(Primitives::Primitive* prim);
+    void push_prim(Primitives::Ptr prim);
+    void erase_prim(Primitives::Ptr prim);
     void pop_prim();
     void clear_prims();
     bool has_prim() const;
-    Primitives::Primitive* top_prim() const;
+    Primitives::Ptr top_prim() const;
 
     Visualizable::Colour visualizer_colour() const final override;
     bool highlight() const final override;
@@ -108,7 +109,7 @@ class Player : public AI::BE::Robot
     explicit Player(unsigned int pattern);
 
    private:
-    std::deque<Primitives::Primitive*> prims_;
+    std::deque<Primitives::Ptr> prims_;
     AI::Flags::MoveFlags flags_;
     AI::Flags::MovePrio move_prio_;
     std::vector<Point> display_path_;

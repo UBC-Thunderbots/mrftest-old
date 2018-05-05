@@ -239,7 +239,6 @@ class Robot
     Angle avelocity_stdev(double delta = 0.0) const
         __attribute__((warn_unused_result));
 
-   protected:
     AI::BE::Robot::Ptr impl;
 
     friend struct std::less<Robot>;

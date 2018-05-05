@@ -22,9 +22,7 @@ namespace Action
  * should_wait == true, to initiate default wait condition (player gets within a
  * radius around the ball)
  */
-void move(
-    caller_t& ca, World world, Player player, Point dest,
-    bool should_wait = false);
+void move(caller_t &ca, World world, Player player, Point dest);
 
 /**
  * Move
@@ -35,8 +33,7 @@ void move(
  * radius around the ball)
  */
 void move(
-    caller_t& ca, World world, Player player, Point dest, Angle orientation,
-    bool should_wait = false);
+    caller_t &ca, World world, Player player, Point dest, Angle orientation);
 
 /**
  * Move
@@ -49,8 +46,7 @@ void move(
  * radius around the ball)
  */
 void move_dribble(
-    caller_t& ca, World world, Player player, Angle orientation, Point dest,
-    bool should_wait = false);
+    caller_t &ca, World world, Player player, Angle orientation, Point dest);
 
 /**
  * Move
@@ -60,9 +56,7 @@ void move_dribble(
  * should_wait == true, to initiate default wait condition (player gets within a
  * radius around the ball)
  */
-void move_careful(
-    caller_t& ca, World world, Player player, Point dest,
-    bool should_wait = false);
+void move_careful(caller_t &ca, World world, Player player, Point dest);
 
 /**
  * wait function with the condition: player gets with tolerence radius around
