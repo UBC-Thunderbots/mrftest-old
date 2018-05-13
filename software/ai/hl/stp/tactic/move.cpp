@@ -66,8 +66,8 @@ void MoveOnce::execute(caller_t& caller)
         {
             Action::move(
                 caller, world, player(), dest,
-                Angle());  // if an orientation has been specified, then use
-                           // the overloaded move action with orientation
+                orientation);  // if an orientation has been specified, then use
+                               // the overloaded move action with orientation
             caller();
         }
         else
@@ -118,7 +118,7 @@ void Move::execute(caller_t& caller)
     {
         if (bHasOrientation)
         {
-            Action::move(caller, world, player(), dest, Angle());
+            Action::move(caller, world, player(), dest, orientation);
             yield(caller);
         }
         else

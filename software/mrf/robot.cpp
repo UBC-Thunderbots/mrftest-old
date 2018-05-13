@@ -103,7 +103,7 @@ const char *const LOGGER_MESSAGES[] = {
 // this is a hard limit because we are kicking instead of chipping
 // however, 8 meters is a fine chip to so this may stand
 #warning hack for kicking when chipping
-const double MAX_KICK_VALUE = 8.0f;
+const double MAX_KICK_VALUE = 6.5f;
 const double MAX_CHIP_VALUE = 2.0f;
 unsigned int chicker_power_to_pulse_width(double power, bool chip)
 {

@@ -9,8 +9,6 @@
 #include <vector>
 #include "util/exception.h"
 
-using namespace std::placeholders;
-
 namespace
 {
 /**

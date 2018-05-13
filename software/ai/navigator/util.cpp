@@ -499,8 +499,6 @@ struct Violation final
         {
             friendly_defense =
                 get_defense_area_trespass(cur, dst, world, player);
-            if (friendly_defense > 0.0)
-                printf("Defense Violation %f\n", friendly_defense);
         }
         if ((flags & MoveFlags::AVOID_ENEMY_DEFENSE) != MoveFlags::NONE)
         {
