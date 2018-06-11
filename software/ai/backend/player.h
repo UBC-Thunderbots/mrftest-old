@@ -4,6 +4,7 @@
 #include <utility>
 #include <vector>
 #include "ai/backend/robot.h"
+// #include "ai/backend/primitives/primitive.h"
 #include "ai/common/time.h"
 #include "ai/flags.h"
 #include "drive/robot.h"
@@ -67,22 +68,7 @@ class Player : public AI::BE::Robot
     void prio(AI::Flags::MovePrio prio);
 
     virtual const Property<Drive::Primitive>& primitive() const = 0;
-    virtual void move_coast()                                   = 0;
-    virtual void move_brake()                                   = 0;
-    virtual void move_move(Point dest)                          = 0;
-    virtual void move_move(Point dest, Angle orientation) = 0;
-    virtual void move_move(Point dest, double end_speed)  = 0;
-    virtual void move_move(Point dest, Angle orientation, double end_speed) = 0;
-    virtual void move_dribble(
-        Point dest, Angle orientation, double desired_rpm,
-        bool small_kick_allowed) = 0;
-    virtual void move_shoot(Point dest, double power, bool chip) = 0;
-    virtual void move_shoot(
-        Point dest, Angle orientation, double power, bool chip) = 0;
-    virtual void move_catch(
-        Angle angle_diff, double displacement, double speed)              = 0;
-    virtual void move_pivot(Point centre, Angle swing, Angle orientation) = 0;
-    virtual void move_spin(Point dest, Angle speed) = 0;
+    virtual void send_prim(Drive::LLPrimitive p)                = 0;
     bool has_display_path() const final override;
     const std::vector<Point>& display_path() const final override;
     void display_path(const std::vector<Point>& p);

@@ -3,6 +3,7 @@
 
 #include <functional>
 #include "ai/backend/robot.h"
+#include "ai/common/player.h"
 
 namespace AI
 {

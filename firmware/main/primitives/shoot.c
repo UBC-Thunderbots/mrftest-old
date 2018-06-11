@@ -68,7 +68,7 @@ void plan_shoot_rotation(PhysBot *pb, float avel) {
     // 1.6f is a magic constant
     pb->rot.vel = 1.6f * pb->rot.disp / pb->rot.time; 
     pb->rot.accel = (pb->rot.vel - avel) / TIME_HORIZON;
-    Clamp(&pb->rot.accel, MAX_T_A);
+    limit(&pb->rot.accel, MAX_T_A);
 }
 
 void to_log(log_record_t *log, float time_target, float accel[3]) {
@@ -104,7 +104,8 @@ static void shoot_start(const primitive_params_t *params) {
 
     // arm the chicker
 #ifndef FWSIM
-    chicker_auto_arm((params->extra & 1) ? CHICKER_CHIP : CHICKER_KICK, params->params[3]);
+	chicker_auto_arm((params->extra & 1) ? CHICKER_CHIP : CHICKER_KICK, 
+        chicker_power_to_pulse_width(params->params[3], params->extra & 1));
 #endif
 
 }

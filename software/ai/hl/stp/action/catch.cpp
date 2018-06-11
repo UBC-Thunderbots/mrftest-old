@@ -34,7 +34,7 @@ const double angleCatchCondition = 8;  // if the robot's orientation is off my
 void AI::HL::STP::Action::just_catch_ball(
     caller_t& ca, World world, Player player)
 {
-    player.move_catch(Angle(), 0, 0);
+    player.send_prim(Drive::move_catch(Angle(), 0, 0));
     while (!player.has_ball())
     {
         Action::yield(ca);

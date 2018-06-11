@@ -40,14 +40,14 @@ void ShootTest::test_shoot(Player player)
     }
     Angle orientation =
         (world.field().enemy_goal() - world.ball().position()).orientation();
-    player.move_shoot(dest, orientation, power, chip);
+    player.send_prim(Drive::move_shoot(dest, orientation, power, chip));
 }
 
 void ShootTest::test_shoot_ori(Player player)
 {
     if (goto_ball)
         dest = world.ball().position();
-    player.move_shoot(dest, orient, power, chip);
+    player.send_prim(Drive::move_shoot(dest, orient, power, chip));
 }
 // function builds test Nav
 // builds widget

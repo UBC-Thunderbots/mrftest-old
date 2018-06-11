@@ -23,6 +23,7 @@ typedef enum {
  */
 #define CHICKER_DISCHARGE_THRESHOLD 25.0f
 
+unsigned int chicker_power_to_pulse_width(float power, bool chip);
 void chicker_init(unsigned int robot_index);
 void chicker_shutdown(void);
 void chicker_discharge(bool discharge);

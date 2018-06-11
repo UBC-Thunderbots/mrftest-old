@@ -200,11 +200,11 @@ void RRTNavigator::plan(Player player)
         case Drive::Primitive::STOP:
             if (nav_request.extra & 1)
             {
-                player.move_brake();
+                player.send_prim(Drive::move_brake());
             }
             else
             {
-                player.move_coast();
+                player.send_prim(Drive::move_coast());
             }
             break;
         case Drive::Primitive::MOVE:
@@ -220,46 +220,46 @@ void RRTNavigator::plan(Player player)
                     player.position(), plan[0], plan[1]);
             }
 
-            player.move_move(
+            player.send_prim(Drive::move_move(
                 nav_request.field_point(), nav_request.field_angle(),
-                final_velocity);
+                final_velocity));
 
             break;
         case Drive::Primitive::DRIBBLE:
             LOG_DEBUG(Glib::ustring::compose(
                 "Time for new dribble point %1, angle %2",
                 nav_request.field_point(), nav_request.field_angle()));
-            player.move_dribble(
+            player.send_prim(Drive::move_dribble(
                 nav_request.field_point(), nav_request.field_angle(),
-                default_desired_rpm, false);
+                default_desired_rpm, false));
             break;
         case Drive::Primitive::SHOOT:
             // deleted all of the old conditional code- too hacky, need to
             // rewrite
             // this probably doesn't currently work
-            player.move_shoot(
+            player.send_prim(Drive::move_shoot(
                 nav_request.field_point(), nav_request.params[3],
-                nav_request.extra & 1);
+                nav_request.extra & 1));
             break;
         case Drive::Primitive::CATCH:
-            player.move_catch(
+            player.send_prim(Drive::move_catch(
                 Angle::of_radians(nav_request.params[0]), nav_request.params[1],
-                nav_request.params[2]);
+                nav_request.params[2]));
             break;
         case Drive::Primitive::PIVOT:
             LOG_DEBUG(Glib::ustring::compose(
                 "time for new pivot (pos %1, angle %2)",
                 hl_request.field_point(), hl_request.field_angle()));
-            player.move_pivot(
+            player.send_prim(Drive::move_pivot(
                 hl_request.field_point(), hl_request.field_angle(),
-                hl_request.field_angle_2());
+                hl_request.field_angle_2()));
             break;
         case Drive::Primitive::SPIN:
             LOG_DEBUG(Glib::ustring::compose(
                 "Time for new spin, point %1, angle speed %2",
                 nav_request.field_point(), hl_request.field_angle()));
-            player.move_spin(
-                nav_request.field_point(), hl_request.field_angle());
+            player.send_prim(Drive::move_spin(
+                nav_request.field_point(), hl_request.field_angle()));
             break;
         default:
             LOG_ERROR(Glib::ustring::compose(

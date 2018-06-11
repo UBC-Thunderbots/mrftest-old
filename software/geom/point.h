@@ -32,7 +32,7 @@ class Point final
     static Point of_angle(Angle angle);
 
     /**
-     * \brief Creates the origin
+     * \brief Creates the origin at (0,0)
      */
     explicit constexpr Point();
 

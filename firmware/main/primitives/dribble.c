@@ -93,7 +93,7 @@ static void dribble_tick(log_record_t *logajectory) {
 	
 	float targetVel = deltaD/timeTarget; 
 	accel[2] = (targetVel - vel[2])/DRIBBLE_TIME_HORIZON;
-	Clamp(&accel[2], MAX_T_A);
+	limit(&accel[2], MAX_T_A);
 
 	if (logajectory) {
 		logajectory->tick.primitive_data[0] = accel[0];

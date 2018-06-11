@@ -10,13 +10,13 @@ set(BOOST_LOC "${CMAKE_CURRENT_SOURCE_DIR}/boost_1_54_0")
 set(BOOST_LIBRARIES
         "${BOOST_LOC}/stage/lib/libboost_coroutine.a"
         "${BOOST_LOC}/stage/lib/libboost_context.a")
-include_directories("${BOOST_LOC}")
+include_directories(SYSTEM "${BOOST_LOC}")
 
 ##### PROTOBUF #####
 # find the Protobuf package
 find_package("Protobuf" REQUIRED)
 # include Protobuf directories
-include_directories("${PROTOBUF_INCLUDE_DIRS}")
+include_directories(SYSTEM "${PROTOBUF_INCLUDE_DIRS}")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/proto")
 # get the .proto files
 file(GLOB "proto-files" "${CMAKE_CURRENT_SOURCE_DIR}/proto/*.proto")
@@ -40,31 +40,31 @@ execute_process(
 ##### GTK ######
 pkg_check_modules("GTKMM" REQUIRED "gtkmm-3.0")
 # include the GTK dependencies
-include_directories("${GTKMM_INCLUDE_DIRS}")
+include_directories(SYSTEM "${GTKMM_INCLUDE_DIRS}")
 link_directories("${GTKMM_LIBRARY_DIRS}")
 
 
 ##### GTEST #####
 # enable testing, find the GTest package, and include its directories
 find_package("GTest" REQUIRED)
-include_directories("${GTEST_INCLUDE_DIRS}")
+include_directories(SYSTEM "${GTEST_INCLUDE_DIRS}")
 
 
 ##### GLIB #####
 pkg_search_module("GLIBMM" REQUIRED "glibmm-2.4")
-include_directories("${GLIBMM_INCLUDE_DIRS}")
+include_directories(SYSTEM "${GLIBMM_INCLUDE_DIRS}")
 
 
 ##### LIBUSB #####
 pkg_search_module("LIBUSB_1" REQUIRED "libusb-1.0")
-include_directories("${LIBUSB_1_INCLUDE_DIRS}")
+include_directories(SYSTEM "${LIBUSB_1_INCLUDE_DIRS}")
 link_directories("${LIBUSB_1_LIBRARY_DIRS}")
 add_definitions("${LIBUSB_1_DEFINITIONS}")
 
 
 ##### LIBXML #####
 pkg_search_module("LibXML++" REQUIRED "libxml++-2.6")
-include_directories("${LibXML++_INCLUDE_DIRS}")
+include_directories(SYSTEM "${LibXML++_INCLUDE_DIRS}")
 
 
 ##### ODE #####
@@ -73,17 +73,17 @@ pkg_search_module("ODE" REQUIRED "ode")
 
 ##### GSL #####
 find_package("GSL" REQUIRED "gsl")
-include_directories("${GSL_INCLUDE_DIRS}")
+include_directories(SYSTEM "${GSL_INCLUDE_DIRS}")
 
 
 ##### CAIRO #####
 pkg_search_module("CAIROMM" REQUIRED "cairomm-1.0")
-include_directories(${CAIROMM_INCLUDE_DIRS})
+include_directories(SYSTEM ${CAIROMM_INCLUDE_DIRS})
 
 
 ##### BZIP2 #####
 find_package("BZip2" REQUIRED "bz2")
-include_directories("${BZIP2_INCLUDE_DIR}")
+include_directories(SYSTEM "${BZIP2_INCLUDE_DIR}")
 
 
 

@@ -77,15 +77,6 @@ void apply_wheel_force(const float force[4]) {
 
 #define JERK_LIMIT 40.0f //(m/s^3)
 
-void Clamp(float *input, float limit) {
-	if (*input > limit) {
-		*input = limit;
-	}
-	if (*input < -limit) {
-		*input = -limit;
-	}
-}
-
 /**
  * \ingroup Controls
  *
@@ -122,9 +113,9 @@ void apply_accel(float linear_accel[2], float angular_accel) {
 	float linear_diff1 = linear_accel[1]-prev_linear_accel1;
 	float angular_diff = angular_accel - prev_angular_accel;
 	
-	Clamp(&linear_diff0, JERK_LIMIT*TICK_TIME);
-	Clamp(&linear_diff1, JERK_LIMIT*TICK_TIME);
-	Clamp(&angular_diff, JERK_LIMIT/ROBOT_RADIUS*TICK_TIME*5.0f);
+	limit(&linear_diff0, JERK_LIMIT*TICK_TIME);
+	limit(&linear_diff1, JERK_LIMIT*TICK_TIME);
+	limit(&angular_diff, JERK_LIMIT/ROBOT_RADIUS*TICK_TIME*5.0f);
 
 	linear_accel[0] = prev_linear_accel0 + linear_diff0;
 	linear_accel[1] = prev_linear_accel1 + linear_diff1;

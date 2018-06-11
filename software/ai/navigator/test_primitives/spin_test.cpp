@@ -32,7 +32,7 @@ void SpinTest::make_widget()
 
 void SpinTest::test_spin(Player player)
 {
-    player.move_spin(dest, speed);
+    player.send_prim(Drive::move_spin(dest, speed));
 }
 
 // Updates parameters

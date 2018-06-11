@@ -59,35 +59,35 @@ void MoveTest::test_move_dest(Player player)
 {
     if (goto_ball)
         dest = world.ball().position();
-    player.move_move(dest);
+    player.send_prim(Drive::move_move(dest));
 }
 
 void MoveTest::test_move_ori_dest(Player player)
 {
     if (goto_ball)
         dest = world.ball().position();
-    player.move_move(dest, orient);
+    player.send_prim(Drive::move_move(dest, orient));
 }
 
 void MoveTest::test_move_tdelta_dest(Player player)
 {
     if (goto_ball)
         dest = world.ball().position();
-    player.move_move(dest, time_delta);
+    player.send_prim(Drive::move_move(dest, time_delta));
 }
 
 void MoveTest::test_move_ori_tdelta_dest(Player player)
 {
     if (goto_ball)
         dest = world.ball().position();
-    player.move_move(dest, orient, time_delta);
+    player.send_prim(Drive::move_move(dest, orient, time_delta));
 }
 
 void MoveTest::test_move_to_ball(Player player)
 {
-    player.move_move(
+    player.send_prim(Drive::move_move(
         world.ball().position(),
-        (world.ball().position() - player.position()).orientation());
+        (world.ball().position() - player.position()).orientation()));
 }
 
 void MoveTest::test_move_replace(Player player)

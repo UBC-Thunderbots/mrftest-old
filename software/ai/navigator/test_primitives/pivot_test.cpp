@@ -31,7 +31,7 @@ PivotTest::PivotTest(World w)
 
 void PivotTest::test_pivot(Player player)
 {
-    player.move_pivot(centre, swing, orient);
+    player.send_prim(Drive::move_pivot(centre, swing, orient));
 }
 
 void PivotTest::make_widget()

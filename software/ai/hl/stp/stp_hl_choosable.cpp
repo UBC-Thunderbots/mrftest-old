@@ -148,7 +148,7 @@ class STPHLChoosable final : public PlayExecutor, public HighLevel
         else
         {
             text = u8"Stop";
-#warning this is a hack to stop the robots when stop is pressed            
+#warning this is a hack to stop the robots when stop is pressed
             for (Player player : world.friendly_team())
                 player.clear_prims();
         }

@@ -8,12 +8,12 @@ namespace
 {
 void on_execute_coast(Drive::Robot &bot, const double[4], bool)
 {
-    bot.move_coast();
+    bot.send_prim(Drive::move_coast());
 }
 
 void on_execute_brake(Drive::Robot &bot, const double[4], bool)
 {
-    bot.move_brake();
+    bot.send_prim(Drive::move_brake());
 }
 
 void on_update_permotor(Drive::Robot &bot, const double sliders[4], bool)
@@ -66,11 +66,11 @@ void on_execute_move_point(
 {
     if (exact_speed)
     {
-        bot.move_move({sliders[0], sliders[1]}, sliders[2]);
+        bot.send_prim(Drive::move_move({sliders[0], sliders[1]}, sliders[2]));
     }
     else
     {
-        bot.move_move({sliders[0], sliders[1]});
+        bot.send_prim(Drive::move_move({sliders[0], sliders[1]}));
     }
 }
 
@@ -79,22 +79,23 @@ void on_execute_move_point_angle(
 {
     if (exact_speed)
     {
-        bot.move_move(
+        bot.send_prim(Drive::move_move(
             {sliders[0], sliders[1]}, Angle::of_degrees(sliders[2]),
-            sliders[3]);
+            sliders[3]));
     }
     else
     {
-        bot.move_move({sliders[0], sliders[1]}, Angle::of_degrees(sliders[2]));
+        bot.send_prim(Drive::move_move(
+            {sliders[0], sliders[1]}, Angle::of_degrees(sliders[2])));
     }
 }
 
 void on_execute_dribble(
     Drive::Robot &bot, const double sliders[4], bool small_kick_allowed)
 {
-    bot.move_dribble(
+    bot.send_prim(Drive::move_dribble(
         {sliders[0], sliders[1]}, Angle::of_degrees(sliders[2]), sliders[3],
-        small_kick_allowed);
+        small_kick_allowed));
 }
 
 void on_execute_shoot_kick(
@@ -102,13 +103,14 @@ void on_execute_shoot_kick(
 {
     if (exact_angle)
     {
-        bot.move_shoot(
+        bot.send_prim(Drive::move_shoot(
             {sliders[0], sliders[1]}, Angle::of_degrees(sliders[2]), sliders[3],
-            false);
+            false));
     }
     else
     {
-        bot.move_shoot({sliders[0], sliders[1]}, sliders[3], false);
+        bot.send_prim(
+            Drive::move_shoot({sliders[0], sliders[1]}, sliders[3], false));
     }
 }
 
@@ -117,31 +119,34 @@ void on_execute_shoot_chip(
 {
     if (exact_angle)
     {
-        bot.move_shoot(
+        bot.send_prim(Drive::move_shoot(
             {sliders[0], sliders[1]}, Angle::of_degrees(sliders[2]), sliders[3],
-            true);
+            true));
     }
     else
     {
-        bot.move_shoot({sliders[0], sliders[1]}, sliders[3], true);
+        bot.send_prim(
+            Drive::move_shoot({sliders[0], sliders[1]}, sliders[3], true));
     }
 }
 
 void on_execute_catch(Drive::Robot &bot, const double sliders[4], bool)
 {
-    bot.move_catch(Angle::of_degrees(sliders[2]), sliders[1], sliders[0]);
+    bot.send_prim(Drive::move_catch(
+        Angle::of_degrees(sliders[2]), sliders[1], sliders[0]));
 }
 
 void on_execute_pivot(Drive::Robot &bot, const double sliders[4], bool)
 {
-    bot.move_pivot(
+    bot.send_prim(Drive::move_pivot(
         {sliders[0], sliders[1]}, Angle::of_degrees(sliders[2]),
-        Angle::of_degrees(sliders[3]));
+        Angle::of_degrees(sliders[3])));
 }
 
 void on_execute_spin(Drive::Robot &bot, const double sliders[4], bool)
 {
-    bot.move_spin({sliders[0], sliders[1]}, Angle::of_degrees(sliders[2]));
+    bot.send_prim(Drive::move_spin(
+        {sliders[0], sliders[1]}, Angle::of_degrees(sliders[2])));
 }
 
 struct SliderInfo final

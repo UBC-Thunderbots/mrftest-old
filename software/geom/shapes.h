@@ -129,13 +129,12 @@ class Circle final
     double radius;
 
     /**
-     * \brief Creates a circle with radius 0 and radius 0.
+     * \brief Creates a circle with origin (0, 0) and radius 0.
      */
     inline explicit constexpr Circle() : radius(0)
     {
     }
 
-#warning can this be made an unsigned double? so negative values are caught at compile time?
     inline explicit constexpr Circle(const Vector2& origin, double r)
         : origin(origin), radius(r)
     {
