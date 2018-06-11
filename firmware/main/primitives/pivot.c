@@ -165,7 +165,7 @@ static void pivot_tick(log_record_t *log) {
     float angle = min_angle_delta(current_bot_state.angle, atan2f(rel_dest[1], rel_dest[0]));
     float target_avel = 1.6f*angle/TIME_HORIZON; 
     accel[2] = (target_avel-vel[2])/TIME_HORIZON;
-    Clamp(&accel[2], MAX_T_A);
+    limit(&accel[2], MAX_T_A);
     apply_accel(accel, accel[2]); //apply accelerations all in local coordinates
 }
 

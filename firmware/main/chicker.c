@@ -9,11 +9,18 @@
 #include "charger.h"
 #include "adc.h"
 #include "breakbeam.h"
+#include "util/util.h"
 #include <FreeRTOS.h>
 #include <minmax.h>
 #include <rcc.h>
 #include <task.h>
 #include <registers/timer.h>
+
+/**
+ *  \brief Defines max limits for kicking and chipping.
+ */
+#define MAX_KICK_VALUE 8.0f
+#define MAX_CHIP_VALUE 2.0f
 
 /**
  * \brief This is a hard cap on the pulse_width to prevent the fuse from blowing.
@@ -96,6 +103,33 @@ static int ARR_val[8] = {
     1364U   ,
     1212U   ,
     1136U   };
+
+/**
+ * \brief Converts desired chicker power to a pulse width.
+ */
+unsigned int chicker_power_to_pulse_width(float power, bool chip)
+{
+    float width;
+    float p = power / 1000.0f;
+    if (!chip)
+    {
+        /*
+         * Transfer function derived by measuring ball speed form various input
+         * power levels form 2 m/s to 7 m/s and finding a linear relationship.
+         *
+         * Transfer function set for 2 cap chicker.
+         */
+        limit(&p, MAX_KICK_VALUE);
+        width = power * 438.1f + 44.592f;
+    }
+    else
+    {
+        limit(&p, MAX_CHIP_VALUE);
+        width = 835.0f * power * power + 469.2f * power + 1118.5f;
+    }
+    clamp(&width, 0.0f, (float) UINT16_MAX);
+    return (unsigned int) width;
+}
 
 /**
  * \brief Configures the kicker pulse generator to idle.

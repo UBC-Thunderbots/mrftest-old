@@ -251,7 +251,7 @@ static void catch_tick(log_record_t *log) {
 
 	//Apply acceleration to robot
 	accel[3] = 0;
-	Clamp(&accel[2], MAX_T_A);
+	limit(&accel[2], MAX_T_A);
     apply_accel(accel, accel[2]); // accel is already in local coords
 }
 

@@ -20,55 +20,11 @@ void Drive::Null::Robot::set_charger_state(ChargerState)
 {
 }
 
+void Drive::Null::Robot::send_prim(Drive::LLPrimitive p)
+{
+}
+
 void Drive::Null::Robot::move_slow(bool)
-{
-}
-
-void Drive::Null::Robot::move_coast()
-{
-}
-
-void Drive::Null::Robot::move_brake()
-{
-}
-
-void Drive::Null::Robot::move_move(Point)
-{
-}
-
-void Drive::Null::Robot::move_move(Point, Angle)
-{
-}
-
-void Drive::Null::Robot::move_move(Point, double)
-{
-}
-
-void Drive::Null::Robot::move_move(Point, Angle, double)
-{
-}
-
-void Drive::Null::Robot::move_dribble(Point, Angle, double, bool)
-{
-}
-
-void Drive::Null::Robot::move_shoot(Point, double, bool)
-{
-}
-
-void Drive::Null::Robot::move_shoot(Point, Angle, double, bool)
-{
-}
-
-void Drive::Null::Robot::move_catch(Angle, double, double)
-{
-}
-
-void Drive::Null::Robot::move_pivot(Point, Angle, Angle)
-{
-}
-
-void Drive::Null::Robot::move_spin(Point, Angle)
 {
 }
 

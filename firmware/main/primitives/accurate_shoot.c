@@ -262,7 +262,7 @@ static void accurate_shoot_tick(log_record_t *log) {
 //magic numbers but seems to make bot rotate correctly so not changing it
 	float targetVel = 1.6f * relative_destination[2] / timeTarget;
 	accel[2] = (targetVel - vel[2]) / TIME_HORIZON;
-	Clamp(&accel[2], MAX_T_A);
+	limit(&accel[2], MAX_T_A);
 
 //not sure what this does
 	float len_accel = sqrtf((accel[0] * accel[0]) + (accel[1] * accel[1]));

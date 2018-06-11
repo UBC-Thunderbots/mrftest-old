@@ -54,6 +54,16 @@ void fabs_of_array(float array[], float abs_array[], unsigned size);
 void limit(float *value, float limiting_value);
 
 /**
+ * Clamps the value to be between 
+ * lower <= value <= upper
+ * @param value  The value to clamp
+ * @param lower  The lower limit to check against
+ * @param upper  The upper limit to check against
+ * @return void
+ */
+void clamp(float *value, float lower, float upper);
+
+/**
  * converts a degrees value to radians
  * 
  * @param  degrees an angle in degrees

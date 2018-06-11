@@ -67,11 +67,15 @@ void fabs_of_array(float array[], float abs_array[], unsigned size) {
 }
 
 void limit(float *value, float limiting_value) {
-    if (*value > limiting_value) {
-        *value = limiting_value;
+    clamp(value, -limiting_value, limiting_value);
+}
+
+void clamp(float *value, float lower, float upper) {
+    if (*value > upper) {
+        *value = upper;
     }
-    if (*value < -limiting_value) {
-        *value = -limiting_value;
+    if (*value < lower) {
+        *value = lower;
     }
 }
 

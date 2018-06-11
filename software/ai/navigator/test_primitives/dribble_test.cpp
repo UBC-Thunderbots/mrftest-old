@@ -50,7 +50,8 @@ void DribbleTest::make_widget()
 
 void DribbleTest::test_dribble(Player player)
 {
-    player.move_dribble(dest, orient, desired_rpm, small_kick_allowed);
+    player.send_prim(
+        Drive::move_dribble(dest, orient, desired_rpm, small_kick_allowed));
 }
 // updates the x coordinates,y coordinate,RPM and small kick checkbox
 void DribbleTest::update_params()

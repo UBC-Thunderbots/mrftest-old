@@ -196,7 +196,6 @@ void Player::tick(bool halt, bool stop)
         }
         case Drive::Primitive::PIVOT:
         {
-#warning not implemented
 #warning this is totally wrong
             if (_pivot_swing.abs().to_degrees() < 10)
             {

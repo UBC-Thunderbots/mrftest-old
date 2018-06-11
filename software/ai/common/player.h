@@ -2,6 +2,7 @@
 
 #include <functional>
 #include "ai/backend/player.h"
+#include "drive/primitive.h"
 
 namespace AI
 {
@@ -59,6 +60,7 @@ namespace Common
  * \brief The common functions available on a player in all layers, not
  * including those in Robot
  */
+
 class Player
 {
    public:
@@ -140,6 +142,14 @@ class Player
      */
     bool autokick_fired() const;
 
+    /**
+     * \brief Sends a LLPrimitive to the robot.
+     *
+     * \param[p] LLPrimitive to be sent to robot. See drive/primitives.h for
+     * factory functions that return a LLPrimitive.
+     */
+    void send_prim(Drive::LLPrimitive p) const;
+
     AI::BE::Player::Ptr impl;
 
     friend struct std::less<Player>;
@@ -202,4 +212,9 @@ inline bool AI::Common::Player::has_chipper() const
 inline bool AI::Common::Player::autokick_fired() const
 {
     return impl->autokick_fired();
+}
+
+inline void AI::Common::Player::send_prim(Drive::LLPrimitive p) const
+{
+    impl->send_prim(p);
 }

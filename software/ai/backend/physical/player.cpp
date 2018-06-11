@@ -28,7 +28,7 @@ Player::Player(unsigned int pattern, Drive::Robot &bot)
 
 Player::~Player()
 {
-    bot.move_coast();
+    bot.send_prim(Drive::move_coast());
     bot.set_charger_state(Drive::Robot::ChargerState::DISCHARGE);
 }
 
@@ -115,7 +115,7 @@ void Player::tick(bool halt, bool stop)
     // Apply driving safety rules.
     if (halt)
     {
-        bot.move_brake();
+        bot.send_prim(Drive::move_brake());
     }
     else
     {
