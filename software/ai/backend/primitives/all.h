@@ -35,11 +35,19 @@ class Move : public Primitive
     }
 
     inline Move(
-        AI::Common::Player player, Point dest, Angle orientation,
-        double end_speed)
+        AI::Common::Player player, Point dest, Angle orientation, uint8_t extra)
         : Primitive(
               player, Drive::Primitive::MOVE, dest.x, dest.y,
-              orientation.to_radians(), end_speed, 1)
+              orientation.to_radians(), 0.0, extra)
+    {
+    }
+
+    inline Move(
+        AI::Common::Player player, Point dest, Angle orientation,
+        double end_speed, uint8_t extra)
+        : Primitive(
+              player, Drive::Primitive::MOVE, dest.x, dest.y,
+              orientation.to_radians(), end_speed, extra)
     {
     }
 };
@@ -81,11 +89,9 @@ class Catch : public Primitive
 {
    public:
     inline Catch(
-        AI::Common::Player player, Angle angle_diff, double displacement,
-        double speed)
+        AI::Common::Player player, double velocity, double dribbler_speed, double margin)
         : Primitive(
-              player, Drive::Primitive::CATCH, angle_diff.to_radians(),
-              displacement, speed, 0, 0)
+              player, Drive::Primitive::CATCH, velocity, dribbler_speed, margin, 0, 0)
     {
     }
 };
@@ -94,10 +100,10 @@ class Pivot : public Primitive
 {
    public:
     inline Pivot(
-        AI::Common::Player player, Point centre, Angle swing, Angle ori)
+        AI::Common::Player player, Point centre, Angle swing, double radius)
         : Primitive(
               player, Drive::Primitive::PIVOT, centre.x, centre.y,
-              swing.to_radians(), ori.to_radians(), 0)
+              swing.to_radians(), radius, 0)
     {
     }
 };

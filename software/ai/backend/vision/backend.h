@@ -193,7 +193,7 @@ AI::BE::Vision::Backend<FriendlyTeam, EnemyTeam>::handle_vision_packet(
     if (!pFilter_ && field_.valid())
     {
         pFilter_ = new AI::BE::Vision::Particle::ParticleFilter(
-            field_.total_length(), field_.total_width());
+            field_.length(), field_.width());
     }
 
     // If it contains ball and robot data, update the ball and the teams.

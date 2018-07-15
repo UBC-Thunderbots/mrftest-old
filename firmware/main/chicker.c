@@ -109,8 +109,7 @@ static int ARR_val[8] = {
  */
 unsigned int chicker_power_to_pulse_width(float power, bool chip)
 {
-    float width;
-    float p = power / 1000.0f;
+    unsigned int width;
     if (!chip)
     {
         /*
@@ -119,16 +118,19 @@ unsigned int chicker_power_to_pulse_width(float power, bool chip)
          *
          * Transfer function set for 2 cap chicker.
          */
-        limit(&p, MAX_KICK_VALUE);
-        width = power * 438.1f + 44.592f;
+        //limit(&power, MAX_KICK_VALUE);
+        if(power > MAX_KICK_VALUE) power = MAX_KICK_VALUE; 
+        width =(unsigned int) (power * 438.1f + 44.592f);
     }
     else
     {
-        limit(&p, MAX_CHIP_VALUE);
-        width = 835.0f * power * power + 469.2f * power + 1118.5f;
+        //limit(&power, MAX_CHIP_VALUE);
+        if(power > MAX_CHIP_VALUE) power = MAX_CHIP_VALUE; 
+        width = (unsigned int) (835.0f * power * power + 469.2f * power + 1118.5f);
     }
-    clamp(&width, 0.0f, (float) UINT16_MAX);
-    return (unsigned int) width;
+
+    //clamp(&width, 0.0f, (float) UINT16_MAX);
+    return  width;
 }
 
 /**
@@ -469,7 +471,8 @@ void chicker_fire(chicker_device_t device, unsigned int width) {
  * \param[in] device which device to fire
  * \param[in] width the width of the pulse, in kicking units
  */
-void chicker_auto_arm(chicker_device_t device, unsigned int width) {
+void chicker_auto_arm(chicker_device_t device, float power) {
+    unsigned int width = chicker_power_to_pulse_width( power, device == CHICKER_CHIP);
     // The auto_device and auto_width variables are only read from an ISR, and only if auto_enabled is true.
     // Thus, auto_enabled being false can itself protect writes to auto_device and auto_width, because ISRs are themselves implicitly atomic.
     __atomic_store_n(&auto_enabled, false, __ATOMIC_RELAXED);

@@ -131,7 +131,7 @@ LLPrimitive move_brake();
  * \param[in] end_speed the speed (not velocity) that the robot
  * should attempt to be moving at when it reaches the destination
  */
-LLPrimitive move_move(Point dest, double end_speed = 0.0);
+LLPrimitive move_move(Point dest, double end_speed = 0.0, uint8_t extra = 0);
 
 /**
  * \brief Moves the robot to a target position and orientation.
@@ -144,7 +144,7 @@ LLPrimitive move_move(Point dest, double end_speed = 0.0);
  * \param[in] end_speed the speed (not velocity) that the robot
  * should attempt to be moving at when it reaches the destination
  */
-LLPrimitive move_move(Point dest, Angle orientation, double end_speed = 0.0);
+LLPrimitive move_move(Point dest, Angle orientation, double end_speed = 0.0, uint8_t extra = 0);
 
 /**
  * \brief Moves the robot while carrying the ball.
@@ -205,7 +205,7 @@ LLPrimitive move_shoot(Point dest, Angle orientation, double power, bool chip);
  * negative for backward), where “forward” is defined relative to
  * the robot’s orientation <em>after the requested rotation</em>
  */
-LLPrimitive move_catch(Angle angle_diff, double displacement, double speed);
+LLPrimitive move_catch(double velocity, double dribbler_speed, double margin);
 
 /**
  * \brief Rotates around a point on the field (e.g. the ball) while

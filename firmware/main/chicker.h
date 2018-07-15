@@ -28,7 +28,7 @@ void chicker_init(unsigned int robot_index);
 void chicker_shutdown(void);
 void chicker_discharge(bool discharge);
 void chicker_fire(chicker_device_t device, unsigned int width);
-void chicker_auto_arm(chicker_device_t device, unsigned int width);
+void chicker_auto_arm(chicker_device_t device, float power);
 void chicker_auto_disarm(void);
 bool chicker_auto_armed(void);
 bool chicker_auto_fired_test_clear(void);

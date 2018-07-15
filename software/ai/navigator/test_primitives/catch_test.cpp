@@ -30,7 +30,7 @@ CatchTest::CatchTest(World w)
 
 void CatchTest::test_catch(Player player)
 {
-    player.send_prim(Drive::move_catch(orient, displacement, speed));
+    player.send_prim(Drive::move_catch(world.ball().velocity().len(), 8000, 0.1));
 }
 
 // Callback function to update test function params

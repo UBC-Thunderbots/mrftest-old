@@ -221,3 +221,5 @@ inline bool operator>=(AI::Flags::MovePrio a, AI::Flags::MovePrio b)
 {
     return a > b || a == b;
 }
+
+

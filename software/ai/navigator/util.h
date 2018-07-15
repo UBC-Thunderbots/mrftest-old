@@ -76,6 +76,9 @@ bool valid_path(
     Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player player,
     AI::Flags::MoveFlags extra_flags);
 
+bool valid_path(
+    std::vector<Point> path, AI::Nav::W::World world, AI::Nav::W::Player player, AI::Flags::MoveFlags extra_flags);
+
 /**
  * returns a list of legal points circling the destination. These set of points
  * may be valuable as a search space for a navigator
@@ -150,7 +153,7 @@ bool intercept_flag_handler(
     AI::Nav::W::World world, AI::Nav::W::Player player,
     AI::Nav::W::PlayerData::Ptr player_data);
 
-double get_final_velocity(Point point_a, Point point_b, Point point_c);
+double calc_mid_vel(Point player_pos, std::vector<Point> plan);
 }
 }
 }

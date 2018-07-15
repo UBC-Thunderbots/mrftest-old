@@ -44,10 +44,6 @@ include_directories(SYSTEM "${GTKMM_INCLUDE_DIRS}")
 link_directories("${GTKMM_LIBRARY_DIRS}")
 
 
-##### GTEST #####
-# enable testing, find the GTest package, and include its directories
-find_package("GTest" REQUIRED)
-include_directories(SYSTEM "${GTEST_INCLUDE_DIRS}")
 
 
 ##### GLIB #####

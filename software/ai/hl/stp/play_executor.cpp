@@ -7,6 +7,7 @@
 #include "ai/hl/stp/ui.h"
 #include "ai/hl/util.h"
 #include "util/dprint.h"
+#include <iostream>
 
 using AI::HL::STP::PlayExecutor;
 using namespace AI::HL::STP;
@@ -92,12 +93,14 @@ void PlayExecutor::calc_play()
 
         if (!curr_play || i->priority > curr_play->factory().priority)
         {
+            std::cout << "creating new play\n\n\n" << std::endl;
             curr_play = i->create(world);
         }
     }
 
     if (!curr_play)
     {
+        std::cout << "curr play immediately not valid" << std::endl;
         return;
     }
 
@@ -130,6 +133,7 @@ void PlayExecutor::tick()
     // check if curr play wants to continue
     if (curr_play)
     {
+        std::cout << "curr play valid" << std::endl;
         bool done = false;
         if (!curr_play->factory().invariant(world))
         {
@@ -153,6 +157,7 @@ void PlayExecutor::tick()
         }
         if (high_priority_always && curr_play->can_give_up_safely())
         {
+            std::cout << "high priority always and can give up safely" << std::endl;
             for (auto &i : plays)
             {
                 if (!i->enable)
@@ -190,7 +195,7 @@ void PlayExecutor::tick()
         calc_play();
         if (!curr_play)
         {
-            LOG_ERROR(u8"calc play failed");
+                        LOG_ERROR(u8"calc play failed");
             return;
         }
     }

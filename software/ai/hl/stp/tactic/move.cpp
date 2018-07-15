@@ -1,6 +1,7 @@
 #include <algorithm>
 
 #include "ai/hl/stp/action/move.h"
+#include "ai/hl/stp/action/move_spin.h"
 #include "ai/hl/stp/tactic/move.h"
 #include "ai/hl/util.h"
 #include "util/dprint.h"
@@ -64,10 +65,9 @@ void MoveOnce::execute(caller_t& caller)
     {
         if (bHasOrientation)
         {
-            Action::move(
-                caller, world, player(), dest,
-                orientation);  // if an orientation has been specified, then use
-                               // the overloaded move action with orientation
+            // if an orientation has been specified, then use
+            // the overloaded move action with orientation
+            Action::move(caller, world, player(), dest, orientation);
             caller();
         }
         else
@@ -118,7 +118,7 @@ void Move::execute(caller_t& caller)
     {
         if (bHasOrientation)
         {
-            Action::move(caller, world, player(), dest, orientation);
+            Action::move(caller, world, player(), dest, Angle());
             yield(caller);
         }
         else

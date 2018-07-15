@@ -156,6 +156,7 @@ static void move_start(const primitive_params_t *params)
 	//				end_speed [millimeter/s]
   
 	// Convert into m/s and rad/s because physics is in m and s
+	printf("Move start called.\n");
 	destination[0] = (float) (params->params[0]) / 1000.0f;
 	destination[1] = (float) (params->params[1]) / 1000.0f;
 	destination[2] = (float) (params->params[2]) / 100.0f;
@@ -176,6 +177,9 @@ static void move_start(const primitive_params_t *params)
 
 	// pick the wheel axis that will be used for faster movement
 	wheel_index = choose_wheel_axis(dx, dy, current_states.angle, destination[2]);
+
+    if (params->extra & 0x01) chicker_auto_arm(CHICKER_KICK, 5.5);
+	if(params->extra & 0x02) dribbler_set_speed(16000);
 }
 
 /**
@@ -188,6 +192,8 @@ static void move_start(const primitive_params_t *params)
  */
 static void move_end(void) 
 {
+	chicker_auto_disarm();
+    dribbler_set_speed(0);
 }
 
 
@@ -201,13 +207,15 @@ static void move_end(void)
  * @return void 
  */
 static void move_tick(log_record_t *log) {
+	printf("Move tick called.\n");
 	// get the state of the bot
 	dr_data_t current_states;
 	dr_get(&current_states);
 	// setup the PhysBot data container
 	PhysBot pb = setup_bot(current_states, destination, major_vec, minor_vec);
 	// choose a wheel axis to rotate onto
-	choose_rotation_destination(&pb, current_states.angle);
+	// TODO: try to make this less jittery
+//	choose_rotation_destination(&pb, current_states.angle);
 	// plan major axis movement
 	float max_major_a = 3.0;
 	float max_major_v = 3.0;

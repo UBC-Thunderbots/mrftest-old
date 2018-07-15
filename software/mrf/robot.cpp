@@ -8,6 +8,7 @@
 #include <iostream>
 #include <limits>
 #include <memory>
+#include <random>
 #include <utility>
 #include "mrf/constants.h"
 #include "mrf/dongle.h"
@@ -154,6 +155,7 @@ void MRFRobot::send_prim(Drive::LLPrimitive p)
         params[i] = p.params[i];
     }
     extra = p.extra;
+    if(p.prim == Drive::Primitive::MOVE) /*extra = 1;*/printf("extra: %i", extra);
     dirty_drive();
 }
 

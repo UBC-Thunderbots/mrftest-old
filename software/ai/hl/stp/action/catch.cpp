@@ -10,103 +10,70 @@
 
 using namespace AI::HL::STP;
 
-const double closeToTargetOrientation = 20;  // when the robot is this many
-                                             // degrees off of it's target axis
-                                             // ignore ball distance flags
-const double transitioningToTargetOrientation =
-    30;  // when the robot is this many degrees off of it's target axis, avoid
-         // the ball by a small margin
-const double stoppedBallTolerence =
-    0.1;  // if the ball is movign slower than this, assume it is not moving
-const double catchBallScaleFactor =
-    1.3;  // used to scale the radius of the robot. Used to determine a safe
-          // distance from the ball to "catch it"
-const double distanceCatchCondition =
-    0.01;  // used to determine if the robot is close close enough to the safe
-           // catch position to have officially "caught" it
-const double velocityCatchCondition = 0.7 * 0.7;  // if the robot is moving
-                                                  // faster than this, the ball
-                                                  // cannot be "caught"
-const double angleCatchCondition = 8;  // if the robot's orientation is off my
-                                       // more than this many degrees, the ball
-                                       // cannot be "caught"
+DoubleParam EDGE_CATCH_DIST(u8"Edge catch distance", "AI/HL/STP/Action/catch", 0.2, 0.05, 0.5);
+DoubleParam CATCH_PRIM_ACTIVATION_DIST
+        (u8"Catch Primitive activation distance", "AI/HL/STP/Action/catch", 0.3, 0.0, 1.0);
+DoubleParam OVERSHOOT_FACTOR
+        (u8"Factor to overestimate the intercept time by", "AI/HL/STP/Action/catch", 1.2, 1.0, 1.5);
 
 void AI::HL::STP::Action::just_catch_ball(
-    caller_t& ca, World world, Player player)
+        caller_t& ca, World world, Player player)
 {
-    player.send_prim(Drive::move_catch(Angle(), 0, 0));
-    while (!player.has_ball())
-    {
-        Action::yield(ca);
-    }
+    AI::BE::Primitives::Ptr prim(
+            new Primitives::Catch(player, world.ball().velocity().len(), 8000, 0.1));
+
+    (static_cast<AI::Common::Player>(player)).impl->push_prim(prim);
 }
 
+
 void AI::HL::STP::Action::catch_ball(
-    caller_t& ca, World world, Player player, Point target)
+        caller_t& ca, World world, Player player)
 {
-    Point target_line = world.ball().position() -
-                        target;  // the line between the ball and target
-    Point catch_pos;  // prediction of where the robot should be behind the ball
-                      // to catch it
-    Angle catch_orientation;  // The orientation the catcher should have when
-                              // catching
 
-    do
+    if ((world.ball().position() - player.position()).len() < CATCH_PRIM_ACTIVATION_DIST)
     {
-        // The angle between the target line, and the line from the robot to the
-        // ball
-        Angle orientation_diff = (player.position() - world.ball().position())
-                                     .orientation()
-                                     .angle_diff(target_line.orientation());
+        Action::just_catch_ball(ca, world, player);
+    }
 
-        // sets the avoid ball flags based on how close to robot is to the ball
-        // (and if it's on the correct side)
-        if (orientation_diff < Angle::of_degrees(closeToTargetOrientation))
+    // solve for the intercept point
+    Point intercept_point(99,99);
+    Angle intercept_angle = (-world.ball().velocity()).orientation();
+    for (double delta_t = 0.0; delta_t < 2.0; delta_t += 0.1)
+    {
+        Point ball_projected_position = world.ball().position(delta_t * OVERSHOOT_FACTOR);
+
+        // intercept along the long sides if the ball gets too close
+
+        if (std::fabs(ball_projected_position.y - (world.field().width() / 2)) <= EDGE_CATCH_DIST)
         {
-            player.flags(AI::Flags::calc_flags(world.playtype()));
-        }
-        else if (
-            orientation_diff <
-            Angle::of_degrees(transitioningToTargetOrientation))
-        {
-            player.flags(
-                AI::Flags::calc_flags(world.playtype()) |
-                AI::Flags::MoveFlags::AVOID_BALL_TINY);
-        }
-        else
-        {
-            player.flags(
-                AI::Flags::calc_flags(world.playtype()) |
-                AI::Flags::MoveFlags::AVOID_BALL_MEDIUM);
+            auto field_line_seg = Geom::Seg(Point(world.field().length() / 2, world.field().width() / 2),
+                                            Point(-world.field().length() / 2, world.field().width() / 2));
+
+            intercept_point = line_intersect(field_line_seg.start,
+                                             field_line_seg.end,
+                                             world.ball().position(),
+                                             ball_projected_position + world.ball().velocity(delta_t) * 10);
         }
 
-        target_line = world.ball().position() - target;
+        if (std::fabs(ball_projected_position.y - (-world.field().width() / 2)) <= EDGE_CATCH_DIST)
+        {
+            auto field_line_seg = Geom::Seg(Point(world.field().length() / 2, -world.field().width() / 2),
+                                            Point(-world.field().length() / 2, -world.field().width() / 2));
 
-        if (world.ball().velocity().lensq() < stoppedBallTolerence)
-        {
-            LOG_INFO("SITTING STILL");
-            // ball is either very slow or stopped. prediction algorithms don't
-            // work as well so
-            // just go behind the ball facing the target
-            catch_pos =
-                world.ball().position() +
-                target_line.norm(Robot::MAX_RADIUS * catchBallScaleFactor);
-            catch_orientation =
-                (target - world.ball().position()).orientation();
-        }
-        else
-        {
-            LOG_INFO("MOVING BALL");
-            catch_pos = Evaluation::calc_fastest_grab_ball_dest(world, player);
-            catch_orientation =
-                (world.ball().position() - catch_pos).orientation();
+            intercept_point = line_intersect(field_line_seg.start,
+                                             field_line_seg.end,
+                                             world.ball().position(),
+                                             ball_projected_position + world.ball().velocity(delta_t) * 10);
         }
 
-        Action::move(ca, world, player, catch_pos, catch_orientation);
 
-        Action::yield(ca);
-    } while ((player.position() - catch_pos).lensq() > distanceCatchCondition ||
-             player.velocity().lensq() > velocityCatchCondition ||
-             player.orientation().angle_diff(catch_orientation).abs() >
-                 Angle::of_degrees(angleCatchCondition));
+        if ((player.position() - ball_projected_position).len() < (player.position() - intercept_point).len())
+        {
+            intercept_point = ball_projected_position;
+        }
+
+        intercept_angle = - world.ball().velocity(delta_t).orientation();
+    }
+
+    AI::HL::STP::Action::move(ca, world, player, intercept_point, intercept_angle);
 }

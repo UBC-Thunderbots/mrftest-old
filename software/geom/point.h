@@ -1,5 +1,6 @@
 #pragma once
 
+#include <boost/optional.hpp>
 #include <cmath>
 #include <functional>
 #include <ostream>
@@ -8,7 +9,7 @@
 /**
  * \brief A point or vector in 2D space
  */
-#warning make this Nullable
+
 class Point final
 {
    public:
@@ -137,6 +138,9 @@ class Point final
     constexpr double cross(const Point &other) const
         __attribute__((warn_unused_result));
 
+    /**
+     */
+    Angle anglediff(const Point &other) const __attribute__((warn_unused_result));
     /**
      * \brief Assigns one vector to another
      *
@@ -458,6 +462,9 @@ inline Point &Point::operator=(const Point &q)
     x = q.x;
     y = q.y;
     return *this;
+}
+inline Angle Point::anglediff(const Point &other) const {
+	return (*this).orientation().angle_diff(other.orientation());
 }
 
 inline Angle Point::orientation() const

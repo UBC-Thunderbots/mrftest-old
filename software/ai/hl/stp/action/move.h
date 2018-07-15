@@ -33,7 +33,7 @@ void move(caller_t &ca, World world, Player player, Point dest);
  * radius around the ball)
  */
 void move(
-    caller_t &ca, World world, Player player, Point dest, Angle orientation);
+    caller_t &ca, World world, Player player, Point dest, Angle orientation, bool autokick = false, bool dribble = false);
 
 /**
  * Move
@@ -57,6 +57,10 @@ void move_dribble(
  * radius around the ball)
  */
 void move_careful(caller_t &ca, World world, Player player, Point dest);
+
+
+void move_overrider(
+    caller_t &ca, World, Player player, Point dest, Angle orientation);
 
 /**
  * wait function with the condition: player gets with tolerence radius around
