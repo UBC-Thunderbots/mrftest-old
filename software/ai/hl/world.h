@@ -186,8 +186,10 @@ class Player final : public Robot, public AI::Common::Player
     bool replace(
         double x, double y, double dir, int id, bool is_yellow) override;
 
-   private:
     AI::BE::Player::Ptr get_impl() const;
+
+   private:
+
 };
 
 /**
@@ -283,6 +285,12 @@ class World final
      * \return the current monotonic time
      */
     Timestamp monotonic_time() const;
+
+    /**
+    * fix for shitty bots not receiving passes for robocup 2018
+    */
+#warning update this based on working hardware
+        const std::array<unsigned int, 4> working_dribblers = {{6, 3, 0, 1}};
 
    private:
     AI::BE::Backend &impl;

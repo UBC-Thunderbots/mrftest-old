@@ -1,5 +1,6 @@
 #include "ai/hl/stp/action/shoot.h"
 #include <algorithm>
+#include <ai/hl/stp/action/catch.h>
 #include "ai/hl/stp/evaluation/shoot.h"
 #include "ai/hl/stp/tactic/shoot.h"
 
@@ -86,10 +87,18 @@ void ShootGoal::execute(caller_t& ca)
 
         double shotPower;
 
+        if(world.ball().velocity().len() > AI::HL::STP::BALL_MAX_SPEED / 4
+           && !player().has_ball())
+        {
+            Action::catch_ball(ca, world, player());
+        }
+
         Evaluation::ShootData shootData = Evaluation::evaluate_shoot(
             world, player(), true);  // evaluate_shoot tries to select the best
                                      // shot on net the boolean parameter is for
                                      // the reduced or large shoot radius
+        // LOGF_INFO("Ball position: %1, %2", world.ball().position().x,
+        // world.ball().position().y);
 
         if (bChip)
         {
@@ -101,7 +110,7 @@ void ShootGoal::execute(caller_t& ca)
             shotPower = AI::HL::STP::BALL_MAX_SPEED;
         }
 
-        Action::catch_and_shoot_target(
+        Action::shoot_target(
             ca, world, player(), shootData.target, shotPower,
             bChip);  // catch_and_shoot actually performs the act of getting
                      // behind the ball and shooting
@@ -111,14 +120,17 @@ void ShootGoal::execute(caller_t& ca)
 
 W::Player ShootTarget::select(const std::set<W::Player>& players) const
 {
-    return select_baller(world, players, player());
+    // return select_baller(world, players, player());
+    return *std::min_element(
+        players.begin(), players.end(),
+        AI::HL::Util::CmpDist<AI::HL::W::Player>(Point(0, 0)));
 }
 
 void ShootTarget::execute(caller_t& ca)
 {
     while (true)
     {
-        Action::catch_and_shoot_target(
+        Action::shoot_target(
             ca, world, player(), target.position(), power, bChip);
 
         yield(ca);

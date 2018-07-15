@@ -1,6 +1,7 @@
 #pragma once
 
 #include <utility>
+#include <geom/rect.h>
 #include "geom/point.h"
 
 namespace AI
@@ -146,7 +147,53 @@ class Field
      *
      * \return the margin, in metres.
      */
+    Point friendly_crease_neg_corner() const;
+    /**
+     * Gets the point that corresponds to the far negative (y value) side of the
+     * goalie crease (corner)
+     *
+     * \return point, in meters.
+     */
+    Point friendly_crease_pos_corner() const;
+    /**
+     * Gets the point that corresponds to the far positive (y value) side of the
+     * goalie crease (corner)
+     *
+     * \return point, in meters.
+     */
+    Point friendly_crease_pos_endline() const;
+    /**
+     * Gets the point that corresponds to the far positive (y value) side of the
+     * goalie crease (friendly endline endline)
+     *
+     * \return point, in meters.
+     */
+    Point friendly_crease_neg_endline() const;
+    /**
+     * Gets the point that corresponds to the far positive (y value) side of the
+     * goalie crease (friendly endline)
+     *
+     * \return point, in meters.
+     */
+    Point friendly_goalpost_pos() const;
+    /**
+     * Gets the point that corresponds to the positive-side goalpost of the
+     * friendly net
+     *
+     * \return point, in meters.
+     */
+    Point friendly_goalpost_neg() const;
+    /**
+     * Gets the point that corresponds to the negative-side goalpost of the
+     * friendly net
+     *
+     * \return point, in meters.
+     */
+
     double bounds_margin() const;
+
+    Rect friendly_crease() const;
+    Rect enemy_crease() const;
 };
 }
 }

@@ -109,7 +109,7 @@ void Player::tick(bool halt, bool stop)
         return;
     }
 
-    Angle local_move_ori = _move_ori - this->orientation();
+    Angle local_move_ori = (_move_ori - this->orientation()).angle_mod();
     Point local_dest     = _move_dest - this->position();
     local_dest           = local_dest.rotate(-this->orientation());
     switch (_prim.get())

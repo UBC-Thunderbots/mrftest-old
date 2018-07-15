@@ -9,43 +9,29 @@
 
 using namespace AI::HL::STP;
 
-namespace AI
-{
-namespace HL
-{
-namespace STP
-{
-extern Player _goalie;
-BoolParam use_gradient_pass(u8"Run pass calculation", u8"AI/HL/STP", false);
-std::atomic_bool thread_stop_token(false);
-}
-}
+namespace AI {
+	namespace HL {
+		namespace STP {
+			extern Player _goalie;
+			BoolParam use_gradient_pass(u8"Run pass calculation", u8"AI/HL/STP", true);
+		}
+	}
 }
 
-void AI::HL::STP::tick_eval(World world)
-{
-    Evaluation::tick_ball(world);
-    Evaluation::tick_offense(world);
-    Evaluation::tick_defense(world);
-    // Evaluation::tick_tri_attack(world);
+void AI::HL::STP::tick_eval(World world) {
+	Evaluation::tick_ball(world);
+	Evaluation::tick_offense(world);
+	Evaluation::tick_defense(world);
+	//Evaluation::tick_tri_attack(world);
 
-    // Update version of world used in pass calculation thread
-    /*
-    if (use_gradient_pass && world.friendly_team().size() > 1 &&
-    world.enemy_team().size() > 0){
-            GradientApproach::PassInfo::Instance().updateWorldSnapshot(world);
-
-            if (!GradientApproach::PassInfo::Instance().threadRunning()) {
-                GradientApproach::PassInfo::worldSnapshot snapshot =
-    GradientApproach::PassInfo::Instance().getWorldSnapshot();
-
-                GradientApproach::PassInfo::Instance().setThreadRunning(true);
-                pass_thread = std::thread(GradientApproach::superLoop, snapshot,
-    &thread_stop_token);
-            }
-    }
-    */
+	//Update version of world used in pass calculation thread
+	
+	if (use_gradient_pass && world.friendly_team().size() > 1 && world.enemy_team().size() > 0){
+		GradientApproach::PassInfo::worldSnapshot snapshot = GradientApproach::PassInfo::Instance().convertToWorldSnapshot(world);
+		GradientApproach::PassInfo::Instance().updateWorldSnapshot(snapshot);
+	}
 }
+
 
 void AI::HL::STP::stop_threads()
 {

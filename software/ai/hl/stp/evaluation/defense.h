@@ -48,6 +48,19 @@ Point evaluate_tdefense_line(
  *  return the point to go to stop the closest enemy
  */
 Point evaluate_shadow_enemy_point(World world, const int closest_enemy_index);
+
+bool ball_in_friendly_crease(World world);
+Point evaluateShallowAngleBlock(World world, Point position);
+std::vector<Point> evaluate_shots( World world, Point position);
+std::vector<Point> positionFriendlyCreaseIntersect(World world, Point position);
+Point endlineIntersection(World world, Point point);
+
+
+
+
+
+
+
 }
 }
 }

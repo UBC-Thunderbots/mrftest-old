@@ -3,6 +3,7 @@
 #include "ai/hl/stp/param.h"
 #include "ai/navigator/navigator.h"
 #include "ai/navigator/rrt_planner.h"
+#include "ai/navigator/spline_planner.h"
 #include "ai/navigator/util.h"
 #include "geom/angle.h"
 #include "util/dprint.h"
@@ -53,7 +54,8 @@ class RRTNavigator final : public Navigator
         NO_ACTION_OR_MOVE,
         SHOOT_FAILED
     };
-    RRTPlanner planner;
+    RRTPlanner rrt_planner;
+    SplinePlanner spline_planner;
 };
 }
 }
@@ -62,7 +64,7 @@ class RRTNavigator final : public Navigator
 using AI::Nav::RRT::RRTNavigator;
 
 RRTNavigator::RRTNavigator(AI::Nav::W::World world)
-    : Navigator(world), planner(world)
+    : Navigator(world), rrt_planner(world), spline_planner(world)
 {
 }
 
@@ -114,6 +116,7 @@ void RRTNavigator::plan(Player player)
         ((player.flags() & AI::Flags::MoveFlags::AVOID_ENEMY_DEFENSE) !=
          AI::Flags::MoveFlags::NONE);
 
+    //if(hl_request.prim == Drive::Primitive::MOVE) hl_request.extra = 1; 
     // starting a primitive
     PrimitiveDescriptor nav_request = hl_request;
 
@@ -133,13 +136,24 @@ void RRTNavigator::plan(Player player)
             // These all try to move to a target position. If we can’t
             // get there, do an RRT plan and MOVE to the next path
             // point instead.
-            if (!valid_path(
-                    player.position(), hl_request.field_point(), world, player))
+
+
+            if (!valid_path(player.position(), hl_request.field_point(), world, player) &&
+                !player.top_prim()->overrideNavigator)
             {
 #warning Do we need flags here, e.g. to let the goalie into the defense area?
-                plan = planner.plan(
+				
+				// Try Spline planner
+                /*plan = spline_planner.plan(
                     player, hl_request.field_point(),
                     AI::Flags::MoveFlags::NONE);
+				*/	
+                //if (plan.empty()){
+					// Spline Planner didn't work, try RRT
+                	plan = rrt_planner.plan(
+						player, hl_request.field_point(),
+						AI::Flags::MoveFlags::NONE);
+				//}
 
                 if (!plan.empty())
                 {
@@ -148,9 +162,16 @@ void RRTNavigator::plan(Player player)
 
                     nav_dest.params[0] = plan.back().x;
                     nav_dest.params[1] = plan.back().y;
+                    if(hl_request.prim == Drive::Primitive::SHOOT){
+                        //can't shoot right away so move first
+                        nav_request.prim = Drive::Primitive::MOVE;
+                        nav_request.extra = 0;
+                    }
                 }
 
                 player.display_path(plan);
+            }
+            else{
             }
             break;
 
@@ -208,21 +229,18 @@ void RRTNavigator::plan(Player player)
             }
             break;
         case Drive::Primitive::MOVE:
-            if (nav_request.extra & 1)
-                nav_request.field_angle() =
-                    Angle();  // fill in angle so the function doesn't crash
             LOG_DEBUG(Glib::ustring::compose(
                 "Time for new move, point %1", nav_request.field_point()));
 
             if (plan.size() >= 2)
             {
-                final_velocity = AI::Nav::Util::get_final_velocity(
-                    player.position(), plan[0], plan[1]);
+                final_velocity = AI::Nav::Util::calc_mid_vel(
+                    player.position(), plan);
             }
 
             player.send_prim(Drive::move_move(
                 nav_request.field_point(), nav_request.field_angle(),
-                final_velocity));
+                final_velocity, nav_request.extra));
 
             break;
         case Drive::Primitive::DRIBBLE:
@@ -234,17 +252,16 @@ void RRTNavigator::plan(Player player)
                 default_desired_rpm, false));
             break;
         case Drive::Primitive::SHOOT:
-            // deleted all of the old conditional code- too hacky, need to
-            // rewrite
-            // this probably doesn't currently work
-            player.send_prim(Drive::move_shoot(
-                nav_request.field_point(), nav_request.params[3],
-                nav_request.extra & 1));
+			// HACK: only send the shoot primitive if the plan is empty, otherwise a move_move primitive will have already been sent
+            if(plan.empty()){
+                player.send_prim(Drive::move_shoot(
+                    nav_request.field_point(), nav_request.field_angle(), nav_request.params[3],
+                    nav_request.extra & 1));
+            }
             break;
         case Drive::Primitive::CATCH:
-            player.send_prim(Drive::move_catch(
-                Angle::of_radians(nav_request.params[0]), nav_request.params[1],
-                nav_request.params[2]));
+            player.send_prim(
+                    Drive::move_catch(world.ball().velocity().len(), 8000, 0.1));
             break;
         case Drive::Primitive::PIVOT:
             LOG_DEBUG(Glib::ustring::compose(

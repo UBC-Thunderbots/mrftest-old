@@ -1,3 +1,5 @@
+#pragma once
+
 #include "ai/navigator/world.h"
 #include "geom/point.h"
 

@@ -17,7 +17,7 @@ namespace Action
  *
  * Shoots the ball at the largest open angle of the enemy goal.
  */
-void shoot_goal(caller_t& ca, World world, Player player);
+void shoot_goal(caller_t& ca, World world, Player player, bool chip = false);
 
 /**
  * Shoot Target
@@ -40,6 +40,9 @@ void catch_and_shoot_target(
     double velocity = BALL_MAX_SPEED, bool chip = false);
 
 void catch_and_shoot_goal(caller_t& ca, World world, Player player);
+
+
+void get_behind_ball(caller_t& ca, World world, Player player, Point target);
 }
 }
 }

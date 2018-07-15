@@ -3,6 +3,7 @@
 #include <cmath>
 #include <iostream>
 #include <string>
+#include <util/timestep.h>
 #include "ai/flags.h"
 #include "ai/navigator/rrt_planner.h"
 #include "ai/util.h"
@@ -54,7 +55,7 @@ constexpr double SMALL_BUFFER = 0.0001;
 DoubleParam ENEMY_MOVEMENT_FACTOR(
     u8"Enemy position interp length", u8"AI/Nav/Util", 0.0, 0.0, 2.0);
 DoubleParam FRIENDLY_MOVEMENT_FACTOR(
-    u8"Friendly position interp length", u8"AI/Nav/Util", 0.0, 0.0, 2.0);
+    u8"Friendly movement extrapolation factor", u8"AI/Nav/Util", 1.0, 0.0, 2.0);
 DoubleParam GOAL_POST_BUFFER(
     u8"Goal post avoidance dist", u8"AI/Nav/Util", 0.0, -0.2, 0.2);
 
@@ -72,9 +73,11 @@ DoubleParam ENEMY_BUFFER_LONG(
 DoubleParam FRIENDLY_BUFFER_SHORT(
     u8"Short friendly avoidance dist", u8"AI/Nav/Util", 0.1, -1, 1);
 DoubleParam FRIENDLY_BUFFER(
-    u8"Normal friendly avoidance dist", u8"AI/Nav/Util", 0.1, -1, 1);
+    u8"Normal friendly avoidance dist", u8"AI/Nav/Util", 0.2, -1, 1);
 DoubleParam FRIENDLY_BUFFER_LONG(
-    u8"Long friendly avoidance dist", u8"AI/Nav/Util", 0.2, -1, 1);
+    u8"Long friendly avoidance dist", u8"AI/Nav/Util", 0.3, -1, 1);
+DoubleParam FRIENDLY_ROBOT_DECEL(
+    u8"Friendly robot braking decel", u8"AI/Nav/Util", 3.0, 0.0, 10.0);
 
 DoubleParam PASS_CHALLENGE_BUFFER(
     u8"Intercept challenge friendly avoidance", u8"AI/Nav/Util", 1.0, 0.1, 2.0);
@@ -103,6 +106,13 @@ DoubleParam PENALTY_KICK_BUFFER(
 
 DoubleParam FRIENDLY_KICK_BUFFER(
     u8"Friendly kick avoidance dist (rule=0.2)", u8"AI/Nav/Util", 0.2, 0, 1.0);
+
+BoolParam CUSTOM_X_BOUNDS_ENABLE(
+        u8"Whether or not to enable custom bounds for testing", u8"AI/Nav/CustomStuff", false);
+DoubleParam MIN_X_BOUND(
+        u8"The minimum x coordinate of the area our robots may occupy", u8"AI/Nav/CustomStuff", -5.0, -10.0, 10.0);
+DoubleParam MAX_X_BOUND(
+        u8"The maximum x coordinate of the area our robots may occupy", u8"AI/Nav/CustomStuff", 5.0, -10.0, 10.0);
 
 constexpr double RAM_BALL_ALLOWANCE = 0.05;
 
@@ -264,6 +274,7 @@ double get_enemy_trespass(Point cur, Point dst, AI::Nav::W::World world)
 double get_play_area_boundary_trespass(
     Point cur, Point dst, AI::Nav::W::World world)
 {
+    return 0.0;
     const Field &f = world.field();
     Point sw_corner(-f.length() / 2, -f.width() / 2);
     Rect bounds(sw_corner, f.length(), f.width());
@@ -277,11 +288,13 @@ double get_play_area_boundary_trespass(
     {
         violation = std::max(violation, bounds.dist_to_boundary(dst));
     }
+
     return violation;
 }
 
 double get_total_bounds_trespass(Point cur, Point dst, AI::Nav::W::World world)
 {
+    return 0.0;
     const Field &f = world.field();
     Point sw_corner(-f.total_length() / 2, -f.total_width() / 2);
     Rect bounds(sw_corner, f.total_length(), f.total_width());
@@ -294,6 +307,11 @@ double get_total_bounds_trespass(Point cur, Point dst, AI::Nav::W::World world)
     if (!bounds.point_inside(dst))
     {
         violation = std::max(violation, bounds.dist_to_boundary(dst));
+    }
+    if(CUSTOM_X_BOUNDS_ENABLE) {
+//        std::cout << "\n\n IN ENABLE\n\n" << std::endl;
+        violation = std::max((MIN_X_BOUND - dst.x), violation);
+        violation = std::max((dst.x - MAX_X_BOUND), violation);
     }
     return violation;
 }
@@ -309,12 +327,24 @@ double get_friendly_trespass(
         {
             continue;
         }
-        double circle_radius = friendly(player, rob.prio());
-        double sdist         = dist(
-            Seg(rob.position(),
-                rob.position() + FRIENDLY_MOVEMENT_FACTOR * rob.velocity()),
-            Seg(cur, dst));
-        violate = std::max(violate, circle_radius - sdist);
+
+        double braking_dist = (rob.velocity().lensq() / 2 * FRIENDLY_ROBOT_DECEL)
+                              * (1 / TIMESTEPS_PER_SECOND) * FRIENDLY_MOVEMENT_FACTOR;
+        Seg braking_line = Seg(rob.position(), rob.position() + rob.velocity().norm() * braking_dist);
+
+        Seg path_seg = Seg(cur, dst);
+
+        double exclusion_radius_violation =
+                (dist(path_seg, rob.position()) < FRIENDLY_BUFFER_LONG) ?
+                FRIENDLY_BUFFER_LONG - dist(path_seg, rob.position()) :
+                0;
+
+        double braking_line_violation =
+                (dist(path_seg, braking_line) < FRIENDLY_BUFFER) ?
+                FRIENDLY_BUFFER - dist(path_seg, braking_line) :
+                0;
+
+        violate = exclusion_radius_violation + braking_line_violation; 
     }
     return violate;
 }
@@ -330,44 +360,33 @@ double get_ball_stop_trespass(
     return violate;
 }
 
-double get_defense_area_trespass(
-    Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player player)
+double get_area_trespass(Point cur, Point dst, Point goal, Rect bounds, Player player)
 {
-    const Field &f      = world.field();
-
-    Point defense_point1(
-        -f.length() / 2,
-        -(f.defense_area_stretch() / 2) - DEFENSE_AREA_BUFFER);  // SW corner
-    Point defense_point2(
-        -f.length() / 2,
-        (f.defense_area_stretch() / 2) + DEFENSE_AREA_BUFFER);  // NW corner
-    Point defense_point3(
-        -(f.length() / 2) + f.defense_area_width() + DEFENSE_AREA_BUFFER,
-        -(f.defense_area_stretch() / 2) - DEFENSE_AREA_BUFFER);  // SE corner
-    Point defense_point4(
-        -(f.length() / 2) + f.defense_area_width() + DEFENSE_AREA_BUFFER,
-        (f.defense_area_stretch() / 2) + DEFENSE_AREA_BUFFER);  // NE corner
-    Rect defense_area(defense_point1, defense_point4);
-
+    bounds.expand(player.MAX_RADIUS);
+    Point proj = (goal - cur).project((dst - cur)) + cur;
     double violation = 0.0;
-
-    // If path ends in defense area
-    if (defense_area.point_inside(dst))
+    if (bounds.point_inside(cur))
     {
-        violation = std::max(violation, defense_area.dist_to_boundary(dst));
-        return violation;
+    	violation = std::max(violation, bounds.dist_to_boundary(cur));
     }
-
-    // project goal point onto path segment, to handle case where path passes
-    // through defense area
-    Point proj = (f.friendly_goal() - cur).project((dst - cur)) + cur;
-    if (defense_area.point_inside(proj))
+    if (bounds.point_inside(dst))
     {
-        violation = std::max(violation, defense_area.dist_to_boundary(proj));
-        return violation;
+    	violation = std::max(violation, bounds.dist_to_boundary(dst));
     }
-
+    if (bounds.point_inside(proj)) {
+        violation = std::max(violation, bounds.dist_to_boundary(proj));
+    }
     return violation;
+}
+
+double get_offense_area_trespass(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player player)
+{
+    return get_area_trespass(cur, dst, world.field().enemy_goal(), world.field().enemy_crease(), player);
+}
+
+double get_defense_area_trespass(Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player player)
+{
+    return get_area_trespass(cur, dst, world.field().friendly_goal(), world.field().friendly_crease(), player);
 }
 
 double get_own_half_trespass(
@@ -383,19 +402,6 @@ double get_own_half_trespass(
         violation = std::max(violation, bounds.dist_to_boundary(dst));
     }
     return violation;
-}
-
-double get_offense_area_trespass(
-    Point cur, Point dst, AI::Nav::W::World world, AI::Nav::W::Player player)
-{
-    const Field &f      = world.field();
-    double defense_dist = friendly_kick(world, player);
-    Point defense_point1(f.length() / 2, -f.defense_area_stretch() / 2);
-    Point defense_point2(f.length() / 2, f.defense_area_stretch() / 2);
-    return std::max(
-        0.0,
-        defense_dist -
-            dist(Seg(cur, dst), Seg(defense_point1, defense_point2)));
 }
 
 double get_ball_tiny_trespass(
@@ -497,8 +503,7 @@ struct Violation final
         }
         if ((flags & MoveFlags::AVOID_FRIENDLY_DEFENSE) != MoveFlags::NONE)
         {
-            friendly_defense =
-                get_defense_area_trespass(cur, dst, world, player);
+            friendly_defense = get_defense_area_trespass(cur, dst, world, player);
         }
         if ((flags & MoveFlags::AVOID_ENEMY_DEFENSE) != MoveFlags::NONE)
         {
@@ -734,6 +739,15 @@ bool AI::Nav::Util::valid_path(
             cur, cur, world, player, extra_flags));
 }
 
+bool AI::Nav::Util::valid_path(
+    std::vector<Point> path, AI::Nav::W::World world, AI::Nav::W::Player player, MoveFlags extra_flags)
+{
+	for(unsigned i=1; i <path.size(); i++){
+		if(!valid_path(path[i-1], path[i], world, player, extra_flags)) return false;
+	}
+	return true;	
+}
+
 std::vector<Point> AI::Nav::Util::get_obstacle_boundaries(
     AI::Nav::W::World world, AI::Nav::W::Player player)
 {
@@ -892,34 +906,26 @@ double AI::Nav::Util::estimate_action_duration(
     return total_time;
 }
 
-double AI::Nav::Util::get_final_velocity(
-    Point point_a, Point point_b, Point point_c)
-{
-    double side_a = (point_c - point_b).len();
-    double side_b = (point_c - point_a).len();
-    double side_c = (point_a - point_b).len();
+double AI::Nav::Util::calc_mid_vel(Point player_pos, std::vector<Point> plan){
+    if(plan.size() < 2) return 0.0;
+    
+    Point v1 = plan[0] - player_pos;
+    Point v2 = plan[1] - plan[0];
+    
+    double angle = std::acos((v1.norm()).dot(v2.norm())); //should be [0,pi)
+    // Slow down if it is a sharp corner
+    double angleConstrainedVel =  std::max(0.0, AI::Nav::W::Player::MAX_LINEAR_VELOCITY * std::cos(angle * angle / 1.5));
 
-    double side_a_sq = (point_c - point_b).lensq();
-    double side_b_sq = (point_c - point_a).lensq();
-    double side_c_sq = (point_a - point_b).lensq();
-
-    // cosine law
-
-    Angle theta =
-        Angle::acos(
-            (side_b_sq - side_a_sq - side_c_sq) / (-2 * side_a + side_c))
-            .mod(Angle::half());
-
-    if (theta > Angle::quarter())
-        return 0;
-    else
-    {
-        theta = theta.mod(Angle::quarter());
-
-        double frac = theta / Angle::quarter();
-
-        return frac * AI::Nav::W::Player::MAX_LINEAR_VELOCITY;
+    // Calculate how long the rest of the path is (starting at the upcoming point) 
+    double distRemaining = 0.0;
+    for(unsigned i=0;i<plan.size()-1;i++){
+        distRemaining += (plan[i+1] - plan[i]).len(); 
     }
+
+    // the maximum speed while still being able to stop before the final point
+    double distConstrainedVel = std::sqrt(2*AI::Nav::W::Player::MAX_LINEAR_ACCELERATION*distRemaining);
+
+    return std::min(angleConstrainedVel, distConstrainedVel);
 }
 
 #warning needs to be fixed for movement primitives

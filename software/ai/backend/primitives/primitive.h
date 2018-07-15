@@ -116,6 +116,8 @@ class Primitive : public NonCopyable
      */
     std::exception_ptr error() const;
 
+    bool overrideNavigator = false;
+
    private:
     const PrimitiveDescriptor desc_;
     std::unique_ptr<std::exception> error_;

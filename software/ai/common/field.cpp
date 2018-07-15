@@ -60,3 +60,49 @@ double Field::bounds_margin() const
 {
     return width() / 20.0;
 }
+
+Point Field::friendly_crease_neg_corner() const
+{
+    return Point(
+        -length() / 2 + defense_area_width(), -defense_area_stretch() / 2);
+}
+
+Point Field::friendly_crease_pos_corner() const
+{
+    return Point(
+        -length() / 2 + defense_area_width(), defense_area_stretch() / 2);
+}
+
+Point Field::friendly_crease_neg_endline() const
+{
+    return Point(-length() / 2, -defense_area_stretch() / 2);
+}
+Point Field::friendly_crease_pos_endline() const
+{
+    return Point(-length() / 2, defense_area_stretch() / 2);
+}
+
+Point Field::friendly_goalpost_pos() const
+{
+    return Point(-length() / 2, defense_area_stretch() / 4);
+}
+
+Point Field::friendly_goalpost_neg() const
+{
+    return Point(-length() / 2, -defense_area_stretch() / 4);
+}
+
+
+Rect Field::friendly_crease() const
+{
+    Point a = Point(-length() / 2, -defense_area_stretch() / 2);
+    Point b = Point(-length() / 2 + defense_area_width(), defense_area_stretch() / 2);
+    return Rect(a, b);
+}
+
+Rect Field::enemy_crease() const
+{
+    Point a = Point(length() / 2, -defense_area_stretch() / 2);
+    Point b = Point(length() / 2 - defense_area_width(), defense_area_stretch() / 2);
+    return Rect(a, b);
+}

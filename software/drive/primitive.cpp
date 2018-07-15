@@ -36,21 +36,22 @@ Drive::LLPrimitive Drive::move_brake()
     return Drive::LLPrimitive(Drive::Primitive::STOP, {0.0, 0.0, 0.0, 0.0}, 1);
 }
 
-Drive::LLPrimitive Drive::move_move(Point dest, double end_speed)
+Drive::LLPrimitive Drive::move_move(Point dest, double end_speed, uint8_t extra)
 {
+    printf("moving now");
     return Drive::LLPrimitive(
         Drive::Primitive::MOVE,
-        {dest.x * 1000.0, dest.y * 1000.0, 0.0, end_speed * 1000.0}, 0);
+        {dest.x * 1000.0, dest.y * 1000.0, 0.0, end_speed * 1000.0}, extra);
 }
 
 Drive::LLPrimitive Drive::move_move(
-    Point dest, Angle orientation, double end_speed)
+    Point dest, Angle orientation, double end_speed, uint8_t extra)
 {
     return Drive::LLPrimitive(
         Drive::Primitive::MOVE,
         {dest.x * 1000.0, dest.y * 1000.0,
          orientation.angle_mod().to_radians() * 100.0, end_speed * 1000.0},
-        1);
+        extra);
 }
 
 Drive::LLPrimitive Drive::move_dribble(
@@ -65,6 +66,7 @@ Drive::LLPrimitive Drive::move_dribble(
 
 Drive::LLPrimitive Drive::move_shoot(Point dest, double power, bool chip)
 {
+    printf("shooting ball now");
     return Drive::LLPrimitive(
         Drive::Primitive::SHOOT,
         {dest.x * 1000.0, dest.y * 1000.0, 0.0, power * 1000.0}, chip);
@@ -73,6 +75,7 @@ Drive::LLPrimitive Drive::move_shoot(Point dest, double power, bool chip)
 Drive::LLPrimitive Drive::move_shoot(
     Point dest, Angle orientation, double power, bool chip)
 {
+    printf("power %f", power);
     return Drive::LLPrimitive(
         Drive::Primitive::SHOOT,
         {dest.x * 1000.0, dest.y * 1000.0,
@@ -81,12 +84,11 @@ Drive::LLPrimitive Drive::move_shoot(
 }
 
 Drive::LLPrimitive Drive::move_catch(
-    Angle angle_diff, double displacement, double speed)
+    double ball_velocity, double dribbler_speed, double margin)
 {
     return Drive::LLPrimitive(
         Drive::Primitive::CATCH,
-        {angle_diff.angle_mod().to_radians() * 100.0, displacement * 1000.0,
-         speed * 1000.0, 0.0},
+        {ball_velocity, dribbler_speed, margin},
         0);
 }
 

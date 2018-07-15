@@ -27,11 +27,7 @@ static void dribble_init(void) {
  *
  * \param[in] params the movement parameters, which are only valid until this
  * function returns and must be copied into this module if needed
- */
-static void dribble_start(const primitive_params_t *params) {
-	for( unsigned int i = 0; i < 4; i++ ){
-					dribble_param.params[i] = params->params[i];      
-	}
+ */ static void dribble_start(const primitive_params_t *params) { for( unsigned int i = 0; i < 4; i++ ){ dribble_param.params[i] = params->params[i];      }
 	dribble_param.slow = params->slow;
 	dribble_param.extra = params->extra;
 
@@ -39,17 +35,12 @@ static void dribble_start(const primitive_params_t *params) {
 	destination[1] = ((float)(params->params[1])/1000.0f);
 	destination[2] = ((float)(params->params[2])/100.0f);
 	unsigned int desired_dribbler_speed = ((unsigned int)(params->params[3]));
-	dribbler_set_speed(desired_dribbler_speed);
-
+	dribbler_set_speed(0);
 }
 
 /**
  * \brief Ends a movement of this type.
- *
- * This function runs when the host computer requests a new movement while a
- * dribble movement is already in progress.
- */
-static void dribble_end(void) {
+ * * This function runs when the host computer requests a new movement while a * dribble movement is already in progress. */ static void dribble_end(void) {
 }
 
 /**
@@ -74,13 +65,15 @@ static void dribble_tick(log_record_t *logajectory) {
 	float accel[3];
 
 	BBProfile Xprofile;
-	PrepareBBTrajectory(&Xprofile, destination[0]-pos[0], vel[0], 0, max_accel[0]);
+	//dribbling too fast with the ball: specify max V
+	PrepareBBTrajectoryMaxV(&Xprofile, destination[0]-pos[0], vel[0], 0, max_accel[0], 0.7f);
 	PlanBBTrajectory(&Xprofile);
 	accel[0] = BBComputeAvgAccel(&Xprofile, DRIBBLE_TIME_HORIZON);
 	float timeX = GetBBTime(&Xprofile);
 
+	//same as above comment^
 	BBProfile Yprofile;
-	PrepareBBTrajectory(&Yprofile, destination[1]-pos[1], vel[1], 0, max_accel[1]);
+	PrepareBBTrajectoryMaxV(&Yprofile, destination[1]-pos[1], vel[1], 0, max_accel[1], 0.7f);
 	PlanBBTrajectory(&Yprofile);
 	accel[1] = BBComputeAvgAccel(&Yprofile, DRIBBLE_TIME_HORIZON);
 	float timeY = GetBBTime(&Yprofile);

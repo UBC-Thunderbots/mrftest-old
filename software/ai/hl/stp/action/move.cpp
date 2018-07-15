@@ -15,11 +15,25 @@ void AI::HL::STP::Action::move(
 }
 
 void AI::HL::STP::Action::move(
+    caller_t &ca, World, Player player, Point dest, Angle orientation, bool autokick, bool dribble)
+{
+    //TODO: delete hack
+    //autokick = true;
+    uint8_t extra = autokick ? 1 : 0; //value from 0-7
+	extra |= (dribble ? 1 : 0) << 1;
+
+    AI::BE::Primitives::Ptr prim(
+        new Primitives::Move(player, dest, orientation, extra));
+
+    (static_cast<AI::Common::Player>(player)).impl->push_prim(prim);
+}
+
+void AI::HL::STP::Action::move_overrider(
     caller_t &ca, World, Player player, Point dest, Angle orientation)
 {
-    AI::BE::Primitives::Ptr prim(
-        new Primitives::Move(player, dest, orientation));
 
+    AI::BE::Primitives::Ptr prim(new Primitives::Move(player, dest, orientation));
+    prim->overrideNavigator = true;
     (static_cast<AI::Common::Player>(player)).impl->push_prim(prim);
 }
 

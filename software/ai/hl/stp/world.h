@@ -21,8 +21,9 @@ extern DoubleParam BALL_MAX_SPEED;
 
 /**
  * Distance from the penalty mark
+ * updated at robocup 2018 to be 0.8. need to check actual value
  */
-constexpr double DIST_FROM_PENALTY_MARK = 0.4;
+constexpr double DIST_FROM_PENALTY_MARK = 0.8; //0.4;
 }
 }
 }

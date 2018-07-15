@@ -4,6 +4,7 @@
 #include "geom/angle.h"
 #include "geom/util.h"
 using namespace AI::HL::STP;
+using namespace Geom;
 
 namespace
 {
@@ -117,7 +118,19 @@ double Evaluation::get_passee_shoot_score(
                        obstacles, Robot::MAX_RADIUS)
                        .second.to_degrees();
 
-    return 1 / (1 + std::exp(0.2 * (10 - angle)));
+    double score = 1 / (1 + std::exp(0.2 * (5 - angle)));
+
+    double post0_diff = (snap.passer_position - position).orientation()
+                           .angle_diff((snap.enemy_goal_boundary.first - position).orientation())
+                           .to_degrees();
+    double post1_diff = (snap.passer_position - position).orientation()
+                           .angle_diff((snap.enemy_goal_boundary.second - position).orientation())
+                           .to_degrees();
+
+    double min_post_diff = std::min(post0_diff, post1_diff);
+ 
+    //prefer shots where the bot doesn't have to turn much to face the net
+    return score / (1 + std::exp(0.2 * (20 - min_post_diff)));
 }
 
 Evaluation::ShootData Evaluation::evaluate_shoot(
@@ -152,19 +165,19 @@ Evaluation::ShootData Evaluation::evaluate_shoot(
     return data;
 }
 
-bool Evaluation::in_shoot_position(World world, Player player, Point target)
-{
-    Point pos  = player.position();
-    Point ball = world.ball().position();
+bool Evaluation::in_shoot_position(World world, Player player, Point target){
+	Point pos = player.position();
+	Point ball = world.ball().position();
+    Angle angle = Angle::of_degrees(25.0);
+    //printf("Angle off by %f", ((ball - pos).orientation().angle_diff((target - ball).orientation())).to_degrees());
 
-    if ((pos - ball).len() > 1.0)
+	if ((pos - ball).len() > 1.0)
         return false;
-    else if (
-        ((ball - pos).orientation() - (target - ball).orientation()).abs() >
-        Angle::of_degrees(25.0))
+	else if (((ball - pos).orientation().angle_diff((target - ball).orientation())).abs() > angle)
         return false;
-    // This line has some sort of state that prevents the robot from ever
-    // getting into position.
-    // else if (!Plan::valid_path(pos, ball, world, player)) return false;
-    return true;
+	// This line has some sort of state that prevents the robot from ever getting into position.
+	// else if (!Plan::valid_path(pos, ball, world, player)) return false;
+//    printf("in shoot position");
+	return true;
 }
+

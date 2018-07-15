@@ -353,6 +353,314 @@ Point tdefender_block_enemy(World world, Point r, const unsigned index)
 }
 }
 
+bool AI::HL::STP::Evaluation::ball_in_friendly_crease(World world)
+{
+    bool bBallInCrease;
+    Point ballPos = world.ball().position();
+
+    bBallInCrease =
+        ballPos.y < world.field().friendly_crease_pos_corner().y &&
+        ballPos.y > world.field()
+                        .friendly_crease_neg_corner()
+                        .y  // is the ball within the goalie crease?
+        && ballPos.x < (world.field().friendly_crease_pos_corner().x) &&
+        ballPos.x > world.field().friendly_goal().x;
+
+    return bBallInCrease;
+}
+
+
+
+Point AI::HL::STP::Evaluation::evaluateShallowAngleBlock(World world, Point position) { //TODO comment this
+    Point negGoalPost = world.field().friendly_goalpost_neg();
+    Point posGoalPost = world.field().friendly_goalpost_pos();
+
+    Point dirToNegPost = (negGoalPost - position).norm();
+    Point dirToPosPost = (posGoalPost - position).norm();
+
+    Point negPostIntersect;
+    Point posPostIntersect;
+
+    Point blockPos;
+
+    double criticalValue;
+    double scaleFactorPos;
+    double scaleFactorNeg;
+    double defenseAreaIntersectLength;
+
+
+    double phi;
+    double theta;
+    double x;
+
+    if (position.y < 0) {
+        criticalValue = world.field().friendly_crease_neg_corner().y + Robot::MAX_RADIUS;
+        negPostIntersect.y = criticalValue;
+    } else {
+        criticalValue = world.field().friendly_crease_pos_corner().y - Robot::MAX_RADIUS;
+        posPostIntersect.y = criticalValue;
+    }
+
+    scaleFactorPos = (position.y - criticalValue)/dirToPosPost.y;
+    scaleFactorNeg = (position.y  - criticalValue)/dirToNegPost.y;
+
+
+    negPostIntersect.x = position.x - (scaleFactorNeg * dirToNegPost.x);
+    posPostIntersect.x = position.x - (scaleFactorPos * dirToPosPost.x);
+
+    defenseAreaIntersectLength = posPostIntersect.x - negPostIntersect.x;
+
+    if ( fabs(defenseAreaIntersectLength) >= Robot::MAX_RADIUS*2) {
+        blockPos.x = negPostIntersect.x + defenseAreaIntersectLength/2;
+        blockPos.y = criticalValue;
+    }
+    else {
+        phi = pow((dirToNegPost.x - dirToPosPost.x),2);
+        theta = pow((dirToNegPost.y - dirToPosPost.y),2); // calculate the position in the net that has the same size gap from the goalpost vectors at the diameter of the goalie
+        x = pow(Robot::MAX_RADIUS*1.7, 2);
+        x /= (phi+theta);
+
+        x = sqrt(x);
+
+        if (position.y < 0 ) {
+            blockPos = position + (world.field().friendly_goal() - position).norm()*x;
+        }
+        else {
+            blockPos.x = position.x + (world.field().friendly_goal() - position).norm().x*x;
+            blockPos.y = position.y + (world.field().friendly_goal() - position).norm().y*x;
+            // LOGF_INFO("block x: %1, block y: %2", blockPos.x, blockPos.y);
+        }
+        if (blockPos.x < world.field().friendly_goal().x+0.05) {
+            blockPos.x = world.field().friendly_goal().x + Robot::MAX_RADIUS;
+
+            if (position.y < 0) {
+                blockPos.y = world.field().friendly_goalpost_neg().y - Robot::MAX_RADIUS;
+            } else {
+                blockPos.y = world.field().friendly_goalpost_pos().y + Robot::MAX_RADIUS;
+            }
+        } else if (blockPos.x > world.field().friendly_crease_pos_corner().x) {
+            blockPos.x = world.field().friendly_crease_pos_corner().x;
+        }
+    }
+
+    //LOGF_INFO("blockkk x: %1, block y: %2", blockPos.x, blockPos.y);
+    return blockPos;
+
+}
+
+std::vector<Point> AI::HL::STP::Evaluation::evaluate_shots(World world, Point position) {
+
+    Point dirToNegPost = (world.field().friendly_goalpost_neg() - position).norm();
+    Point dirToPosPost = (world.field().friendly_goalpost_pos() - position).norm();
+    Point dirToCenterGoal = (world.field().friendly_goal() - position).norm();
+
+    Point negPostIntersect;
+    Point posPostIntersect;
+
+    Point blockPos;
+
+    double criticalValue = 2 * Robot::MAX_RADIUS + 0.04;
+    double scaleFactorPos;
+    double scaleFactorNeg;
+    double defenseAreaIntersectLength;
+    double scaleFactor;
+    Angle coneAngle = (dirToNegPost.orientation() - dirToPosPost.orientation());
+
+    Point defensePoint1;
+    Point defensePoint2;
+    Point defensePointGoalie;
+
+    bool bPoint1InCrease;
+    bool bPoint2InCrease;
+    bool bGoalieInCrease;
+
+    std::vector<Point> defensePoints;
+
+    scaleFactor = criticalValue / coneAngle.sin();
+
+    std::vector<Point> block;
+
+    defensePoint1 = position + dirToNegPost * scaleFactor;
+    defensePoint2 = position + dirToPosPost * scaleFactor;
+
+
+    bPoint1InCrease =
+            defensePoint1.y < world.field().friendly_crease_pos_corner().y &&
+            defensePoint1.y > world.field()
+                    .friendly_crease_neg_corner()
+                    .y  // is the ball within the goalie crease?
+            && defensePoint1.x < (world.field().friendly_crease_pos_corner().x) &&
+            defensePoint1.x > world.field().friendly_goal().x;
+
+    bPoint2InCrease =
+            defensePoint2.y < world.field().friendly_crease_pos_corner().y &&
+            defensePoint2.y > world.field()
+                    .friendly_crease_neg_corner()
+                    .y  // is the ball within the goalie crease?
+            && defensePoint2.x < (world.field().friendly_crease_pos_corner().x) &&
+            defensePoint2.x > world.field().friendly_goal().x;
+
+    defensePoints = Evaluation::positionFriendlyCreaseIntersect(world, world.ball().position());
+
+    if (bPoint1InCrease || defensePoint1.x < -world.field().length()/2) {
+        defensePoint1 = defensePoints[1];
+    }
+
+    if (bPoint2InCrease || defensePoint2.x < -world.field().length()/2) {
+        defensePoint2 = defensePoints[2];
+    }
+
+    defensePointGoalie = positionFriendlyCreaseIntersect(world, world.ball().position())[0];
+//    LOGF_INFO("neg..x:%1, y:%2", defensePoint1.x, defensePoint1.y);
+//    LOGF_INFO("pos..x:%1, y:%2", defensePoint2.x, defensePoint2.y);
+
+    block.push_back(defensePoint1);
+    block.push_back(defensePoint2);
+    block.push_back(defensePointGoalie);
+
+    return block;
+
+}
+
+std::vector<Point> AI::HL::STP::Evaluation::positionFriendlyCreaseIntersect(World world, Point position) {
+    Angle dirToGoal = (position - world.field().friendly_goal() ).orientation();
+    double criticalValue;
+    double scaleFactor;
+    Point Intersect;
+    Point defender1Intersect;
+    Point defender2Intersect;
+    Point endLineIntersect;
+
+    std::vector<Point> intersects;
+//
+//    if (dirToGoal.orientation().to_degrees() > 90 && dirToGoal.orientation().to_degrees() < 135) {
+//        criticalValue = world.field().friendly_crease_neg_corner().y;
+//
+//        scaleFactor   = (criticalValue - position.y)/dirToGoal.y;
+//        intersect.y   = criticalValue;
+//        intersect.x   = position.x - scaleFactor * dirToGoal.y;
+//        LOG_INFO("CASE1");
+//
+//        defender1Intersect = intersect;
+//        defender2Intersect = intersect;
+//
+//        defender1Intersect.x += Robot::MAX_RADIUS;
+//        defender2Intersect.x -= Robot::MAX_RADIUS;
+//
+//    } else if (dirToGoal.orientation().to_degrees() <= 135 && dirToGoal.orientation().to_degrees() > -135) {
+//        criticalValue = world.field().friendly_crease_neg_corner().x;
+//
+//        scaleFactor   = (criticalValue - position.x)/dirToGoal.x;
+//        intersect.x   = criticalValue;
+//        intersect.y   = position.y - scaleFactor * dirToGoal.y;
+//
+//        defender1Intersect = intersect;
+//        defender2Intersect = intersect;
+//        LOG_INFO("CASE2");
+//
+//        defender1Intersect.y += Robot::MAX_RADIUS;
+//        defender2Intersect.y -= Robot::MAX_RADIUS;
+//
+//    } else {
+//        criticalValue = world.field().friendly_crease_pos_corner().y;
+//        LOG_INFO("CASE3");
+//        scaleFactor   = (criticalValue - position.y)/dirToGoal.y;
+//        intersect.y   = criticalValue;
+//        intersect.x   = position.x - scaleFactor * dirToGoal.x;
+//
+//        defender1Intersect = intersect;
+//        defender2Intersect = intersect;
+//
+//        defender1Intersect.x -= Robot::MAX_RADIUS;
+//        defender2Intersect.x += Robot::MAX_RADIUS;
+//    }
+
+    if (dirToGoal < Angle::of_degrees(-45))
+    {
+        criticalValue = world.field().friendly_crease_neg_corner().y;
+        // criticalValue = goaliePos.crit + scaleFactor*trig(goalieangle)
+        // scalefactor = (criticalValue - goaliePos.crit) / trig(angle)
+        scaleFactor = (criticalValue - world.field().friendly_goal().y) / dirToGoal.sin();
+        Intersect.y = criticalValue;
+        Intersect.x = world.field().friendly_goal().x + scaleFactor * dirToGoal.cos();
+
+        defender1Intersect = Intersect;
+        defender2Intersect = Intersect;
+
+        defender1Intersect.x += Robot::MAX_RADIUS;
+        defender2Intersect.x -= Robot::MAX_RADIUS;
+
+        if (defender1Intersect.x <= world.field().friendly_goal().x) {
+            defender1Intersect.x = defender2Intersect.x + Robot::MAX_RADIUS;
+        }
+        defender1Intersect.y -= 2*Robot::MAX_RADIUS;
+        defender2Intersect.y -= 2*Robot::MAX_RADIUS;
+    }
+    else if (dirToGoal > Angle::of_degrees(45))
+    {
+        criticalValue = world.field().friendly_crease_pos_corner().y;
+        scaleFactor   = (criticalValue - world.field().friendly_goal().y) / dirToGoal.sin();
+        Intersect.y   = criticalValue;
+        Intersect.x   = world.field().friendly_goal().x + scaleFactor * dirToGoal.cos();
+
+        defender1Intersect = Intersect;
+        defender2Intersect = Intersect;
+
+        defender1Intersect.x -= Robot::MAX_RADIUS;
+        defender2Intersect.x += Robot::MAX_RADIUS;
+
+        defender1Intersect.y += 2*Robot::MAX_RADIUS;
+        defender2Intersect.y += 2*Robot::MAX_RADIUS;
+
+        if (defender2Intersect.x <= world.field().friendly_goal().x) {
+            defender2Intersect.x = defender1Intersect.x + Robot::MAX_RADIUS;
+        }
+
+    }
+    else
+    {
+        criticalValue = world.field().friendly_crease_pos_corner().x;
+        scaleFactor   = (criticalValue - world.field().friendly_goal().x) / dirToGoal.cos();
+        Intersect.x   = criticalValue;
+        Intersect.y   = world.field().friendly_goal().y + scaleFactor * dirToGoal.sin();
+
+        defender1Intersect = Intersect;
+        defender2Intersect = Intersect;
+
+        defender1Intersect.y += Robot::MAX_RADIUS;
+        defender2Intersect.y -= Robot::MAX_RADIUS;
+
+        defender1Intersect.x += 2*Robot::MAX_RADIUS;
+        defender2Intersect.x += 2*Robot::MAX_RADIUS;
+    }
+
+    Point goalieInter = Intersect + 0.5*(Intersect - world.ball().position()).norm();
+
+    intersects.push_back(Intersect);
+    intersects.push_back(defender1Intersect);
+    intersects.push_back(defender2Intersect);
+    intersects.push_back(goalieInter);
+    return intersects;
+
+}
+
+Point endline_intersection(World world, Point position) {
+    double criticalValue;
+    double scaleFactor;
+
+    Point direction;
+    Point blockPos;
+
+    direction = (world.field().friendly_goal() - position).norm();
+
+    scaleFactor = (world.field().friendly_goal().x - position.x);
+
+    blockPos.x = criticalValue + Robot::MAX_RADIUS;
+    blockPos.y = position.y + scaleFactor*direction.y;
+
+    return blockPos;
+
+}
 void AI::HL::STP::Evaluation::tick_defense(World world)
 {
     waypoints = compute(world);

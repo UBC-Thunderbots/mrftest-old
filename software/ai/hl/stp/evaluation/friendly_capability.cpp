@@ -21,8 +21,8 @@ double AI::HL::STP::Evaluation::getFriendlyCapability(
 {
     // setup constants
 
-    double A_MAX              = 3;
-    double V_MAX              = 2;
+    double A_MAX              = 2.0;
+    double V_MAX              = 1.1;
     double SCALING_CONST      = 4;
     double friendlyCapability = 1;
     double shortest_dist      = 1000;  // Start with a large number
@@ -61,14 +61,10 @@ double AI::HL::STP::Evaluation::getFriendlyCapability(
     friendlyCapability =
         friendlyCapability / (1 + std::exp(-SCALING_CONST * r));
 
-    // Can the passer turn that fast
-
-    double angle_dif = (dest - snapshot.passer_position)
-                           .orientation()
-                           .angle_diff(snapshot.passer_orientation)
-                           .to_degrees();
-    friendlyCapability = friendlyCapability /
-                         (1 + std::exp(0.2 * (angle_dif - 10 - t_delay * 360)));
+			//Can the passer turn that fast
+			//TODO: add angle back in
+			//double angle_dif = (dest - snapshot.passer_position).orientation().angle_diff(snapshot.passer_orientation).to_degrees();
+			//friendlyCapability = friendlyCapability/(1+std::exp(  0.2*(angle_dif - 10 - t_delay*360)));
 
     return friendlyCapability;
 }
