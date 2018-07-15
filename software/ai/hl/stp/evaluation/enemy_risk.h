@@ -16,11 +16,9 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Evaluation{
-
-				
-				
-				double getRatePassEnemyRisk(PassInfo::worldSnapshot snapshot,  Point destination, double delay_time, double kickSpeed);
-				double dangerInterception(PassInfo::worldSnapshot snapshot, Point destination, double delay_time, double kickSpeed);
+				double getRatePassEnemyRisk(PassInfo::worldSnapshot snapshot,  Point destination, double delay_time, double kickSpeed, bool print =false);
+				double dangerInterception(PassInfo::worldSnapshot snapshot, Point destination, double delay_time, double kickSpeed, bool print =false);
+				double closestEnemyDist(PassInfo::worldSnapshot snapshot);
 			}
 		} /* namespace STP */
 	} /* namespace HL */

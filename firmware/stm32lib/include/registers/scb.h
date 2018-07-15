@@ -177,7 +177,13 @@ typedef struct {
 	void *BFAR;
 	uint32_t AFSR;
 } SCB_t;
+
+
+// need the ifndef here so that we can ignore this code when compiling
+// the firmware tests
+#ifndef FWTEST
 _Static_assert(sizeof(SCB_t) == 0xED3CU - 0xED00U + 4U, "SCB_t is wrong size");
+#endif
 
 extern volatile SCB_t SCB;
 
@@ -227,7 +233,12 @@ typedef struct {
 	void *CAR;
 	FPDSCR_t DSCR;
 } FP_t;
+
+// need the ifndef here so that we can ignore this code when compiling
+// the firmware tests
+#ifndef FWTEST
 _Static_assert(sizeof(FP_t) == 12U, "FP_t is wrong size");
+#endif
 
 extern volatile FP_t FP;
 

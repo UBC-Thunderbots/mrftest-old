@@ -16,7 +16,7 @@ using namespace AI::HL::STP::GradientApproach;
 
 double ENEMY_PROXIMITY_IMPORTANCE = 0.5;
 
-double AI::HL::STP::Evaluation::getRatePassEnemyRisk(PassInfo::worldSnapshot snapshot, Point destination, double delay_time, double kickSpeed){
+double AI::HL::STP::Evaluation::getRatePassEnemyRisk(PassInfo::worldSnapshot snapshot, Point destination, double delay_time, double kickSpeed, bool print){
 
 	double quality = 1; //start assuming there is no risk
 
@@ -28,6 +28,10 @@ double AI::HL::STP::Evaluation::getRatePassEnemyRisk(PassInfo::worldSnapshot sna
 
 	//include the danger of the pass being intercepted
 	quality = quality*(1 - dangerInterception(snapshot,destination, delay_time, kickSpeed));
+    if(print){
+        double dIntercept = dangerInterception(snapshot,destination, delay_time, kickSpeed, print);
+        std::cout << std::endl << "danger interception: " << dIntercept << ", kick speed: " << kickSpeed << std::endl;
+    }
 
 	//convert the pass quality to a risk
 	double risk = 1 -quality;
@@ -35,21 +39,35 @@ double AI::HL::STP::Evaluation::getRatePassEnemyRisk(PassInfo::worldSnapshot sna
 	return risk;
 }
 
-double AI::HL::STP::Evaluation::dangerInterception(PassInfo::worldSnapshot snapshot, Point destination, double delay_time, double kickSpeed){
+double AI::HL::STP::Evaluation::closestEnemyDist(PassInfo::worldSnapshot snapshot){
+	double shortest_distance = 1000;//start with a very large number
+	double current_distance;
+
+	for (unsigned int i = 0; i < snapshot.enemy_positions.size(); ++i){
+		current_distance = (snapshot.passer_position - snapshot.enemy_positions.at(i)).len();
+		if (current_distance < shortest_distance){
+			//calculates closest enemy robot at future_time
+			shortest_distance = current_distance;
+		}
+	}
+	return shortest_distance;
+}
+
+double AI::HL::STP::Evaluation::dangerInterception(PassInfo::worldSnapshot snapshot, Point destination, double delay_time, double kickSpeed, bool print){
 
 	double R_RADIUS = Robot::MAX_RADIUS;
 
 	//ENEMY_A_MAX and ENEMY_V_MAX should be pulled from the logs
-	double ENEMY_A_MAX = 3;
-	double ENEMY_V_MAX = 2;
+	double ENEMY_A_MAX = 4;
+	double ENEMY_V_MAX = 3;
 
 	//Estimate of the time it takes the enemy to respond to our actions, should be observed
-	double ENEMY_T_REACT = 0.35;
+	double ENEMY_T_REACT = 0.10;
 
 	//Constants used to tune the sharpness of quality functions
 	double DIST_UNCERTAINTY = 0.4;
 	double TIME_UNCERTAINTY = 3;
-	double W_q = 9;
+	double W_q = 3.0; //9;
 
 	long unsigned int num_enemies = snapshot.enemy_positions.size();
 	Point passer_pos = snapshot.passer_position;
@@ -81,6 +99,9 @@ double AI::HL::STP::Evaluation::dangerInterception(PassInfo::worldSnapshot snaps
 		}
 	}
 
+	//TODO: weight based on heuristic between delay time and enemy dist (not too strict so that it thinks at least some passes are possible)
+	// Also should have way of turning this off for free kicks
+/*
 	double distance_travelled;
 	//Finds how far the closest enemy could travel (calculated based on zero initial velocty)
 	//The initial velocity is then multiplied by future_time and added to the result to try to
@@ -95,7 +116,6 @@ double AI::HL::STP::Evaluation::dangerInterception(PassInfo::worldSnapshot snaps
 			//distance by accelerating half the time, then decelerating
 			distance_travelled = ENEMY_A_MAX/4*delay_time*delay_time;
 	}
-
 	//Additional virtual enemy to be avoided- works on assumption that closest enemy to ball moves towards ball
 	if (shortest_distance > distance_travelled){
 			projected_enemy_positions.at(num_enemies) = projected_closest_enemy_position*(1-distance_travelled/shortest_distance) + passer_pos*(distance_travelled/shortest_distance);
@@ -103,7 +123,7 @@ double AI::HL::STP::Evaluation::dangerInterception(PassInfo::worldSnapshot snaps
 		else{
 			projected_enemy_positions.at(num_enemies) = passer_pos ;
 	}
-
+*/
 	double q;
 	double r;
 	double l2;
@@ -125,6 +145,7 @@ double AI::HL::STP::Evaluation::dangerInterception(PassInfo::worldSnapshot snaps
 		else if (r > 1){
 			dist_intercept = (projected_enemy_positions.at(i) - destination).len();
 			t_intercept = t_arrive;
+            if (print) printf("r greater than 1?");
 		}
 		else{
 			Point projected_vec = passer_pos + r*(destination - passer_pos);
@@ -146,7 +167,12 @@ double AI::HL::STP::Evaluation::dangerInterception(PassInfo::worldSnapshot snaps
 			q = dist_intercept - R_RADIUS - DIST_UNCERTAINTY;
 		}
 
-		danger = 1/(1+std::exp(W_q*q/((TIME_UNCERTAINTY*delay_time+1)*(t_intercept - delay_time))));
+        if (print) printf("q: %f", q);
+        if (print) printf("t_move: %f", t_move);
+
+        //todo: examine more
+		//danger = 1/(1+std::exp(W_q*q/((TIME_UNCERTAINTY*delay_time+1)*(t_intercept - delay_time))));
+		danger = 1/(1+std::exp(W_q*q));
 
 		if (danger > max_danger){
 			max_danger = danger;
@@ -154,4 +180,5 @@ double AI::HL::STP::Evaluation::dangerInterception(PassInfo::worldSnapshot snaps
 	}
 
 	return max_danger;
+
 }

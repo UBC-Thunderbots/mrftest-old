@@ -1,12 +1,13 @@
 #ifndef UTIL_STRING_H
 #define UTIL_STRING_H
 
+#include <glibmm/ustring.h>
 #include <cstdint>
 #include <string>
-#include <glibmm/ustring.h>
 
 /**
- * \brief Converts an unsigned integer of any type to a fixed-width decimal string.
+ * \brief Converts an unsigned integer of any type to a fixed-width decimal
+ * string.
  *
  * \param[in] value the value to convert.
  *
@@ -57,4 +58,3 @@ Glib::ustring wstring2ustring(const std::wstring &wstr);
 std::wstring ustring2wstring(const Glib::ustring &ustr);
 
 #endif
-

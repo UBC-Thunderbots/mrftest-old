@@ -4,17 +4,20 @@
 #include "drive/dongle.h"
 #include "drive/null/robot.h"
 
-namespace Drive {
-	namespace Null {
-		class Dongle : public Drive::Dongle {
-			public:
-				Dongle();
-				Drive::Robot &robot(unsigned int i);
+namespace Drive
+{
+namespace Null
+{
+class Dongle : public Drive::Dongle
+{
+   public:
+    Dongle();
+    Drive::Robot &robot(unsigned int i);
 
-			private:
-				Robot bot;
-		};
-	}
+   private:
+    Robot bot;
+};
+}
 }
 
 #endif

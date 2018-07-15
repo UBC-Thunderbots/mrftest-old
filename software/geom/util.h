@@ -1,106 +1,110 @@
 #pragma once
 
-#include "geom/point.h"
-#include "geom/shapes.h"
 #include <cstddef>
 #include <vector>
+#include "geom/point.h"
+#include "geom/shapes.h"
 
-namespace Geom {
-	template<size_t N>
-	using Poly = std::array<Vector2, N>;
-	using Triangle = Poly<3>;
-	using Quad = Poly<4>;
+namespace Geom
+{
+template <size_t N>
+using Poly     = std::array<Vector2, N>;
+using Triangle = Poly<3>;
+using Quad     = Poly<4>;
 
-	constexpr double EPS = 1e-9;
+constexpr double EPS = 1e-9;
 
-	constexpr double EPS2 = EPS * EPS;
+constexpr double EPS2 = EPS * EPS;
 
-	constexpr int sign(double n) {
-		return n > EPS ? 1 : (n < -EPS ? -1 : 0);
-	}
+constexpr int sign(double n)
+{
+    return n > EPS ? 1 : (n < -EPS ? -1 : 0);
+}
 
-	inline Triangle triangle(const Point& a, const Point& b, const Point& c) {
-		return { a, b, c };
-	}
-	inline Quad quad(const Point& a, const Point& b, const Point& c, const Point& d) {
-		return { a, b, c, d };
-	}
+inline Triangle triangle(const Point &a, const Point &b, const Point &c)
+{
+    return {a, b, c};
+}
+inline Quad quad(const Point &a, const Point &b, const Point &c, const Point &d)
+{
+    return {a, b, c, d};
+}
 
-	/**
-	 * Signed magnitude of the projection of `second` on `first`
-	 */
-	double proj_len(const Vector2& first, const Vector2& second);
+/**
+ * Signed magnitude of the projection of `second` on `first`
+ */
+double proj_len(const Vector2 &first, const Vector2 &second);
 
-	/**
-	 * Signed magnitude of the projection of `first.start -> second` on `first`
-	 */
-	double proj_len(const Seg& first, const Vector2& second);
+/**
+ * Signed magnitude of the projection of `first.start -> second` on `first`
+ */
+double proj_len(const Seg &first, const Vector2 &second);
 
-	/*
-	 * The family of `contains` functions determins whether
-	 * the second parameter is contained, even if partially,
-	 * inside the first parameter.
-	 */
+/*
+ * The family of `contains` functions determins whether
+ * the second parameter is contained, even if partially,
+ * inside the first parameter.
+ */
 
-	bool contains(const Triangle &out, const Vector2 &in);
-	bool contains(const Circle &out, const Vector2 &in);
-	bool contains(const Circle &out, const Seg &in);
-	bool contains(const Ray &out, const Vector2 &in);
-	bool contains(const Seg &out, const Vector2 &in);
-	bool contains(const Rect &out, const Vector2 &in);
+bool contains(const Triangle &out, const Vector2 &in);
+bool contains(const Circle &out, const Vector2 &in);
+bool contains(const Circle &out, const Seg &in);
+bool contains(const Ray &out, const Vector2 &in);
+bool contains(const Seg &out, const Vector2 &in);
+bool contains(const Rect &out, const Vector2 &in);
 
-	/*
-	 * The family of `intersects` functions determines whether there
-	 * exists an intersection between one object and another.
-	 */
+/*
+ * The family of `intersects` functions determines whether there
+ * exists an intersection between one object and another.
+ */
 
-	bool intersects(const Triangle &first, const Circle& second);
-	bool intersects(const Circle &first, const Triangle& second);
-	bool intersects(const Circle &first, const Circle &second);
-	bool intersects(const Seg& first, const Circle& second);
-	bool intersects(const Circle& first, const Seg& second);
-	bool intersects(const Seg& first, const Seg& second);
-	bool intersects(const Ray& first, const Seg& second);
-	bool intersects(const Seg& first, const Ray& second);
+bool intersects(const Triangle &first, const Circle &second);
+bool intersects(const Circle &first, const Triangle &second);
+bool intersects(const Circle &first, const Circle &second);
+bool intersects(const Seg &first, const Circle &second);
+bool intersects(const Circle &first, const Seg &second);
+bool intersects(const Seg &first, const Seg &second);
+bool intersects(const Ray &first, const Seg &second);
+bool intersects(const Seg &first, const Ray &second);
 
-	/*
-	 * The family of `dist` functions calculates the unsigned distance
-	 * between one object and another.
-	 */
-	double dist(const Vector2& first, const Vector2& second);
-	double dist(const Seg& first, const Seg& second);
+/*
+ * The family of `dist` functions calculates the unsigned distance
+ * between one object and another.
+ */
+double dist(const Vector2 &first, const Vector2 &second);
+double dist(const Seg &first, const Seg &second);
 
-	double dist(const Vector2& first, const Seg& second);
-	double dist(const Seg& first, const Vector2& second);
+double dist(const Vector2 &first, const Seg &second);
+double dist(const Seg &first, const Vector2 &second);
 
-	double dist(const Line& first, const Vector2& second);
-	double dist(const Vector2& first, const Line& second);
+double dist(const Line &first, const Vector2 &second);
+double dist(const Vector2 &first, const Line &second);
 
-	double distsq(const Vector2& first, const Seg& second);
-	double distsq(const Seg& first, const Vector2& second);
-	double distsq(const Vector2& first, const Vector2& second);
+double distsq(const Vector2 &first, const Seg &second);
+double distsq(const Seg &first, const Vector2 &second);
+double distsq(const Vector2 &first, const Vector2 &second);
 
-	bool is_degenerate(const Seg& seg);
-	bool is_degenerate(const Ray& seg);
-	bool is_degenerate(const Line& line);
+bool is_degenerate(const Seg &seg);
+bool is_degenerate(const Ray &seg);
+bool is_degenerate(const Line &line);
 
-	double len(const Seg& seg);
-	double len(const Line& line);
+double len(const Seg &seg);
+double len(const Line &line);
 
-	double lensq(const Seg& seg);
-	double lensq(const Line& line);
+double lensq(const Seg &seg);
+double lensq(const Line &line);
 
-	template<size_t N>
-	Vector2 get_vertex(const Poly<N>& poly, unsigned int i);
-	template<size_t N>
-	void set_vertex(Poly<N>& poly, unsigned int i, Vector2& v);
+template <size_t N>
+Vector2 get_vertex(const Poly<N> &poly, unsigned int i);
+template <size_t N>
+void set_vertex(Poly<N> &poly, unsigned int i, Vector2 &v);
 
-	/**
-	 * Gets the side that is connected to the vertex with index provided
-	 * and also connected to the vertex with the next index.
-	 */
-	template<size_t N>
-	Seg get_side(const Poly<N>& poly, unsigned int i);
+/**
+ * Gets the side that is connected to the vertex with index provided
+ * and also connected to the vertex with the next index.
+ */
+template <size_t N>
+Seg get_side(const Poly<N> &poly, unsigned int i);
 }
 
 /**
@@ -110,9 +114,11 @@ namespace Geom {
  *
  * \param[in] v2 the second set of points.
  *
- * \return the order of the matching, such that element <var>i</var> of input \p v1 is matched with element \c order[<var>i</var>] of \p v2.
+ * \return the order of the matching, such that element <var>i</var> of input \p
+ * v1 is matched with element \c order[<var>i</var>] of \p v2.
  */
-std::vector<std::size_t> dist_matching(const std::vector<Point> &v1, const std::vector<Point> &v2);
+std::vector<std::size_t> dist_matching(
+    const std::vector<Point> &v1, const std::vector<Point> &v2);
 
 /**
  * Checks if 3 points are collinear.
@@ -123,9 +129,12 @@ std::vector<std::size_t> dist_matching(const std::vector<Point> &v1, const std::
  *
  * \param[in] c a point
  *
- * \returns true if any two points are within EPS distance to each other. (If any two of three points are within EPS distance of each other, they are essentially the same point and the two points will form the same line.)
+ * \returns true if any two points are within EPS distance to each other. (If
+ * any two of three points are within EPS distance of each other, they are
+ * essentially the same point and the two points will form the same line.)
  *
- * \returns true if the cross product of the two lines formed by the three points are smaller than EPS
+ * \returns true if the cross product of the two lines formed by the three
+ * points are smaller than EPS
  */
 bool collinear(const Point &a, const Point &b, const Point &c);
 
@@ -136,7 +145,8 @@ bool collinear(const Point &a, const Point &b, const Point &c);
  * This function calculates the largest open angle interval that you can shoot.
  *
  * \pre \p p1 must be to the right of \p p2.
- * In other words, if there is a counterclockwise ordering, \p p1 is before \p p2 from \p src's point of view.
+ * In other words, if there is a counterclockwise ordering, \p p1 is before \p
+ * p2 from \p src's point of view.
  *
  * \pre The angle \p p1, \p src, \p p2 must not be greater than 180 degrees.
  *
@@ -152,15 +162,20 @@ bool collinear(const Point &a, const Point &b, const Point &c);
  *
  * \param[in] radius the radii of the obstacles.
  *
- * \return the best direction to shoot and the size of the angle centered around that direction that is completely free of obstacles,
- * or <code>(<var>p</var>, 0)</code> for some unspecified <var>p</var> if there is no free path.
+ * \return the best direction to shoot and the size of the angle centered around
+ * that direction that is completely free of obstacles,
+ * or <code>(<var>p</var>, 0)</code> for some unspecified <var>p</var> if there
+ * is no free path.
  */
-std::pair<Point, Angle> angle_sweep_circles(const Point &src, const Point &p1, const Point &p2, const std::vector<Point> &obstacles, const double &radius);
+std::pair<Point, Angle> angle_sweep_circles(
+    const Point &src, const Point &p1, const Point &p2,
+    const std::vector<Point> &obstacles, const double &radius);
 
 /**
  * Gets all angle.
  *
- * \pre The points \p p1,\p p2, and \p src has to not be collinear and \p src can't be within the radius of the obstacle
+ * \pre The points \p p1,\p p2, and \p src has to not be collinear and \p src
+ * can't be within the radius of the obstacle
  *
  * \param[in] src the location where you are standing.
  *
@@ -172,19 +187,25 @@ std::pair<Point, Angle> angle_sweep_circles(const Point &src, const Point &p1, c
  *
  * \param[in] radius the radii of the obstacles.
  *
- * \returns a vector of all possible pairs of directions and angles to a target area. An empty vector is returned if the preconditions aren't satisfied.
+ * \returns a vector of all possible pairs of directions and angles to a target
+ * area. An empty vector is returned if the preconditions aren't satisfied.
  */
-std::vector<std::pair<Point, Angle>> angle_sweep_circles_all(const Point &src, const Point &p1, const Point &p2, const std::vector<Point> &obstacles, const double &radius);
+std::vector<std::pair<Point, Angle>> angle_sweep_circles_all(
+    const Point &src, const Point &p1, const Point &p2,
+    const std::vector<Point> &obstacles, const double &radius);
 
 /**
- * returns a list of points that lie exactle "buffer" distance awaw from the line seg
+ * returns a list of points that lie exactle "buffer" distance awaw from the
+ * line seg
  */
-std::vector<Point> seg_buffer_boundaries(const Point &a, const Point &b, double buffer, int num_points);
+std::vector<Point> seg_buffer_boundaries(
+    const Point &a, const Point &b, double buffer, int num_points);
 
 /**
  * returns a list of points that lie on the border of the circle
  */
-std::vector<Point> circle_boundaries(const Point &centre, double radius, int num_points);
+std::vector<Point> circle_boundaries(
+    const Point &centre, double radius, int num_points);
 
 /**
  * Finds the Point on line segment closest to point.
@@ -197,7 +218,8 @@ std::vector<Point> circle_boundaries(const Point &centre, double radius, int num
  *
  * \return the Point on line segment closest to centre point.
  */
-Point closest_lineseg_point(const Point &p, const Point &segA, const Point &segB);
+Point closest_lineseg_point(
+    const Point &p, const Point &segA, const Point &segB);
 
 /**
  * Finds the points of intersection between a circle and a line.
@@ -213,7 +235,8 @@ Point closest_lineseg_point(const Point &p, const Point &segA, const Point &segB
  *
  * \return the points of intersection.
  */
-std::vector<Point> line_circle_intersect(const Point &centre, double radius, const Point &segA, const Point &segB);
+std::vector<Point> line_circle_intersect(
+    const Point &centre, double radius, const Point &segA, const Point &segB);
 
 /**
  * Finds the points of intersection between a circle and a line.
@@ -227,7 +250,8 @@ std::vector<Point> line_circle_intersect(const Point &centre, double radius, con
  *
  * \return the points of intersection.
  */
-std::vector<Point> line_rect_intersect(const Rect &r, const Point &segA, const Point &segB);
+std::vector<Point> line_rect_intersect(
+    const Rect &r, const Point &segA, const Point &segB);
 
 /**
  * Find where a vector intersect a rectangle
@@ -241,8 +265,8 @@ std::vector<Point> line_rect_intersect(const Rect &r, const Point &segA, const P
  *
  * \return the points of intersection.
  */
-Point vector_rect_intersect(const Rect &r, const Point &segA, const Point &segB);
-
+Point vector_rect_intersect(
+    const Rect &r, const Point &segA, const Point &segB);
 
 /**
  * Clips a point to a rectangle boundary.
@@ -281,7 +305,8 @@ Point clip_point(const Point &p, const Rect &r);
  *
  * \return whether there is one and only one answer
  */
-bool unique_line_intersect(const Point &a, const Point &b, const Point &c, const Point &d);
+bool unique_line_intersect(
+    const Point &a, const Point &b, const Point &c, const Point &d);
 
 /**
  * Computes the intersection of two lines.
@@ -298,7 +323,8 @@ bool unique_line_intersect(const Point &a, const Point &b, const Point &c, const
  *
  * \return the point of intersection.
  */
-Point line_intersect(const Point &a, const Point &b, const Point &c, const Point &d);
+Point line_intersect(
+    const Point &a, const Point &b, const Point &c, const Point &d);
 
 std::vector<Point> line_intersect(const Geom::Seg &a, const Geom::Seg &b);
 
@@ -329,7 +355,8 @@ Point reflect(const Point &v, const Point &n);
 Point reflect(const Point &a, const Point &b, const Point &p);
 
 /**
- * Given a cone shooting from the origin, determines the furthest location from the origin, at which to place a circle to block the cone.
+ * Given a cone shooting from the origin, determines the furthest location from
+ * the origin, at which to place a circle to block the cone.
  *
  * \pre The cone must have nonzero area.
  *
@@ -346,7 +373,8 @@ Point reflect(const Point &a, const Point &b, const Point &p);
 Point calc_block_cone(const Point &a, const Point &b, const double &radius);
 
 /**
- * Given a cone shooting from a point P, determines the furthest location from P, at which to place a circle to block the cone.
+ * Given a cone shooting from a point P, determines the furthest location from
+ * P, at which to place a circle to block the cone.
  *
  * \pre The cone must have nonzero area.
  *
@@ -362,7 +390,8 @@ Point calc_block_cone(const Point &a, const Point &b, const double &radius);
  *
  * \return the blocking position.
  */
-Point calc_block_cone(const Point &a, const Point &b, const Point &p, const double &radius);
+Point calc_block_cone(
+    const Point &a, const Point &b, const Point &p, const double &radius);
 
 /**
  * Used for defender_blocks_goal
@@ -387,7 +416,8 @@ Point calc_block_other_ray(const Point &a, const Point &c, const Point &g);
  *
  * \param[in] g goalie position
  */
-bool goalie_block_goal_post(const Point &a, const Point &b, const Point &c, const Point &g);
+bool goalie_block_goal_post(
+    const Point &a, const Point &b, const Point &c, const Point &g);
 
 /**
  * Calculates a defender position to block the ball.
@@ -404,8 +434,9 @@ bool goalie_block_goal_post(const Point &a, const Point &b, const Point &c, cons
  *
  * \param[in] r radius of defending robot
  */
-Point calc_block_cone_defender(const Point &a, const Point &b, const Point &c, const Point &g, const double &r);
-
+Point calc_block_cone_defender(
+    const Point &a, const Point &b, const Point &c, const Point &g,
+    const double &r);
 
 /*
  * Ported code from CM geom util
@@ -442,7 +473,6 @@ Angle vertex_angle(Point a, Point b, Point c);
  */
 double closest_point_time(Point x1, Point v1, Point x2, Point v2);
 
-
 /**
  * found out if a point is in the vector's direction or against it
  * if the point normal to the vector, return false
@@ -453,7 +483,7 @@ double closest_point_time(Point x1, Point v1, Point x2, Point v2);
  *
  * param[in] p is the point is question
  */
-bool point_in_front_vector( Point offset, Point dir, Point p );
+bool point_in_front_vector(Point offset, Point dir, Point p);
 
 /**
  * Returns true if v2 is clockwise relative to v1
@@ -466,6 +496,23 @@ bool is_clockwise(Point v1, Point v2);
  *
  * Returns the points on the circle that form tangent lines with the start point
  */
-std::pair<Point, Point> get_circle_tangent_points(const Point &start, const Geom::Circle &circle, double buffer = 0.0);
+std::pair<Point, Point> get_circle_tangent_points(
+    const Point &start, const Geom::Circle &circle, double buffer = 0.0);
 
 bool point_is_to_right_of_line(const Geom::Seg &line, const Point &point);
+
+/**
+ * Returns the mean of a list of points
+ *
+ * @param points the vector of points
+ * @return the mean point of points
+ */
+Point getPointsMean(const std::vector<Point> &points);
+
+/**
+ * Returns the variance of a list of Points
+ *
+ * @param points the vector of points
+ * @return the variance of the list of points
+ */
+double getPointsVariance(const std::vector<Point> &points);

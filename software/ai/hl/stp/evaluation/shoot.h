@@ -35,6 +35,17 @@ namespace AI {
 				 * the return value represents the maximum angle error acceptable while still representing a goal scored
 				 */
 				Angle get_shoot_score(World world, Player player, bool use_reduced_radius = true);
+
+                /**
+                 * Calculate the chipping power to use when shooting on the enemy net from the
+                 * friendly side of the field
+                 */
+                inline double calc_chip_power(World world, Player player, Point target){
+                    double distToNet = (world.ball().position() - target).len();
+                    double chipDist = distToNet - 1.5;  // chip the ball so that it lands 1.5 meters from the enemy net
+                    return chipDist;
+                }
+                
 				// double get_shoot_target(World world, Player player);
 
 				// Point get_best_shoot_target(World world, Player player);
@@ -52,4 +63,3 @@ namespace AI {
 }
 
 #endif
-

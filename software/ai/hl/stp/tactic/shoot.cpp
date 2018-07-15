@@ -1,112 +1,152 @@
+#include "ai/hl/stp/action/shoot.h"
 #include <algorithm>
-
-#include "ai/hl/stp/evaluation/ball.h"
-#include "ai/hl/stp/evaluation/player.h"
+#include <ai/hl/stp/action/catch.h>
 #include "ai/hl/stp/evaluation/shoot.h"
 #include "ai/hl/stp/tactic/shoot.h"
-#include "ai/hl/stp/action/shoot.h"
-#include "ai/hl/stp/action/catch.h"
-#include "ai/hl/util.h"
-#include "ai/hl/stp/enemy.h"
 
-
-
-namespace Primitives = AI::BE::Primitives;
 using namespace AI::HL::STP::Tactic;
-using namespace AI::HL::W;
-using AI::HL::STP::Enemy;
-using AI::HL::STP::Coordinate;
-using namespace AI::HL::Util;
+namespace W          = AI::HL::W;
+using Coordinate     = AI::HL::STP::Coordinate;
 namespace Evaluation = AI::HL::STP::Evaluation;
-namespace Action = AI::HL::STP::Action;
+namespace Action     = AI::HL::STP::Action;
 
-namespace {
-	class ShootGoal final : public Tactic {
-		public:
-			explicit ShootGoal(World world) : Tactic(world) { //constructor
-			}
+#define SHOOTING_DEGREE_TOL 5
 
-		private:
-			void execute(caller_t& ca) override;
-			Player select(const std::set<Player> &players) const override;
-			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const override;
+namespace
+{  // anonymous namespace for encapsulation
 
-			Glib::ustring description() const override {
-				return u8"shoot-goal";
-			}
-	};
+class ShootGoal final : public Tactic
+{   // class for having the robot shoot at the opposing teams net (Shooting a
+    // goal)
+   public:
+    explicit ShootGoal(W::World world) : Tactic(world)
+    {
+    }  // constructor
 
-	class ShootTarget final : public Tactic {
-		public: //shoots at target with specific coordinate
-			explicit ShootTarget(World world, const Coordinate target) : Tactic(world), target(target) {
-			}
+   private:
+    void execute(caller_t& ca) override;  // Mandatory
+    W::Player select(
+        const std::set<W::Player>& players) const override;  // virtual
+    Glib::ustring description() const override
+    {
+        return u8"Shoot Goal";
+    }  // functions
+    void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx)
+        const;  // overlay for desired shot path
+};
 
-		private:
-			Coordinate target;
+class ShootTarget final : public Tactic
+{  // class for having the robot shoot at a target location (Point type)
+   public:
+    explicit ShootTarget(
+        W::World world, const Coordinate target, double power, bool bChip)
+        : Tactic(world), target(target), power(power), bChip(bChip)
+    {
+    }  // constructor
 
-			void execute(caller_t& ca) override;
-			Player select(const std::set<Player> &players) const override;
+   private:
+    Coordinate target;  // target to be shot at
+    double power;
+    bool bChip;
 
-			Glib::ustring description() const override {
+    void execute(caller_t& ca) override;  // Mandatory
+    W::Player select(
+        const std::set<W::Player>& players) const override;  // virtual
+    Glib::ustring description() const override
+    {
+        return u8"Shoot Target";
+    }  // functions
+};
 
-				return u8"shoot-target";
-			}
-	};
-
-	void ShootGoal::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const {
-		ctx->set_source_rgba(1.0, 0.7, 0.7, 0.8);
-		ctx->move_to(player().position().x, player().position().y);
-		Point f = Evaluation::get_best_shot(world, player());
-		ctx->line_to(f.x, f.y);
-		ctx->stroke();
-	}
-
-	Player ShootGoal::select(const std::set<Player> &players) const {
-		return select_baller(world, players, player());
-	}
-
-	void ShootGoal::execute(caller_t& ca) {
-		while(true) {
-			std::vector<Point> obstacles;
-			Point target;
-
-			for (auto i : world.enemy_team()) {
-				obstacles.push_back(i.position());
-			}
-			for (auto i : world.friendly_team()) {
-				if (i != player()) {
-					obstacles.push_back(i.position());
-				}
-			}
-
-			bool chip = Evaluation::get_best_shot_pair(world, player()).second.abs() < Angle::of_degrees(5) && player().position().x > 0;
-			// TODO; If chipping will want to adjust power instead of always passing ball max speed (that would be an 8m chip if possible)
-			chip = false; // THIS IS TEMPORARY FOR TESTING
-
-			Evaluation::ShootData shoot_data = Evaluation::evaluate_shoot(world, player(), true);
-			AI::HL::STP::Action::catch_and_shoot_target(ca, world, player(), shoot_data.target, AI::HL::STP::BALL_MAX_SPEED, chip);
-			yield(ca);
-		}
-	}
-
-	Player ShootTarget::select(const std::set<Player> &players) const {
-		return select_baller(world, players, player());
-	}
-
-	void ShootTarget::execute(caller_t& ca) {
-		while(true) {
-			AI::HL::STP::Action::catch_and_shoot_target(ca, world, player(), target.position());
-			yield(ca);
-		}
-	}
+void ShootGoal::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const
+{  // function draws a line from the player to the calculated best shot on net
+    ctx->set_source_rgba(1.0, 0.7, 0.7, 0.8);
+    ctx->move_to(player().position().x, player().position().y);
+    Point f = Evaluation::get_best_shot(world, player());
+    ctx->line_to(f.x, f.y);
+    ctx->stroke();
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::shoot_goal(World world) {
-	Tactic::Ptr p(new ShootGoal(world));
-	return p;
+W::Player ShootGoal::select(const std::set<W::Player>& players) const
+{
+    return select_baller(world, players, player());
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::shoot_target(World world, const Coordinate target) {
-	Tactic::Ptr p(new ShootTarget(world, target));
-	return p;
+void ShootGoal::execute(caller_t& ca)
+{
+    while (true)
+    {
+        bool bEvaluateAngle =
+            Evaluation::get_best_shot_pair(world, player()).second.abs() <
+            Angle::of_degrees(SHOOTING_DEGREE_TOL);  // check to see if he
+                                                     // shooting angle is less
+                                                     // than 5 degrees
+        bool bPlayerOnEnemySide = player().position().x > 0;
+
+        bool bChip = bEvaluateAngle && !bPlayerOnEnemySide;
+
+        double shotPower;
+
+        if(world.ball().velocity().len() > AI::HL::STP::BALL_MAX_SPEED / 4
+           && !player().has_ball())
+        {
+            Action::catch_ball(ca, world, player());
+        }
+
+        Evaluation::ShootData shootData = Evaluation::evaluate_shoot(
+            world, player(), true);  // evaluate_shoot tries to select the best
+                                     // shot on net the boolean parameter is for
+                                     // the reduced or large shoot radius
+        // LOGF_INFO("Ball position: %1, %2", world.ball().position().x,
+        // world.ball().position().y);
+
+        if (bChip)
+        {
+            shotPower =
+                Evaluation::calc_chip_power(world, player(), shootData.target);
+        }
+        else
+        {
+            shotPower = AI::HL::STP::BALL_MAX_SPEED;
+        }
+
+        Action::shoot_target(
+            ca, world, player(), shootData.target, shotPower,
+            bChip);  // catch_and_shoot actually performs the act of getting
+                     // behind the ball and shooting
+        yield(ca);
+    }
+}
+
+W::Player ShootTarget::select(const std::set<W::Player>& players) const
+{
+    // return select_baller(world, players, player());
+    return *std::min_element(
+        players.begin(), players.end(),
+        AI::HL::Util::CmpDist<AI::HL::W::Player>(Point(0, 0)));
+}
+
+void ShootTarget::execute(caller_t& ca)
+{
+    while (true)
+    {
+        Action::shoot_target(
+            ca, world, player(), target.position(), power, bChip);
+
+        yield(ca);
+    }
+}
+}
+
+Tactic::Ptr AI::HL::STP::Tactic::shoot_goal(W::World world)
+{
+    Tactic::Ptr p(new ShootGoal(world));
+    return p;
+}
+
+Tactic::Ptr AI::HL::STP::Tactic::shoot_target(
+    W::World world, const Coordinate target, double power, bool bChip)
+{
+    Tactic::Ptr p(new ShootTarget(world, target, power, bChip));
+    return p;
 }

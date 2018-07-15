@@ -2,6 +2,7 @@
 .project
 .cproject
 .settings/
+.vscode/
 
 # Firmware
 firmware/stm32lib/internal
@@ -12,6 +13,8 @@ firmware/usb/internal
 firmware/usb/public
 firmware/usb/tags
 firmware/usb/usb.tag
+firmware/test/test
+firmware/test/test.c
 
 # Software
 software/.cproject
@@ -24,6 +27,7 @@ software/proto/*.cc
 software/proto/*.h
 software/tags
 
+# C++ default ignores
 # Prerequisites
 *.d
 
@@ -56,3 +60,29 @@ software/tags
 *.exe
 *.out
 *.app
+
+# Vim garbage
+*.swo
+*.swp
+
+# Tools
+*.csv
+*.elf
+*.bin
+*.map
+*.dfu
+software/.vscode/launch.json
+.vscode/
+tools/fwsim/sim
+
+# CLion/CMake
+cmake-build-debug/
+.idea/
+CMakeCache.txt
+CMakeFiles
+cmake_install.cmake
+*.cbp
+Makefile
+
+# Python
+__pycache__/

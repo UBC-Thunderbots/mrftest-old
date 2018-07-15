@@ -3,25 +3,31 @@
 #include "ai/hl/stp/coordinate.h"
 #include "ai/hl/stp/tactic/tactic.h"
 
-namespace AI {
-	namespace HL {
-		namespace STP {
-			namespace Tactic {
-				/**
-				 * Move to a location specified by dest.
-				 *
-				 * \param[in] dest the location to move to.
-				 */
-				Tactic::Ptr move_once(World world, Point dest);
+namespace AI
+{
+namespace HL
+{
+namespace STP
+{
+namespace Tactic
+{
+Tactic::Ptr move_once(
+    World world, Point dest);  // move once to a location specified by dest
+Tactic::Ptr move_once(
+    World world, Point dest, Angle orientation);  // move once to a location
+                                                  // specified by dest, with the
+                                                  // specified final orientation
 
-				/**
-				 * Move, and follow, a location specified by dest.
-				 *
-				 * \param[in] dest the location to move to.
-				 */
-				Tactic::Ptr move(World world, Coordinate dest);
-			}
-		}
-	}
+Tactic::Ptr move(
+    World world, Point dest);  // move to a location specified by dest
+Tactic::Ptr move(World world, Point dest, Angle orientation);  // move to a
+                                                               // location
+                                                               // specified by
+                                                               // dest with the
+                                                               // specified
+                                                               // final
+                                                               // orientation
 }
-
+}
+}
+}

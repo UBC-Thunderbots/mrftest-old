@@ -3,7 +3,24 @@
 
 #include <math.h>
 
-#define M_PI 3.14159265f
+// define our own PI value here that is a float because M_PI in math.h is a double
+#define P_PI 3.14159265f
+
+#ifdef FWSIM
+#define max(a, b)                                                              \
+    ({                                                                         \
+        __typeof__(a) _a = (a);                                                \
+        __typeof__(b) _b = (b);                                                \
+        _a > _b ? _a : _b;                                                     \
+    })
+
+#define min(a, b)                                                              \
+    ({                                                                         \
+        __typeof__(a) _a = (a);                                                \
+        __typeof__(b) _b = (b);                                                \
+        _a < _b ? _a : _b;                                                     \
+    })
+#endif
 
 //This file contains all the physical constants of the robot
 //Dimensions and the like as well as 
@@ -15,7 +32,7 @@
 
 #define HALL_PHASE_TO_MS (0.00171*CONTROL_LOOP_HZ)
 
-#define QUARTERDEGREE_TO_VOLT QUARTERDEGREE_TO_RPM*RPM_TO_VOLT
+#define QUARTERDEGREE_TO_VOLT (QUARTERDEGREE_TO_RPM*RPM_TO_VOLT)
 
 #define ROBOT_RADIUS 0.085f
 #define TICK_TIME (1.0f / CONTROL_LOOP_HZ)
@@ -31,8 +48,8 @@
 //factor for steel motor mounts
 #define STEEL_INTERTIAL_FACTOR 0.3858f
 
-#define ROT_MASS INERTIAL_FACTOR*ROBOT_POINT_MASS
-#define INERTIA ROT_MASS*ROBOT_RADIUS*ROBOT_RADIUS
+#define ROT_MASS (INERTIAL_FACTOR*ROBOT_POINT_MASS)
+#define INERTIA (ROT_MASS*ROBOT_RADIUS*ROBOT_RADIUS)
 
 #define CURRENT_PER_TORQUE 39.21f //from motor data sheet (1/25.5 mNm)
 #define PHASE_RESISTANCE 1.6f //adjust this number as calculated
@@ -64,15 +81,15 @@ extern const float MAX_ACC[3];
 //gyro running at 2000/second and in integers such that 32767 is 2000
 //61.0 millidegrees/second / LSB
 #define DEGREES_PER_GYRO (61.0f/1000.0f)
-#define MS_PER_DEGREE (2.0f*(float)M_PI*ROBOT_RADIUS/360.0f)
-#define MS_PER_GYRO MS_PER_DEGREE*DEGREES_PER_GYRO
+#define MS_PER_DEGREE (2.0f*(float)P_PI*ROBOT_RADIUS/360.0f)
+#define MS_PER_GYRO (MS_PER_DEGREE*DEGREES_PER_GYRO)
 
 // Accelerometer is running at +/- 2G's, 32767 is 2G's
 // ~61.0 uG per accelerometer LSB
 #define GRAVITY 9.807f
 #define ACCEL_RANGE 2.0f
 #define NUM_DIVISIONS 32767
-#define G_PER_ACCEL ACCEL_RANGE/NUM_DIVISIONS
+#define G_PER_ACCEL (ACCEL_RANGE/NUM_DIVISIONS)
 #define M_S_2_PER_ACCEL (GRAVITY*G_PER_ACCEL)
 
 extern const float ROBOT_MASS[3];
@@ -86,11 +103,17 @@ extern const float MAX_VEL[3];
 //robot relative coordinates
 void speed4_to_speed3(const float speed4[4], float speed3[3]);
 void speed3_to_speed4(const float speed3[3], float speed4[4]);
+#ifdef FWSIM
+void force4_to_force3(const float force4[4], float force3[3]);
+#endif
 
 float min_angle_delta(float,float);
-inline float norm2(float a1, float a2){
-	return(sqrtf(a1*a1 + a2*a2) );
-}
+
+float norm2(float a1, float a2);
+
+#ifdef FWSIM
+float min_angle_delta_alt(float, float); //Todo: what is this suppose to be?
+#endif
 
 //rotate a velocity vector through angle
 void rotate(float speed3[2], float angle);
@@ -138,4 +161,10 @@ void mm_inv(int n, float a[n][n]);
 
 void decompose_radial(const float speed, float* vf, const float* init_pos, 
 	const float* final_pos);
+
+float dot_product(float vec1[], float vec2[], int size);
+
+float dot2D(float vec1[2], float vec2[2]);
+
+float dot3D(float vec1[3], float vec2[3]);
 #endif

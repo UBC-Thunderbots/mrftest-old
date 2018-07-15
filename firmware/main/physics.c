@@ -1,8 +1,14 @@
 #include "physics.h"
-#include "adc.h"
 #include "encoder.h"
 #include <math.h>
 #include <stdint.h>
+
+#ifndef FWSIM
+#include "adc.h"
+#else
+#include <stdio.h>
+#include <stdlib.h>
+#endif
 
 
 //Wheel angles for these matricies are (55, 135, 225, 305) degrees
@@ -41,22 +47,26 @@ const float MAX_ACC[3] = {MAX_X_A, MAX_Y_A, MAX_T_A*ROBOT_RADIUS};
 //contention vector, where in forces will simply consume power.
 static const float contention_vector[4] = {-0.4621, 0.5353, -0.5353, 0.4621};
 
+float norm2(float a1, float a2){
+	return(sqrtf(a1*a1 + a2*a2) );
+}
+
 
 
 // return the minimum angle from angle1 to angle2
 // test with angle2 increased or decreased by 2pi
 float min_angle_delta(float angle1, float angle2){
-	angle1 = fmod(angle1, 2*M_PI);
-	angle2 = fmod(angle2, 2*M_PI);
+	angle1 = fmod(angle1, 2*P_PI);
+	angle2 = fmod(angle2, 2*P_PI);
 	if(angle2 >= angle1 ){                                                                                                        
-		float ang_sub = angle2 - 2*M_PI;                                                                                        
+		float ang_sub = angle2 - 2*P_PI;                                                                                        
 		if((ang_sub - angle1)*(ang_sub - angle1) <= (angle2 - angle1)*(angle2 - angle1)){                             
 			return(ang_sub - angle1);                                                              
 		}else{                                                                                                                 
 			return(angle2 - angle1);                                                                                 
 		}                                                                                                                      
 	}else{                                                                                                                       
-		float ang_plus = angle2 + 2*M_PI;                                                                                       
+		float ang_plus = angle2 + 2*P_PI;                                                                                       
 		if((ang_plus - angle1)*(ang_plus - angle1) <= (angle2 - angle1)*(angle2 - angle1)){                           
 			return(ang_plus - angle1);                                                              
 		}else{                                                                                                                 
@@ -269,6 +279,12 @@ void speed4_to_speed3(const float speed4[4], float speed3[3]) {
 	matrix_mult(speed3,3,speed4,4, speed4_to_speed3_mat);
 }
 
+#ifdef FWSIM
+void force4_to_force3(const float force4[4], float force3[3]) {
+	matrix_mult(force3,3,force4,4, force4_to_force3_mat);
+}
+#endif
+
 /**
  * \ingroup Physics
  *
@@ -438,6 +454,9 @@ void force3_to_force4(float force3[3], float force4[4]) {
 	matrix_mult_t(force4, 4, force3, 3, speed4_to_speed3_mat);
 }
 
+// need the ifndef here so that we can ignore this code when compiling
+// the firmware tests
+#ifndef FWTEST
 /**
  * \ingroup Physics
  *
@@ -447,7 +466,7 @@ void force3_to_force4(float force3[3], float force4[4]) {
  *
  * \return the amount by which to scale the torque vector to max it out
  */
-
+#ifndef FWSIM
 float get_maximal_torque_scaling(const float torque[4]) {
 	float acc_max = -INFINITY;
 	float vapp_max = -INFINITY;
@@ -469,6 +488,7 @@ float get_maximal_torque_scaling(const float torque[4]) {
 
 	return (emf_ratio > slip_ratio)?slip_ratio:emf_ratio; 
 }
+#endif
 
 
 /**
@@ -481,7 +501,7 @@ float get_maximal_torque_scaling(const float torque[4]) {
  *
  * \return amount by which to scale acceleration
  */
-
+#ifndef FWSIM
 float get_maximal_accel_scaling(const float linear_accel[2], float angular_accel) {
 	//first convert accelerations into consistent units
 	//choose units of Force (N)
@@ -497,6 +517,9 @@ float get_maximal_accel_scaling(const float linear_accel[2], float angular_accel
 	}
 	return get_maximal_torque_scaling(wheel_force);
 }
+#endif
+
+#endif
 
 /**
  * \ingroup Physics
@@ -518,4 +541,42 @@ void decompose_radial(const float speed, float* vf, const float* init_pos,
 
 	vf[0] = cosf(angle) * speed;
 	vf[1] = sinf(angle) * speed;
+}
+
+/**
+ * Use for dot product on arbitrarily large arrays.
+ *
+ * @param vec1 the first vector in the dot product
+ * @param vec2 the second vector in the dot product
+ * @param size the size of the vectors. They should be the same size
+ * @return the dot product result of the vectors
+ */
+float dot_product(float vec1[], float vec2[], int size) {
+    float result = 0;
+    for (int i = 0; i < size; i++) {
+        result += (vec1[i] * vec2[i]);
+    }
+    return result;
+}
+
+/**
+ * Dot product for 2D vectors.
+ * 
+ * @param vec1 the first vector in the dot product
+ * @param vec2 the second vector in the dot product
+ * @return the dot product result of the vectors
+ */
+float dot2D(float vec1[2], float vec2[2]) {
+    return vec1[0] * vec2[0] + vec1[1] * vec2[1];
+}
+
+/**
+ * Dot product for 3D vectors.
+ *
+ * @param vec1 the first vector in the dot product
+ * @param vec2 the second vector in the dot product
+ * @return the dot product result of the vectors
+ */
+float dot3D(float vec1[3], float vec2[3]) {
+    return vec1[0] * vec2[0] + vec1[1] * vec2[1] + vec1[2] * vec2[2];
 }

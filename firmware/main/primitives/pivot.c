@@ -1,55 +1,31 @@
 #include "pivot.h"
-#include "../bangbang.h"
-#include "../control.h"
-#include "../dr.h"
-#include "../physics.h"
-#include <math.h>
+#include "bangbang.h"
+#include "control.h"
+#include "dr.h"
+#include "physics.h"
 
-//params from host
+#ifndef FWSIM
+#include "dr.h"
+#include "chicker.h"
+#include "dribbler.h"
+#include "leds.h"
+#else
+#include "simulate.h"
+#endif
 
-/**
- * \brief The rectangular vector from initial robot position to pivot centre.
- *
- * This is measured in metres.
- */
-static float center[2];
+#define TIME_HORIZON 0.05f //s
+#define FALSE 0 
+#define STOPPED 0 
+#define TRUE 1
+#define FWSIM_CONST 1.0f
+#define THRESH 0.05f
+#define MAX_A 2.5f
+#define MAX_V 2.5f
+#define END_SPEED 1.5f
+#define WITHIN_THRESH(X) (X<=THRESH && X>=-THRESH)
 
-/**
- * \brief The angle component of the polar vector from pivot centre to target
- * position.
- */
-static float angle;
-
-/**
- * \brief The amount by which the robot should rotate left or right form its
- * initial orientation.
- *
- * This is measured in radians.
- */
-static float addRot;
-
-/**
- * \brief The radius component of the polar vector from pivot centre to target
- * robot position, equivalently initial robot position, equivalently the length
- * of @ref center.
- *
- * This is measured in metres.
- */
-static float rad;
-
-/**
- * \brief The angle component of the polar vector from pivot centre to the most
- * recent robot position.
- *
- * This is measured in radians.
- */
-static float prevTheta;
-
-#define HORIZON 0.1f
-#define RADIAL_ACCEL_MAX 3.0f
-#define RADIAl_ACCEL_CLAMP 6.0f
-#define ANGULAR_ACCEL_MAX 3.0f
-
+static float radius, angle, center[2], final_dest[2]; 
+static int dir = 1;
 /**
  * \brief Initializes the pivot primitive.
  *
@@ -57,7 +33,20 @@ static float prevTheta;
  */
 static void pivot_init(void) {
 }
-
+/**
+ * \brief Does bangbang stuff and returns the acceleration value
+ */
+float compute_acceleration(BBProfile *profile, float disp, float curvel, float finvel, float maxa, float maxv){
+    PrepareBBTrajectoryMaxV(profile, disp, curvel, finvel, maxa, maxv); 
+    PlanBBTrajectory(profile);
+    return BBComputeAvgAccel(profile, TIME_HORIZON);
+}
+/**
+ * \brief Computes the magnitude of a vector
+ */
+float compute_magnitude(float a[2]){
+    return sqrtf(a[0]*a[0] + a[1]*a[1]);
+}
 /**
  * \brief Starts a movement of this type.
  *
@@ -66,28 +55,45 @@ static void pivot_init(void) {
  *
  * \param[in] params the movement parameters, which are only valid until this
  * function returns and must be copied into this module if needed
+ * 
+ * This function needs to run every time the center of the pivot moves as
+ * optimal direction and final position needs to be recalculated
  */
 static void pivot_start(const primitive_params_t *params) {
-	center[0] = params->params[0] / 1000.0;
-	center[1] = params->params[1] / 1000.0;
-	angle = params->params[2] / 100.0;
-	addRot = params->params[3] / 100.0;
-	rad = sqrtf(center[0]*center[0] + center[1]*center[1]);
-	float pos[2];
-	pos[0] = 0;
-	pos[1] = 0;
-	vectorSub(pos,center,2);
-	Cart2Pol(pos); //working in polar coordinates because pivot
-	angle += pos[1];
-	prevTheta = pos[1];
+    center[0] = params->params[0] / 1000.0;
+    center[1] = params->params[1] / 1000.0;
+    angle = params->params[2] /100.0;
+    radius = params->params[3] / 1000.0;
+
+    dr_data_t current_bot_state;
+    dr_get(&current_bot_state);
+
+    float rel_dest[2] = {center[0]-current_bot_state.x, center[1]-current_bot_state.y};
+    float cur_radius = compute_magnitude(rel_dest);
+
+    rel_dest[0]/=cur_radius;
+    rel_dest[1]/=cur_radius;
+
+    final_dest[0] = center[0] + radius * cosf(angle);
+    final_dest[1] = center[1] + radius * sinf(angle);
+
+    //find the general direction to travel, project those onto the two possible directions and see which one is better
+    float general_dir[2] = {final_dest[0] - current_bot_state.x, final_dest[1] - current_bot_state.y};
+    float tangential_dir_1[2] = {rel_dest[1]/cur_radius,-rel_dest[0]/cur_radius};
+    float tangential_dir_2[2] = {-rel_dest[1]/cur_radius,rel_dest[0]/cur_radius};
+    float dir1 = dot_product(general_dir, tangential_dir_1,2);
+    float dir2 = dot_product(general_dir, tangential_dir_2,2);
+
+    dir = (dir1 >= dir2) ? -1 : 1;
 }
+
 
 /**
  * \brief Ends a movement of this type.
  *
  * This function runs when the host computer requests a new movement while a
  * pivot movement is already in progress.
- */
+ **/
 static void pivot_end(void) {
 }
 
@@ -98,94 +104,80 @@ static void pivot_end(void) {
  *
  * \param[out] log the log record to fill with information about the tick, or
  * \c NULL if no record is to be filled
+ * 
+ *
  */
 static void pivot_tick(log_record_t *log) {
-	dr_data_t loc;
-	dr_get(&loc);
-	float pos[3]; 
-	float vel[3];
+    dr_data_t current_bot_state;
+    dr_get(&current_bot_state);
 
-	pos[0] = loc.x;
-	pos[1] = loc.y;
-	pos[2] = loc.angle;
+    float rel_dest[3], tangential_dir[2], radial_dir[2];
+    float vel[3] = {current_bot_state.vx, current_bot_state.vy, current_bot_state.avel};
 
-	vel[0] = loc.vx;
-	vel[1] = loc.vy;
-	vel[2] = loc.avel;
+    //calculate the relative displacement and the current radius
+    rel_dest[0] = center[0] - current_bot_state.x;
+    rel_dest[1] = center[1] - current_bot_state.y;
+    float cur_radius = compute_magnitude(rel_dest);
 
-	vectorSub(pos,center,2); //rebase pos to center of coord system (only x,y)
-	Cart2Pol(pos); //working in polar coordinates because pivot
-	float thetaDiff = pos[1] - prevTheta;
-	if (thetaDiff > (float)M_PI) {
-		thetaDiff -= 2.0f*(float)M_PI;
-	} 
+    //direction to travel to move into the bot 
+    radial_dir[0] = rel_dest[0]/cur_radius; radial_dir[1] = rel_dest[1]/cur_radius;
 
-	if (thetaDiff < -(float)M_PI) {
-		thetaDiff += 2.0f*(float)M_PI;
-	}
-	pos[1] = prevTheta + thetaDiff;
-	prevTheta = pos[1]; 
-	if (log) {
-		log->tick.primitive_data[0] = pos[0];
-		log->tick.primitive_data[1] = pos[1];
-	}
+    //direction to travel to rotate around the bot, dir is selected at the start
+    tangential_dir[0] = -dir*rel_dest[1]/cur_radius;
+    tangential_dir[1] = dir*rel_dest[0]/cur_radius;  
 
+    BBProfile rotation_profile;
+    BBProfile correction_profile;
 
-	CartVel2Pol(pos, vel); //convert velocity to polar
-	if (log) {
-		log->tick.primitive_data[2] = vel[0];
-		log->tick.primitive_data[3] = vel[1];
-	}
+    //if correction is negative, bot is closer to ball so it needs to move away, so negative 
+    float correction = cur_radius - radius;
 
+    float end_goal_vect[2] = {final_dest[0]-current_bot_state.x, final_dest[1]-current_bot_state.y};
+    float disp_to_final_dest = compute_magnitude(end_goal_vect);
 
-#warning TODO: compute max acceleratons in the R,T domain
-	float Pacc[2];
-	BBProfile theta;
-	float radial_acc_= RADIAL_ACCEL_MAX/rad;
-	if( radial_acc_ >= 6.0f ){
-		radial_acc_ = 6.0f;
-	} else if ( radial_acc_ <= -6.0f ){
-		radial_acc_ = -6.0f;
-	}
-	PrepareBBTrajectory(&theta, angle - pos[1], vel[1], 0, radial_acc_);
-	PlanBBTrajectory(&theta);
-	Pacc[1] = BBComputeAvgAccel(&theta, HORIZON);
-	float Ttime = GetBBTime(&theta);
-	BBProfile radius;
-	PrepareBBTrajectory(&radius, rad - pos[0], vel[0], 0, RADIAL_ACCEL_MAX);
-	PlanBBTrajectory(&radius);
-	Pacc[0] = BBComputeAvgAccel(&radius, HORIZON);
-	float Rtime = GetBBTime(&radius);
-	if (log) {
-		log->tick.primitive_data[4] = Pacc[0];
-		log->tick.primitive_data[5] = Pacc[1];
-	}
+    if(WITHIN_THRESH(disp_to_final_dest)){
+        disp_to_final_dest = 0; 
+    }
 
-	float acc[2];
-	PolAcc2Cart(pos, vel, Pacc, acc);
-	if (log) {
-		log->tick.primitive_data[6] = acc[0];
-		log->tick.primitive_data[7] = acc[1];
-	}
-	BBProfile Rotation;
-	PrepareBBTrajectory(&Rotation,addRot-pos[2],vel[2], 0,MAX_T_A);
-	PlanBBTrajectory(&Rotation);
-	float As = BBComputeAvgAccel(&Rotation, HORIZON);
-	if (log) {
-		log->tick.primitive_data[8] = As;
-	}
+    //figure out all velocities in prioritized directions
+    float current_rot_vel = dot_product(tangential_dir,vel,2);
+    float current_cor_vel = dot_product(radial_dir,vel,2);
 
-	rotate(acc, -pos[2]);
-	apply_accel(acc,As);
+    float mag_accel_orbital = compute_acceleration(&rotation_profile, disp_to_final_dest, current_rot_vel, STOPPED, MAX_A, MAX_V);
+    float mag_accel_correction = compute_acceleration(&correction_profile, correction, current_cor_vel, STOPPED, MAX_A, MAX_V);
+
+    //create the local vectors to the bot
+    float local_x_norm_vec[2] = {cosf(current_bot_state.angle), sinf(current_bot_state.angle)}; 
+    float local_y_norm_vec[2] = {cosf(current_bot_state.angle + (float)M_PI/2), sinf(current_bot_state.angle + (float)M_PI/2)}; 
+
+    //add the 3 directions together
+    float accel[3] = {0};
+
+    accel[0] = mag_accel_correction * dot_product(radial_dir, local_x_norm_vec, 2);
+    accel[1] = mag_accel_correction * dot_product(radial_dir, local_y_norm_vec, 2);
+
+    if(WITHIN_THRESH(correction)){
+        accel[0] += mag_accel_orbital * dot_product(tangential_dir, local_x_norm_vec, 2);
+        accel[1] += mag_accel_orbital * dot_product(tangential_dir, local_y_norm_vec, 2);
+    }
+
+    //find the angle between what the bot currently is at, and the angle to face the destination
+    float angle = min_angle_delta(current_bot_state.angle, atan2f(rel_dest[1], rel_dest[0]));
+    float target_avel = 1.6f*angle/TIME_HORIZON; 
+    accel[2] = (target_avel-vel[2])/TIME_HORIZON;
+    limit(&accel[2], MAX_T_A);
+    apply_accel(accel, accel[2]); //apply accelerations all in local coordinates
 }
+
+
 
 /**
  * \brief The pivot movement primitive.
  */
 const primitive_t PIVOT_PRIMITIVE = {
-	.direct = false,
-	.init = &pivot_init,
-	.start = &pivot_start,
-	.end = &pivot_end,
-	.tick = &pivot_tick,
+    .direct = false,
+    .init = &pivot_init,
+    .start = &pivot_start,
+    .end = &pivot_end,
+    .tick = &pivot_tick,
 };

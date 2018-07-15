@@ -3,8 +3,6 @@
  *      Author: cheng
  */
 
-
-
 #ifndef FRIENDLYCAPABILITY_H_
 #define FRIENDLYCAPABILITY_H_
 
@@ -14,17 +12,20 @@
 
 using namespace AI::HL::STP::GradientApproach;
 
-namespace AI {
-	namespace HL {
-		namespace STP {
-			namespace Evaluation {
-
-				
-				double getFriendlyCapability(PassInfo::worldSnapshot snapshot, Point dest, double t_delay, double ball_vel);
-			}
-		}
-	}
+namespace AI
+{
+namespace HL
+{
+namespace STP
+{
+namespace Evaluation
+{
+double getFriendlyCapability(
+    PassInfo::worldSnapshot snapshot, Point dest, double t_delay,
+    double ball_vel);
 }
-
+}
+}
+}
 
 #endif /* FRIENDLYCAPABILITY_H_ */

@@ -44,6 +44,10 @@ void PrepareBBTrajectory(BBProfile *b, float d, float vi, float vf, float MaxA) 
 	b->MaxV = INFINITY; //no maxV therefore exceed the speed of light TO INFINITY AND BEYOND>>>>>>>>>>
 }
 
+//Computes how long a movement will take
+float GetBBTime(BBProfile *b) {
+	return b->t1+b->t2+b->t3;
+}
 
 /**
  * \ingroup Controls

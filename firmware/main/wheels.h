@@ -1,10 +1,12 @@
 #ifndef WHEELS_H
 #define WHEELS_H
 
-#include "log.h"
+
 #include "physics.h"
 
 #include <math.h>
+
+#include "log.h"
 
 /**
  * \ingroup WHEELS
@@ -14,7 +16,7 @@
 #define WHEELS_NUM_WHEELS 4U
 
 #define WHEELS_RADIUS 0.0254f
-#define WHEELS_CIRCUM (2.0f*(float)M_PI*WHEELS_RADIUS)
+#define WHEELS_CIRCUM (2.0f*(float)P_PI*WHEELS_RADIUS)
 #define WHEELS_GEAR_RATIO 0.5f // not the correct value but sufficient
 #define WHEELS_ENCODER_COUNTS_PER_REV 1440U
 #define WHEELS_POLE_PAIRS 8U

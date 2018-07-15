@@ -40,7 +40,6 @@ void dr_init(void) {
   ball_camera_data.x = 0.0;
   ball_camera_data.y = 0.0;
   ball_camera_data.timestamp = 0;
-
   circbuff_init(past_wheel_speeds, SPEED_SIZE);
 }
 
@@ -58,7 +57,6 @@ void dr_tick(log_record_t *log) {
     dr_apply_cam();
     robot_camera_data.new_data = false;
   }
-
   float encoder_speeds[4];
   float wheel_speeds[3];
 
@@ -92,13 +90,12 @@ void dr_tick(log_record_t *log) {
   current_state.y += current_state.vy*TICK_TIME;
   current_state.angle += current_state.avel*TICK_TIME;
 
-  if(current_state.angle > M_PI) current_state.angle -= 2*M_PI;
-  else if(current_state.angle < -M_PI) current_state.angle += 2*M_PI;  
+  if(current_state.angle > P_PI) current_state.angle -= 2*P_PI;
+  else if(current_state.angle < -P_PI) current_state.angle += 2*P_PI;  
 
   //Update ball positions
   current_ball_state.x += current_ball_state.vx*TICK_TIME;
   current_ball_state.y += current_ball_state.vy*TICK_TIME;
-
   if (log) {
     dr_log(log);
   }
@@ -169,8 +166,8 @@ void dr_apply_cam() {
     angle += wheel_speeds[2]*TICK_TIME;
   }
   
-  angle = fmod(angle, 2*M_PI);
-  if(angle > M_PI) angle -= 2*M_PI;
+  angle = fmod(angle, 2*P_PI);
+  if(angle > P_PI) angle -= 2*P_PI;
 
   current_state.x = x;
   current_state.y = y;
@@ -238,9 +235,9 @@ void dr_set_ball_timestamp(uint64_t timestamp) {
 
 
 void dr_do_maneuver(){
-  int16_t dests[3][3] = {{700,-700,(int16_t)(M_PI*100)},
+  int16_t dests[3][3] = {{700,-700,(int16_t)(P_PI*100)},
 			 {2000,1000,30},
-			 {0,0,(int16_t)(M_PI/2.0)}};
+			 {0,0,(int16_t)(P_PI/2.0)}};
 
 
 
@@ -272,7 +269,6 @@ void dr_follow_ball(){
     primitive_start(1, &move_params);
   }
 }
-
 
 void dr_log(log_record_t *log){
   sensors_gyro_data_t gyrodata;
@@ -314,4 +310,3 @@ void dr_log(log_record_t *log){
 				
   log->tick.cam_delay = (uint16_t)robot_camera_data.timestamp;
 }
-

@@ -5,23 +5,29 @@
  *      Author: cheng
  */
 
-#include "ai/hl/stp/tactic/util.h"
-#include "ai/hl/stp/gradient_approach/optimizepass.h"
-#include "ai/hl/stp/gradient_approach/passMainLoop.h"
-#include "ai/hl/stp/evaluation/offense.h"
+#include <glibmm/ustring.h>
+#include <mutex>
+#include <thread>
 #include "ai/hl/stp/evaluation/ball.h"
+#include "ai/hl/stp/evaluation/offense.h"
 #include "ai/hl/stp/evaluation/pass.h"
 #include "ai/hl/stp/evaluation/team.h"
-#include "ai/hl/stp/predicates.h"
+#include "ai/hl/stp/gradient_approach/optimizepass.h"
+#include "ai/hl/stp/gradient_approach/passMainLoop.h"
 #include "ai/hl/stp/param.h"
+#include "ai/hl/stp/predicates.h"
+#include "ai/hl/stp/tactic/util.h"
+#include "ai/hl/stp/ui.h"
+#include "ai/hl/stp/world.h"
 #include "ai/hl/util.h"
 #include "ai/util.h"
-#include "geom/util.h"
 #include "geom/angle.h"
+#include "geom/util.h"
 #include "util/dprint.h"
 #include "ai/hl/stp/world.h"
 #include <mutex>
 #include <thread>  
+#include <atomic>  
 #include <glibmm/ustring.h>
 #include "ai/hl/stp/ui.h"
 
@@ -38,18 +44,6 @@ namespace AI {
 					public:
 						int count = 0;
 						bool passAttempted;
-						struct kick_info {
-							Point kicker_location;
-							Point passee_location;
-							Angle kicker_orientation;
-							Point kicker_target;
-							bool kick_attempted;
-
-							Point alt_passer_point;
-							Angle alt_passer_orientation;
-							bool use_stored_point_as_passer = false;
-						};
-						kick_info tacticInfo;
 
 						struct passDataStruct{
 							passDataStruct() : quality(0) {
@@ -127,8 +121,13 @@ namespace AI {
 
 
 						worldSnapshot getWorldSnapshot();
-						void  updateWorldSnapshot(World world);
+						void  updateWorldSnapshot(worldSnapshot new_snapshot);
+						worldSnapshot  convertToWorldSnapshot(World world);
 						std::vector<passDataStruct> getCurrentPoints();
+						passDataStruct getBestPass();
+						double ratePass(passDataStruct pass);
+						void setAltPasser(Point, Angle);
+						void resetAltPasser();
 						void updateCurrentPoints(std::vector<passDataStruct> newPoints);
 						void setThreadRunning(bool new_val);
 						bool threadRunning();
@@ -137,12 +136,17 @@ namespace AI {
 					protected:
 						PassInfo();
 					private:
+						std::thread pass_thread;
 						std::mutex thread_running_mutex;
+						std::mutex alt_passer_mutex;
 						std::mutex world_mutex;
 						std::mutex currentPoints_mutex;
 						std::vector<passDataStruct> currentPoints;
 						worldSnapshot snapshot;
-						bool thread_running = false; 
+						std::atomic_bool thread_running; 
+						bool use_alt_passer = false;
+						Point alt_point;
+						Angle alt_ori;
 				};
 
 

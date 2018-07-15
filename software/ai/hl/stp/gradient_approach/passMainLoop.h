@@ -9,9 +9,8 @@
 #define PASSMAINLOOP_H_
 
 #include "PassInfo.h"
-#include "geom/point.h"
 #include "geom/angle.h"
-
+#include "geom/point.h"
 
 #include <atomic>
 
@@ -19,7 +18,7 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace GradientApproach {
-				void superLoop(PassInfo::worldSnapshot, std::atomic_bool* stop_token);
+				void superLoop();
 
 				void testLoop(PassInfo::worldSnapshot);
 				bool comparePassQuality(PassInfo::passDataStruct a, PassInfo::passDataStruct b);

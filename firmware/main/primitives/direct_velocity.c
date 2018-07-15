@@ -1,6 +1,7 @@
 #include "direct_velocity.h"
 #include "../control.h"
 #include "../dribbler.h"
+
 #include <unused.h>
 
 static float direct_target_velocity[3];

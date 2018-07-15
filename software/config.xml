@@ -37,7 +37,6 @@
         <category name="Vision">
           <double name="Ball detection probability threshold">0.002</double>
           <boolean name="Disable Vision Filter">false</boolean>
-          <boolean name="Enable Particle Filter">true</boolean>
           <category name="Particle">
             <double name="How close a particle must be to the ball to get the extra PREVIOUS_BALL_WEIGHT">0.5</double>
             <double name="How much the ball's confidence changes at a time">5.0</double>
@@ -45,6 +44,7 @@
             <integer name="Particle Filter number of condensations">5</integer>
             <double name="The confidence threshold for being confident or not of the ball's position">60.0</double>
             <double name="The decay rate (per meter) of the detection weight">200</double>
+            <double name="The max variance a ball detection can have without losing confidence">1.00</double>
             <double name="The top fraction of particles that are used as basepoints for the next sample">0.100</double>
             <double name="The weight of the previous ball's position">1</double>
             <double name="The weight of the previous ball's predicted position">15</double>
@@ -55,33 +55,18 @@
       <category name="HL">
         <category name="STP">
           <category name="Action">
-            <category name="block">
-              <double name="baller projects a cone of this angle, blocker will avoid this cone (degrees)">5.0</double>
-              <double name="block threshold distance in terms of robot radius">3.000</double>
-            </category>
-            <category name="defend">
-              <double name="Distance the defender should repel the ball in robot radius">3.000</double>
-              <boolean name="Whether the defender shoot_goal (otherwise repels)">true</boolean>
+            <category name="catch">
+              <double name="Catch Primitive activation distance">0.300</double>
+              <double name="Edge catch distance">0.2000</double>
+              <double name="Factor to overestimate the intercept time by">1.3000</double>
             </category>
             <category name="Dribble">
               <double name="dribble angle increment (deg)">50.0</double>
               <double name="dribble linear increment">0.300</double>
             </category>
-            <category name="Goalie">
-              <double name="Distance the goalie should repel the ball in robot radius">4.000</double>
-              <double name="How far the goalie chips when it clears the ball">1.500</double>
-              <double name="How slow the ball must be to kick it away">0.05</double>
-              <double name="Lone Goalie: distance to goal post (m)">0.500</double>
-            </category>
-            <category name="move_spinl">
-              <double name="Multiplyer that changes the rotational speed during move_spin">1.500</double>
-            </category>
             <category name="pivot">
               <integer name="Amount of rotation for each point (in degrees)">10</integer>
               <double name="the default final velocity for points generated while pivoting">0.500</double>
-            </category>
-            <category name="repel">
-              <double name="speed that repel will be kicking at in a corner">3.000</double>
             </category>
             <category name="Shoot">
               <boolean name="Use mp_move or MP_intercept">true</boolean>
@@ -90,9 +75,6 @@
               <degrees name="Angle threshold that defines passing accuracy, smaller is more accurate (degrees)">30.0</degrees>
               <degrees name="Angle threshold that the passee must be with respect to passer when shot, smaller is more accurate (degrees)">80.0</degrees>
               <double name="Decay constant for the ball velocity">0.100</double>
-            </category>
-            <category name="Strafe">
-              <double name="strafing increment">0.100</double>
             </category>
           </category>
           <category name="ball">
@@ -118,9 +100,9 @@
             <double name="Steal threshold: distance of ball from enemy (robot radius)">1.100</double>
           </category>
           <category name="Goalie">
-            <boolean name="Goalie is lowest index">true</boolean>
-            <integer name="Goalie pattern index">0</integer>
-            <boolean name="Override refbox goalie">false</boolean>
+            <boolean name="Goalie is lowest index">false</boolean>
+            <integer name="Goalie pattern index">4</integer>
+            <boolean name="Override refbox goalie">true</boolean>
             <boolean name="Play can't execute without goalie">false</boolean>
           </category>
           <category name="offense">
@@ -158,124 +140,80 @@
           </category>
           <category name="Play">
             <category name="Enable">
-              <boolean name="BallPlacement">false</boolean>
-              <boolean name="BasicDefense">true</boolean>
-              <boolean name="BasicOffense">false</boolean>
-              <boolean name="BlockShotPath">false</boolean>
+              <boolean name="BasicOffense">true</boolean>
               <boolean name="CornerKickEnemy">true</boolean>
-              <boolean name="DefensiveOffense">true</boolean>
-              <boolean name="FranticDefense">false</boolean>
               <boolean name="FreeKickEnemy">true</boolean>
               <boolean name="FreeKickFriendly">true</boolean>
-              <boolean name="GrabBallDefensive">false</boolean>
-              <boolean name="GrabBallOffensive">false</boolean>
+              <boolean name="FreeKickPass">true</boolean>
+              <boolean name="GOALIE">false</boolean>
+              <boolean name="GrabBallDefensive">true</boolean>
+              <boolean name="GrabBallOffensive">true</boolean>
               <boolean name="Idle">false</boolean>
-              <boolean name="Intercept_v2_test">false</boolean>
-              <boolean name="JustCShoot">false</boolean>
-              <boolean name="JustShoot">false</boolean>
               <boolean name="KickoffEnemy">true</boolean>
               <boolean name="KickoffFriendly">true</boolean>
-              <boolean name="OffensiveBlock">false</boolean>
+              <boolean name="MOVE">false</boolean>
+              <boolean name="PassSimple">false</boolean>
               <boolean name="PenaltyEnemy">true</boolean>
               <boolean name="PenaltyFriendly">true</boolean>
-              <boolean name="Shoot">false</boolean>
+              <boolean name="SHOOT">false</boolean>
               <boolean name="Stop">true</boolean>
-              <boolean name="TESTCATCH">false</boolean>
-              <boolean name="TESTDEFENSIVECHIP">false</boolean>
-              <boolean name="TESTJUSTCATCH">false</boolean>
-              <boolean name="TESTMOVE">false</boolean>
-              <boolean name="TESTSHOOT">false</boolean>
-              <boolean name="TriAttackDef">false</boolean>
             </category>
             <category name="Playbook">
-              <integer name="BallPlacement">1023</integer>
-              <integer name="BasicDefense">1023</integer>
               <integer name="BasicOffense">1023</integer>
-              <integer name="BlockShotPath">1023</integer>
               <integer name="CornerKickEnemy">1023</integer>
-              <integer name="DefensiveOffense">1023</integer>
-              <integer name="FranticDefense">1023</integer>
               <integer name="FreeKickEnemy">1023</integer>
               <integer name="FreeKickFriendly">1023</integer>
+              <integer name="FreeKickPass">1023</integer>
+              <integer name="GOALIE">1023</integer>
               <integer name="GrabBallDefensive">1023</integer>
               <integer name="GrabBallOffensive">1023</integer>
               <integer name="Idle">1023</integer>
-              <integer name="Intercept_v2_test">1023</integer>
-              <integer name="JustCShoot">1023</integer>
-              <integer name="JustShoot">1023</integer>
               <integer name="KickoffEnemy">1023</integer>
               <integer name="KickoffFriendly">1023</integer>
-              <integer name="OffensiveBlock">1023</integer>
+              <integer name="MOVE">1023</integer>
+              <integer name="PassSimple">1023</integer>
               <integer name="PenaltyEnemy">1023</integer>
               <integer name="PenaltyFriendly">1023</integer>
-              <integer name="Shoot">1023</integer>
+              <integer name="SHOOT">1023</integer>
               <integer name="Stop">1023</integer>
-              <integer name="TESTCATCH">1023</integer>
-              <integer name="TESTDEFENSIVECHIP">1023</integer>
-              <integer name="TESTJUSTCATCH">1023</integer>
-              <integer name="TESTMOVE">1023</integer>
-              <integer name="TESTSHOOT">1023</integer>
-              <integer name="TriAttackDef">1023</integer>
             </category>
             <category name="Priority 0=low, 10=hi, 5=default">
-              <integer name="BallPlacement">5</integer>
-              <integer name="BasicDefense">5</integer>
               <integer name="BasicOffense">5</integer>
-              <integer name="BlockShotPath">5</integer>
               <integer name="CornerKickEnemy">5</integer>
-              <integer name="DefensiveOffense">5</integer>
-              <integer name="FranticDefense">5</integer>
               <integer name="FreeKickEnemy">5</integer>
-              <integer name="FreeKickFriendly">5</integer>
+              <integer name="FreeKickFriendly">3</integer>
+              <integer name="FreeKickPass">5</integer>
+              <integer name="GOALIE">2</integer>
               <integer name="GrabBallDefensive">5</integer>
               <integer name="GrabBallOffensive">5</integer>
               <integer name="Idle">5</integer>
-              <integer name="Intercept_v2_test">5</integer>
-              <integer name="JustCShoot">5</integer>
-              <integer name="JustShoot">5</integer>
               <integer name="KickoffEnemy">5</integer>
               <integer name="KickoffFriendly">5</integer>
-              <integer name="OffensiveBlock">5</integer>
+              <integer name="MOVE">5</integer>
+              <integer name="PassSimple">5</integer>
               <integer name="PenaltyEnemy">5</integer>
               <integer name="PenaltyFriendly">5</integer>
-              <integer name="Shoot">5</integer>
+              <integer name="SHOOT">5</integer>
               <integer name="Stop">5</integer>
-              <integer name="TESTCATCH">5</integer>
-              <integer name="TESTDEFENSIVECHIP">5</integer>
-              <integer name="TESTJUSTCATCH">5</integer>
-              <integer name="TESTMOVE">5</integer>
-              <integer name="TESTSHOOT">5</integer>
-              <integer name="TriAttackDef">5</integer>
             </category>
             <category name="StaticRoleAssignment">
-              <boolean name="BallPlacement">false</boolean>
-              <boolean name="BasicDefense">false</boolean>
               <boolean name="BasicOffense">false</boolean>
-              <boolean name="BlockShotPath">false</boolean>
               <boolean name="CornerKickEnemy">false</boolean>
-              <boolean name="DefensiveOffense">false</boolean>
-              <boolean name="FranticDefense">false</boolean>
               <boolean name="FreeKickEnemy">false</boolean>
               <boolean name="FreeKickFriendly">false</boolean>
+              <boolean name="FreeKickPass">false</boolean>
+              <boolean name="GOALIE">false</boolean>
               <boolean name="GrabBallDefensive">false</boolean>
               <boolean name="GrabBallOffensive">false</boolean>
               <boolean name="Idle">false</boolean>
-              <boolean name="Intercept_v2_test">false</boolean>
-              <boolean name="JustCShoot">false</boolean>
-              <boolean name="JustShoot">false</boolean>
               <boolean name="KickoffEnemy">false</boolean>
               <boolean name="KickoffFriendly">false</boolean>
-              <boolean name="OffensiveBlock">false</boolean>
+              <boolean name="MOVE">false</boolean>
+              <boolean name="PassSimple">false</boolean>
               <boolean name="PenaltyEnemy">false</boolean>
               <boolean name="PenaltyFriendly">false</boolean>
-              <boolean name="Shoot">false</boolean>
+              <boolean name="SHOOT">false</boolean>
               <boolean name="Stop">false</boolean>
-              <boolean name="TESTCATCH">false</boolean>
-              <boolean name="TESTDEFENSIVECHIP">false</boolean>
-              <boolean name="TESTJUSTCATCH">false</boolean>
-              <boolean name="TESTMOVE">false</boolean>
-              <boolean name="TESTSHOOT">false</boolean>
-              <boolean name="TriAttackDef">false</boolean>
             </category>
           </category>
           <category name="PlayExecutor">
@@ -292,7 +230,7 @@
             <boolean name="enable robot 7">true</boolean>
             <boolean name="enable robot 8">true</boolean>
             <boolean name="enable robot 9">true</boolean>
-            <boolean name="If higher priority play exists, switch">true</boolean>
+            <boolean name="If higher priority play exists, switch">false</boolean>
           </category>
           <category name="predicates">
             <double name="distance to trigger loose_ball predicate">1.000</double>
@@ -302,11 +240,11 @@
             <boolean name="new fight">true</boolean>
             <integer name="randomize factor that the baller will shoot even if blocked">5</integer>
           </category>
-          <boolean name="Run pass calculation">false</boolean>
+          <boolean name="Run pass calculation">true</boolean>
           <category name="Shoot">
             <radians name="Angle threshold that defines shoot accuracy, bigger is more accurate (radians)">0.0</radians>
             <double name="big reduced radius for calculating best shot (robot radius ratio)">0.500</double>
-            <double name="Maximum speed ball can shoot at">8.00</double>
+            <double name="Maximum speed ball can shoot at">6.00</double>
             <double name="Shoot accuracy (for various purposes)">5.0</double>
             <double name="small reduced radius for calculating best shot (robot radius ratio)">0.400</double>
           </category>
@@ -314,12 +252,6 @@
             <degrees name="stop: angle to separate players (degrees)">15.0</degrees>
           </category>
           <category name="Tactic">
-            <category name="defend">
-              <boolean name="Whether or not Terence Defense should take the place of normal defender 1">false</boolean>
-              <boolean name="Whether or not Terence Defense should take the place of normal defender 2">false</boolean>
-              <boolean name="Whether or not Terence Defense should take the place of normal defender 3">false</boolean>
-              <boolean name="Whether or not Terence Defense should take the place of normal goalie">true</boolean>
-            </category>
             <category name="free_kick_to_goal">
               <double name="chipping power level">0.50</double>
             </category>
@@ -338,10 +270,6 @@
             </category>
             <category name="penalty_goalie">
               <boolean name="Whether the penalty goalie should choose random points">true</boolean>
-            </category>
-            <category name="prepare_kick">
-              <double name="test controls exponential change in chipping power as a function of distance">1.0</double>
-              <double name="test controls scaling factor of chip power as function of distance">0.4</double>
             </category>
           </category>
           <category name="tdefend">
@@ -366,11 +294,29 @@
         </category>
       </category>
       <category name="Nav">
+        <double name="Average Player Velocity">1.5</double>
+        <category name="CustomStuff">
+          <double name="The maximum x coordinate of the area our robots may occupy">10.00</double>
+          <double name="The minimum x coordinate of the area our robots may occupy">0.00</double>
+          <boolean name="Whether or not to enable custom bounds for testing">false</boolean>
+        </category>
         <radians name="Orientation tolerance in angle">5.00</radians>
+        <category name="Pivot">
+          <degrees name="offset angle (degrees)">80</degrees>
+          <double name="offset distance">0</double>
+          <degrees name="orientation offset (degrees)">30</degrees>
+        </category>
+        <category name="PivotAram">
+          <double name="max acceleration">10</double>
+          <double name="pivot radius">1.00</double>
+        </category>
         <double name="Position tolerance in destination">0.0500</double>
         <category name="RRT">
+          <double name="angle increment (deg)">10.0</double>
           <double name="Distance to destination when we stop looking for a path (m)">0.080</double>
           <double name="Distance to extend the tree on each step (m)">0.100</double>
+          <integer name="Jon Hysteris Hack">2</integer>
+          <double name="linear increment (m)">0.050</double>
           <integer name="Number of iterations to go through before we give best partial path">200</integer>
         </category>
         <category name="Util">
@@ -381,13 +327,14 @@
           <double name="Enemy position interp length">0.000</double>
           <double name="Field boundary avoidance dist">0.000</double>
           <double name="Friendly kick avoidance dist (rule=0.2)">0.200</double>
-          <double name="Friendly position interp length">0.000</double>
+          <double name="Friendly movement extrapolation factor">1.000</double>
+          <double name="Friendly robot braking decel">1.50</double>
           <double name="Goal post avoidance dist">0.0000</double>
           <double name="Intercept challenge friendly avoidance">1.000</double>
-          <double name="Long enemy avoidance dist">0.200</double>
-          <double name="Long friendly avoidance dist">0.200</double>
+          <double name="Long enemy avoidance dist">0.400</double>
+          <double name="Long friendly avoidance dist">0.400</double>
           <double name="Normal enemy avoidance dist">0.100</double>
-          <double name="Normal friendly avoidance dist">0.100</double>
+          <double name="Normal friendly avoidance dist">0.200</double>
           <double name="Ref area avoidance dist">-0.180</double>
           <double name="Regular ball avoidance dist">0.160</double>
           <boolean name="Robots must stay in own half">false</boolean>

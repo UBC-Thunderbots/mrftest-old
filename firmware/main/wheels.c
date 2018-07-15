@@ -14,8 +14,10 @@
 #include "hall.h"
 #include "motor.h"
 #include "receive.h"
+#ifndef FWSIM
 #include <rcc.h>
 #include <registers/timer.h>
+#endif
 #include <math.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -134,6 +136,7 @@ void wheels_drive(unsigned int index, int power) {
  * \param[out] log the log record whose wheel-related fields will be filled
  */
 void wheels_tick(log_record_t *log) {
+#ifndef FWSIM
 	hall_lock_wheels();
 	encoder_check_commutation_errors();
 
@@ -209,4 +212,5 @@ void wheels_tick(log_record_t *log) {
 			error_lt_set(ERROR_LT_MOTOR0_HOT + index, false);
 		}
 	}
+#endif // FWSIM
 }

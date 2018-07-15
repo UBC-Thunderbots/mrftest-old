@@ -1,75 +1,153 @@
 #include <algorithm>
 
-#include "ai/hl/stp/tactic/move.h"
 #include "ai/hl/stp/action/move.h"
-#include "util/dprint.h"
+#include "ai/hl/stp/action/move_spin.h"
+#include "ai/hl/stp/tactic/move.h"
 #include "ai/hl/util.h"
+#include "util/dprint.h"
 
-namespace Primitives = AI::BE::Primitives;
 using namespace AI::HL::STP::Tactic;
-namespace Action = AI::HL::STP::Action;
 using namespace AI::HL::W;
 using AI::HL::STP::Coordinate;
+namespace Action = AI::HL::STP::Action;
 
-namespace {
-	class MoveOnce final : public Tactic {
-		public:
-			explicit MoveOnce(World world, Point dest) : Tactic(world), dest(dest) {
-			}
+namespace
+{
+class MoveOnce final : public Tactic
+{
+   public:
+    explicit MoveOnce(World world, Point dest, Angle orientation)
+        : Tactic(world),
+          dest(dest),
+          orientation(orientation)  // MoveOnce with final orientation
+    {
+        bHasOrientation = 1;
+    }
+    explicit MoveOnce(World world, Point dest)
+        : Tactic(world),
+          dest(dest)  // MoveOnce with no preset final orientation
+    {
+        bHasOrientation = 0;
+    }
 
-		private:
-			const Point dest;
-			Player select(const std::set<Player> &players) const override;
-			void execute(caller_t& caller) override;
+    // REFERENCE: Tactic superclass for override methods descriptions.
 
-			Glib::ustring description() const override {
-				return u8"move-once";
-			}
-	};
+   private:
+    const Point dest;
+    const Angle orientation;
+    bool bHasOrientation;  // boolean that controls the version of overloaded
+                           // move used (depends on if the function called
+                           // specifies an orientation)
 
-	Player MoveOnce::select(const std::set<Player> &players) const {
-		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(dest));
-	}
+    Player select(const std::set<Player>& players) const override;
 
-	void MoveOnce::execute(caller_t& caller) {
-		while(true) {
-			Action::move(caller, world, player(), dest);
-			yield(caller);
-		}
-	}
+    void execute(caller_t& caller) override;
 
-	class Move final : public Tactic {
-		public:
-			explicit Move(World world, const Coordinate dest) : Tactic(world), dest(dest) {
-			}
+    Glib::ustring description() const override
+    {
+        return u8"move-once";
+    }
+};
 
-		private:
-			const Coordinate dest;
-			Player select(const std::set<Player> &players) const override;
-			void execute(caller_t& caller) override;
-
-			Glib::ustring description() const override {
-				return u8"move";
-			}
-	};
-
-	Player Move::select(const std::set<Player> &players) const {
-		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(dest.position()));
-	}
-
-	void Move::execute(caller_t& caller) {
-		while (true) {
-			Action::move(caller, world, player(), dest.position());
-			yield(caller);
-			# warning probably can take this out later. no longer used with no HL primitives. Check if old HL prims added logic?
-			player().clear_prims();
-		}
-	}
+Player MoveOnce::select(const std::set<Player>& players) const
+{
+    return *std::min_element(
+        players.begin(), players.end(),
+        AI::HL::Util::CmpDist<Player>(
+            dest));  // returns first element/robot from player vector
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::move_once(World world, Point dest) {
-	return Tactic::Ptr(new MoveOnce(world, dest));
+// executes caller on selected player
+
+void MoveOnce::execute(caller_t& caller)
+{
+    while (true)
+    {
+        if (bHasOrientation)
+        {
+            // if an orientation has been specified, then use
+            // the overloaded move action with orientation
+            Action::move(caller, world, player(), dest, orientation);
+            caller();
+        }
+        else
+        {
+            Action::move(caller, world, player(), dest, Angle());
+            caller();
+        }
+    }
 }
-Tactic::Ptr AI::HL::STP::Tactic::move(World world, Coordinate dest) {
-	return Tactic::Ptr(new Move(world, dest));
+
+class Move final : public Tactic
+{
+   public:
+    explicit Move(World world, Point dest) : Tactic(world), dest(dest)
+    {
+        bHasOrientation = 0;
+    }
+    explicit Move(World world, Point dest, const Angle orientation)
+        : Tactic(world), dest(dest), orientation(orientation)
+    {
+        bHasOrientation = 1;
+    }
+
+   private:
+    const Point dest;
+    const Angle orientation;
+    bool bHasOrientation;
+
+    Player select(const std::set<Player>& players) const override;
+
+    void execute(caller_t& caller) override;
+
+    Glib::ustring description() const override
+    {
+        return u8"move";
+    }
+};
+
+Player Move::select(const std::set<Player>& players) const
+{
+    return *std::min_element(
+        players.begin(), players.end(), AI::HL::Util::CmpDist<Player>(dest));
+}
+
+void Move::execute(caller_t& caller)
+{
+    while (true)
+    {
+        if (bHasOrientation)
+        {
+            Action::move(caller, world, player(), dest, Angle());
+            yield(caller);
+        }
+        else
+        {
+            Action::move(caller, world, player(), dest, Angle());
+            yield(caller);
+        }
+    }
+}
+}
+
+Tactic::Ptr AI::HL::STP::Tactic::move_once(World world, Point dest)
+{
+    return Tactic::Ptr(new MoveOnce(world, dest));
+}
+
+Tactic::Ptr AI::HL::STP::Tactic::move_once(
+    World world, Point dest, Angle orientation)
+{
+    return Tactic::Ptr(new MoveOnce(world, dest, orientation));
+}
+
+Tactic::Ptr AI::HL::STP::Tactic::move(
+    World world, Point dest, Angle orientation)
+{
+    return Tactic::Ptr(new Move(world, dest, orientation));
+}
+
+Tactic::Ptr AI::HL::STP::Tactic::move(World world, Point dest)
+{
+    return Tactic::Ptr(new Move(world, dest));
 }

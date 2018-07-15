@@ -1,17 +1,26 @@
 #include "spin.h"
-#include "../bangbang.h"
-#include "../control.h"
-#include "../dr.h"
-#include "../physics.h"
+#include "bangbang.h"
+#include "control.h"
+#include "physics.h"
 #include <math.h>
 #include <stdio.h>
 
+#ifndef FWSIM
+#include "dr.h"
+#else
+#include "simulate.h"
+#endif
+
 #define TIME_HORIZON 0.5f
 
-static float x_dest;
-static float y_dest;
+static float x_final;
+static float y_final;
 static float avel_final;
 static bool slow;
+
+static float major_vec[2];
+static float minor_vec[2];
+static float major_angle;
 
 /**
  * \brief Initializes the spin primitive.
@@ -30,17 +39,39 @@ static void spin_init(void) {
  * \param[in] params the movement parameters, which are only valid until this
  * function returns and must be copied into this module if needed
  */
-
-// 0th is x (mm), 1st is y (mm), 2nd is angular velocity in centirad/s
 // input to 3->4 matrix is quarter-degrees per 5 ms, matrix is dimensionless
 // linear ramp up for velocity and linear fall as robot approaches point
 // constant angular velocity
+static void spin_start(const primitive_params_t *p) {
+    // Parameters:  param[0]: g_destination_x   [mm]
+    //              param[1]: g_destination_y   [mm]
+    //              param[2]: g_angular_v_final [centi-rad/s]
+    //              extra:    g_end_speed       [millimeter/s]
 
-static void spin_start(const primitive_params_t *params) {
-	x_dest = (float)(params->params[0]/1000.0f);
-	y_dest = (float)(params->params[1]/1000.0f);
-	avel_final = (float)(params->params[2]/100.0f);
-	slow = params->slow;	
+    // Parse the parameters with the standard units
+    x_final = (float)p->params[0] / 1000.0f;
+    y_final = (float)p->params[1] / 1000.0f;
+    avel_final = (float)p->params[2] / 100.0f;
+    slow = p->slow;
+
+    // Get robot current data
+    dr_data_t now;
+    dr_get(&now);
+
+    // Construct major and minor axis for the path
+    // get maginutude
+    float distance = norm2(x_final-now.x, y_final-now.y);
+
+    // major vector - unit vector from start to destination
+    major_vec[0] = (x_final-now.x)/distance;
+    major_vec[1] = (y_final-now.y)/distance;
+
+    // minor vector - orthogonal to major vector
+    minor_vec[0] = -major_vec[1];
+    minor_vec[1] = major_vec[0];
+
+    // major angle - angle relative to global x
+    major_angle = atan2f(major_vec[1], major_vec[0]);
 }
 
 /**
@@ -62,117 +93,81 @@ static void spin_end(void) {
  */
 
 static void spin_tick(log_record_t *log) {
+dr_data_t now;
+    dr_get(&now);
 
-	dr_data_t data;
+    // Trajectories
+    BBProfile major;
+    BBProfile minor;
 
-	BBProfile x_trajectory;
-	BBProfile y_trajectory;	
+    // current to destination vector
+    float x_disp = x_final-now.x;
+    float y_disp = y_final-now.y;
 
-	// These are current values.
-	float v_max[3];
-	float a_max[3];
-	float coords[3];
-	float velocities[3];
+    // project current to destination vector to major/minor axis
+    float major_disp = x_disp*major_vec[0] + y_disp*major_vec[1];
+    float minor_disp = x_disp*minor_vec[0] + y_disp*minor_vec[1];
 
-	// These are values to set.
-	float accel[3];
+    // project velocity vector to major/minor axis
+    float major_vel = now.vx*major_vec[0] + now.vy*major_vec[1];
+    float minor_vel = now.vx*minor_vec[0] + now.vy*minor_vec[1];
 
-	dr_get(&data);
-	coords[0] = data.x;
-	coords[1] = data.y;
-	coords[2] = data.angle;
-	velocities[0] = data.vx;
-	velocities[1] = data.vy;
-	velocities[2] = data.avel;
+    // Prepare trajectory
+    PrepareBBTrajectoryMaxV(&major, major_disp, major_vel, 0, MAX_X_A, MAX_X_V);
+    PrepareBBTrajectoryMaxV(&minor, minor_disp, minor_vel, 0, MAX_Y_A, MAX_Y_V);
 
-	// Temporarily use constants
+    // Plan
+    PlanBBTrajectory(&major);
+    PlanBBTrajectory(&minor);
 
-	v_max[0] = MAX_X_V;
-	v_max[1] = MAX_Y_V;
-	v_max[2] = MAX_T_V;
+    // Compute acceleration
+    float major_accel = BBComputeAccel(&major, TIME_HORIZON);
+    float minor_accel = BBComputeAccel(&minor, TIME_HORIZON);
+    float a_accel = (avel_final-now.avel) / 0.05f;
 
-	a_max[0] = MAX_X_A;
-	a_max[1] = MAX_Y_A;
+    // Clamp acceleration
+    if (a_accel > MAX_T_A) {
+        a_accel = MAX_T_A;
+    }
+    if (a_accel < -MAX_T_A) {
+        a_accel = -MAX_T_A;
+    }
 
-	if (log) {
-		log->tick.primitive_data[0] = coords[0];
-		log->tick.primitive_data[1] = coords[1];
-		log->tick.primitive_data[2] = coords[2];
-		
-		log->tick.primitive_data[3] = velocities[0];
-		log->tick.primitive_data[4] = velocities[1];
-		log->tick.primitive_data[5] = velocities[2];
-	}
+    // Local cartesian represented as global cartesian
+    float local_x_vec[2] = {
+        cosf(now.angle), 
+        sinf(now.angle)
+    };
+    float local_y_vec[2] = {
+        -sinf(now.angle),
+        cosf(now.angle)
+    };
 
-	PrepareBBTrajectory(&x_trajectory, x_dest-coords[0], velocities[0], 0, a_max[0]);
-	PrepareBBTrajectory(&y_trajectory, y_dest-coords[1], velocities[1], 0, a_max[1]);
+    // Get local x acceleration
+    float major_dot_x = dot_product(local_x_vec, major_vec, 2);
+    float minor_dot_x = dot_product(local_x_vec, minor_vec, 2);
+    float x_accel = major_accel*major_dot_x + minor_accel*minor_dot_x;
 
-	PlanBBTrajectory(&x_trajectory);
-	PlanBBTrajectory(&y_trajectory);
-	
-	accel[0] = BBComputeAccel(&x_trajectory, TIME_HORIZON);
-	accel[1] = BBComputeAccel(&y_trajectory, TIME_HORIZON);
-	accel[2] = (avel_final-velocities[2])/0.05f;
-	
-	if (log) {
-		log->tick.primitive_data[6] = accel[0];
-		log->tick.primitive_data[7] = accel[1];
-		log->tick.primitive_data[8] = accel[2];
-	}
+    // Get local y acceleration
+    float major_dot_y = dot_product(local_y_vec, major_vec, 2);
+    float minor_dot_y = dot_product(local_y_vec, minor_vec, 2);
+    float y_accel = major_accel*major_dot_y + minor_accel*minor_dot_y;
 
-
-	if(accel[2] >  MAX_T_A) {
-		accel[2] = MAX_T_A;
-	}
-	
-	if (accel[2] < -MAX_T_A) {
-		accel[2] = -MAX_T_A;
-	}
-	
-	rotate(accel, -coords[2]);
-	apply_accel(accel, accel[2]);
+    // Apply acceleration in robot's coordinates
+    float linear_acc[2] = {
+        x_accel,
+        y_accel,
+    };
+    apply_accel(linear_acc, a_accel);
 }
 
 /**
  * \brief The spin movement primitive.
  */
 const primitive_t SPIN_PRIMITIVE = {
-	.direct = false,
-	.init = &spin_init,
-	.start = &spin_start,
-	.end = &spin_end,
-	.tick = &spin_tick,
+    .direct = false,
+    .init   = &spin_init,
+    .start  = &spin_start,
+    .end    = &spin_end,
+    .tick   = &spin_tick,
 };
-
-
-void tick_accel(float coord, float dest, float v, float v_max, float v_step, float a_max, float *accel) { 
-/*
-	printf("Current  : %f\n", coord);
-	printf("Dest  :    %f\n", dest);
-	printf("Velo  :    %f\n", v);
-	printf("V_MAX :    %f\n", v_max);
-	printf("V_STEP:    %f\n", v_step);
-	printf("A_MAX :    %f\n", a_max);
-	printf("Accels:    %f %f %f\n", accel[0], accel[1], accel[2]);
-*/
-	if(fabsf(coord) < fabsf(dest/2)) {
-		*accel = (v_max*v_max-v*v)/(2*((dest/2)-coord));
-	}
-	else if((fabsf(dest/2) <= fabsf(coord)) && (fabsf(coord) < fabsf(dest))) {
-		*accel = (-v*v)/(2*(dest-coord+SPACE_FACTOR));
-	}
-	else if(fabsf(coord) > fabsf(dest)) {
-		if(fabsf(v) > v_step) {
-			if(v > 0) {
-				*accel = -a_max;
-			}
-			else {
-				*accel = a_max;
-			}
-		}
-		else {
-			*accel = 0;
-		}
-	}
-}
-	

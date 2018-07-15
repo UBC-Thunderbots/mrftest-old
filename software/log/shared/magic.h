@@ -3,9 +3,9 @@
 
 #include <string>
 
-namespace Log {
-	extern const std::string MAGIC;
+namespace Log
+{
+extern const std::string MAGIC;
 }
 
 #endif
-

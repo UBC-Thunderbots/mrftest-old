@@ -1,171 +1,183 @@
-#include "ai/hl/stp/evaluation/shoot.h"
+#include "ai/hl/stp/evaluation/move.h"
 #include "ai/hl/stp/param.h"
 #include "ai/hl/util.h"
-#include "ai/hl/stp/evaluation/plan_util.h"
-#include "geom/util.h"
 #include "geom/angle.h"
+#include "geom/util.h"
 using namespace AI::HL::STP;
+using namespace Geom;
 
-namespace {
-	DoubleParam reduced_radius_small(u8"small reduced radius for calculating best shot (robot radius ratio)", u8"AI/HL/STP/Shoot", 0.4, 0.0, 1.1);
+namespace
+{
+DoubleParam reduced_radius_small(
+    u8"small reduced radius for calculating best shot (robot radius ratio)",
+    u8"AI/HL/STP/Shoot", 0.4, 0.0, 1.1);
 
-	DoubleParam reduced_radius_big(u8"big reduced radius for calculating best shot (robot radius ratio)", u8"AI/HL/STP/Shoot", 0.8, 0.0, 1.1);
+DoubleParam reduced_radius_big(
+    u8"big reduced radius for calculating best shot (robot radius ratio)",
+    u8"AI/HL/STP/Shoot", 0.8, 0.0, 1.1);
 }
 
-Angle Evaluation::get_shoot_score(World world, Player player, bool use_reduced_radius) {
-	double radius;
-	if (use_reduced_radius) {
-		radius = reduced_radius_small;
-	} else {
-		radius = reduced_radius_big;
-	}
+Angle Evaluation::get_shoot_score(
+    World world, Player player, bool use_reduced_radius)
+{
+    double radius;
+    if (use_reduced_radius)
+    {
+        radius = reduced_radius_small;
+    }
+    else
+    {
+        radius = reduced_radius_big;
+    }
 
-	std::vector<std::pair<Point, Angle>> openings = AI::HL::Util::calc_best_shot_all(world, player, radius);
+    std::vector<std::pair<Point, Angle>> openings =
+        AI::HL::Util::calc_best_shot_all(world, player, radius);
 
-	for (std::vector<std::pair<Point, Angle>>::iterator it = openings.begin(); it != openings.end(); ++it) {
-		Angle centre_ang = player.orientation();
-		Angle ang_1 = (it->first - player.position()).orientation() + it->second / 2.0;
-		Angle ang_2 = (it->first - player.position()).orientation() - it->second / 2.0;
-		if (ang_1.angle_diff(centre_ang) + ang_2.angle_diff(centre_ang) > it->second + Angle::of_radians(1e-6)) {
-			continue;
-		}
-		return std::min(ang_1.angle_diff(centre_ang), ang_2.angle_diff(centre_ang));
-	}
-	return Angle::zero();
+    for (std::vector<std::pair<Point, Angle>>::iterator it = openings.begin();
+         it != openings.end(); ++it)
+    {
+        Angle centre_ang = player.orientation();
+        Angle ang_1 =
+            (it->first - player.position()).orientation() + it->second / 2.0;
+        Angle ang_2 =
+            (it->first - player.position()).orientation() - it->second / 2.0;
+        if (ang_1.angle_diff(centre_ang) + ang_2.angle_diff(centre_ang) >
+            it->second + Angle::of_radians(1e-6))
+        {
+            continue;
+        }
+        return std::min(
+            ang_1.angle_diff(centre_ang), ang_2.angle_diff(centre_ang));
+    }
+    return Angle::zero();
 }
 
-Point Evaluation::get_best_shot(World world, Robot robot) {
-	return Evaluation::get_best_shot_pair(world, robot).first;
+Point Evaluation::get_best_shot(World world, Robot robot)
+{
+    return Evaluation::get_best_shot_pair(world, robot).first;
 }
 
-std::pair<Point, Angle> Evaluation::get_best_shot_pair(World world, Robot robot) {
-	Point enemy_goal_positive = world.field().enemy_goal_boundary().first.x > 0.0 ?
-		world.field().enemy_goal_boundary().first : world.field().enemy_goal_boundary().second;
-	Point enemy_goal_negative = world.field().enemy_goal_boundary().first.x < 0.0 ?
-		world.field().enemy_goal_boundary().first : world.field().enemy_goal_boundary().second;
+std::pair<Point, Angle> Evaluation::get_best_shot_pair(World world, Robot robot)
+{
+    Point enemy_goal_positive =
+        world.field().enemy_goal_boundary().first.x > 0.0
+            ? world.field().enemy_goal_boundary().first
+            : world.field().enemy_goal_boundary().second;
+    Point enemy_goal_negative =
+        world.field().enemy_goal_boundary().first.x < 0.0
+            ? world.field().enemy_goal_boundary().first
+            : world.field().enemy_goal_boundary().second;
 
-	std::vector<Point> obstacles;
+    std::vector<Point> obstacles;
 
-	for (auto i : world.enemy_team()) {
-		if ((i.position() - robot.position()).len() > 0.01) {
-			obstacles.push_back(i.position());
-		}
-	}
-	for (auto i : world.friendly_team()) {
-		if ((i.position() - robot.position()).len() > 0.01) {
-			obstacles.push_back(i.position());
-		}
-	}
+    for (auto i : world.enemy_team())
+    {
+        if ((i.position() - robot.position()).len() > 0.01)
+        {
+            obstacles.push_back(i.position());
+        }
+    }
+    for (auto i : world.friendly_team())
+    {
+        if ((i.position() - robot.position()).len() > 0.01)
+        {
+            obstacles.push_back(i.position());
+        }
+    }
 
-	return angle_sweep_circles(
-		world.ball().position(),
-		enemy_goal_positive,
-		enemy_goal_negative,
-		obstacles,
-		Robot::MAX_RADIUS
-	);
+    return angle_sweep_circles(
+        world.ball().position(), enemy_goal_positive, enemy_goal_negative,
+        obstacles, Robot::MAX_RADIUS);
 }
 
-double Evaluation::get_passee_shoot_score(const PassInfo::worldSnapshot& snap, Point position) {
-	std::vector<Point> obstacles;
-	Point enemy_goal_positive = snap.enemy_goal_boundary.first.x > 0.0 ? 
-		snap.enemy_goal_boundary.first : snap.enemy_goal_boundary.second;
-	Point enemy_goal_negative = snap.enemy_goal_boundary.first.x < 0.0 ?
-		snap.enemy_goal_boundary.first : snap.enemy_goal_boundary.second;
+double Evaluation::get_passee_shoot_score(
+    const PassInfo::worldSnapshot& snap, Point position)
+{
+    std::vector<Point> obstacles;
+    Point enemy_goal_positive = snap.enemy_goal_boundary.first.x > 0.0
+                                    ? snap.enemy_goal_boundary.first
+                                    : snap.enemy_goal_boundary.second;
+    Point enemy_goal_negative = snap.enemy_goal_boundary.first.x < 0.0
+                                    ? snap.enemy_goal_boundary.first
+                                    : snap.enemy_goal_boundary.second;
 
-	for (auto i : snap.enemy_positions) {
-		obstacles.push_back(i);
-	}
-	for(auto i : snap.passee_positions) {
-		if ((i - position).lensq() > 0.005) {
-			obstacles.push_back(i);
-		}
-	}
+    for (auto i : snap.enemy_positions)
+    {
+        obstacles.push_back(i);
+    }
+    for (auto i : snap.passee_positions)
+    {
+        if ((i - position).lensq() > 0.005)
+        {
+            obstacles.push_back(i);
+        }
+    }
 
-	double angle =  angle_sweep_circles(
-			position,
-			enemy_goal_positive,
-			enemy_goal_negative,
-			obstacles,
-			Robot::MAX_RADIUS
-			).second.to_degrees();
+    double angle = angle_sweep_circles(
+                       position, enemy_goal_positive, enemy_goal_negative,
+                       obstacles, Robot::MAX_RADIUS)
+                       .second.to_degrees();
 
-	return 1/(1+std::exp(0.2*(10 - angle)));
+    double score = 1 / (1 + std::exp(0.2 * (5 - angle)));
+
+    double post0_diff = (snap.passer_position - position).orientation()
+                           .angle_diff((snap.enemy_goal_boundary.first - position).orientation())
+                           .to_degrees();
+    double post1_diff = (snap.passer_position - position).orientation()
+                           .angle_diff((snap.enemy_goal_boundary.second - position).orientation())
+                           .to_degrees();
+
+    double min_post_diff = std::min(post0_diff, post1_diff);
+ 
+    //prefer shots where the bot doesn't have to turn much to face the net
+    return score / (1 + std::exp(0.2 * (20 - min_post_diff)));
 }
 
-/*
-   Point Evaluation::get_best_shoot_target(World world, Player player) {
-//			std::vector<std::pair<Point, double>> calc_best_shot_all(AI::HL::W::World world, AI::HL::W::Player player, double radius = 1.0);
-std::vector<std::pair<Point, double>> openings = AI::HL::Util::calc_best_shot_all(world, player);
+Evaluation::ShootData Evaluation::evaluate_shoot(
+    World world, Player player, bool use_reduced_radius)
+{
+    ShootData data;
 
-double ans = 0.0;
-Point post_low(world.field().length()/2.0, -world.field().goal_width()/2.0);
-Point post_high(world.field().length()/2.0, -world.field().goal_width()/2.0);
-Point player_dir(1, 0);
-player_dir = player_dir.rotate(player.orientation());
+    double radius;
+    if (use_reduced_radius)
+        radius = reduced_radius_small;
+    else
+        radius = reduced_radius_big;
 
-if(openings.size() == 0){
-Point ans(world.field().length()/2.0, 0.0);
-return ans;
-}
+    auto shot = AI::HL::Util::calc_best_shot(world, player, radius);
 
-std::pair<Point, double> best = *(openings.begin());
-for(std::vector<std::pair<Point, double>>::iterator it = openings.begin(); it!= openings.end(); it++){
-if( it->second > best.second){
-best = *it;
-}
+    data.reduced_radius = use_reduced_radius;
 
-double centre_ang = (it->first - player.position()).orientation();
-double ang_1 = (it->first - post_low).orientation();
-double ang_2 = (it->first - post_high).orientation();
-double both = angle_diff(ang_1, ang_2);
-if( angle_diff(ang_1, centre_ang) > both || angle_diff(ang_2, centre_ang) > both){
-continue;
-}
-if(it->second > best.second){
-best = *it;
-}
-}
-return best.first;
-}
-*/
-Evaluation::ShootData Evaluation::evaluate_shoot(World world, Player player, bool use_reduced_radius) {
-	ShootData data;
+    Angle ori          = (shot.first - player.position()).orientation();
+    Angle ori_diff     = ori.angle_diff(player.orientation());
+    data.accuracy_diff = ori_diff - (shot.second / 2);
 
-	double radius;
-	if (use_reduced_radius)
-		radius = reduced_radius_small;
-	else
-		radius = reduced_radius_big;
-
-	auto shot = AI::HL::Util::calc_best_shot(world, player, radius);
-
-	data.reduced_radius = use_reduced_radius;
-
-	Angle ori = (shot.first - player.position()).orientation();
-	Angle ori_diff = ori.angle_diff(player.orientation());
-	data.accuracy_diff = ori_diff - (shot.second / 2);
-
-	data.target = shot.first;
-	data.angle = shot.second;
-	#warning where does this variable come from?
-	data.can_shoot = data.accuracy_diff < -shoot_accuracy;
-	data.blocked = shot.second == Angle::zero();
+    data.target = shot.first;
+    data.angle  = shot.second;
+#warning where does this variable come from?
+    data.can_shoot = data.accuracy_diff < -shoot_accuracy;
+    data.blocked   = shot.second == Angle::zero();
 
 #warning a fix to other parts of the code for now
-	if (data.blocked)
-		data.target = world.field().enemy_goal();
+    if (data.blocked)
+        data.target = world.field().enemy_goal();
 
-	return data;
+    return data;
 }
 
 bool Evaluation::in_shoot_position(World world, Player player, Point target){
 	Point pos = player.position();
 	Point ball = world.ball().position();
+    Angle angle = Angle::of_degrees(25.0);
+    //printf("Angle off by %f", ((ball - pos).orientation().angle_diff((target - ball).orientation())).to_degrees());
 
-	if ((pos - ball).len() > 1.0) return false;
-	else if (((ball - pos).orientation() - (target - ball).orientation()).abs() > Angle::of_degrees(25.0)) return false;
+	if ((pos - ball).len() > 1.0)
+        return false;
+	else if (((ball - pos).orientation().angle_diff((target - ball).orientation())).abs() > angle)
+        return false;
 	// This line has some sort of state that prevents the robot from ever getting into position.
 	// else if (!Plan::valid_path(pos, ball, world, player)) return false;
+//    printf("in shoot position");
 	return true;
 }
+
