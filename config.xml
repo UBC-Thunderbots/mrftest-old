@@ -1,0 +1,389 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE thunderbots [
+<!ELEMENT thunderbots (params , joysticks)>
+<!ELEMENT params (category)*>
+<!ELEMENT category (category | boolean | integer | double | degrees | radians)*>
+<!ELEMENT boolean (#PCDATA)>
+<!ELEMENT integer (#PCDATA)>
+<!ELEMENT double (#PCDATA)>
+<!ELEMENT degrees (#PCDATA)>
+<!ELEMENT radians (#PCDATA)>
+<!ELEMENT joysticks (joystick)*>
+<!ELEMENT joystick (axes , buttons)>
+<!ELEMENT axes (mapping)*>
+<!ELEMENT buttons (mapping)*>
+<!ELEMENT mapping EMPTY>
+<!ATTLIST category name CDATA #REQUIRED>
+<!ATTLIST boolean name CDATA #REQUIRED>
+<!ATTLIST integer name CDATA #REQUIRED>
+<!ATTLIST double name CDATA #REQUIRED>
+<!ATTLIST degrees name CDATA #REQUIRED>
+<!ATTLIST radians name CDATA #REQUIRED>
+<!ATTLIST joystick name CDATA #REQUIRED>
+<!ATTLIST joystick bus_type CDATA #REQUIRED>
+<!ATTLIST joystick vendor_id CDATA #REQUIRED>
+<!ATTLIST joystick product_id CDATA #REQUIRED>
+<!ATTLIST joystick version CDATA #REQUIRED>
+<!ATTLIST mapping logical CDATA #REQUIRED>
+<!ATTLIST mapping physical CDATA #REQUIRED>
+]>
+<thunderbots>
+  <params>
+    <category name="AI">
+      <category name="Backend">
+        <double name="Ball Decay Constant">99.0</double>
+        <boolean name="Enable Kalman control inputs">false</boolean>
+        <double name="Loop Delay">0.000</double>
+        <category name="Vision">
+          <double name="Ball detection probability threshold">0.002</double>
+          <boolean name="Disable Vision Filter">false</boolean>
+          <category name="Particle">
+            <double name="How close a particle must be to the ball to get the extra PREVIOUS_BALL_WEIGHT">0.5</double>
+            <double name="How much the ball's confidence changes at a time">5.0</double>
+            <double name="How much the detected ball can move per tick without losing confidence">0.1</double>
+            <integer name="Particle Filter number of condensations">5</integer>
+            <double name="The confidence threshold for being confident or not of the ball's position">60.0</double>
+            <double name="The decay rate (per meter) of the detection weight">200</double>
+            <double name="The max variance a ball detection can have without losing confidence">1.00</double>
+            <double name="The top fraction of particles that are used as basepoints for the next sample">0.100</double>
+            <double name="The weight of the previous ball's position">1</double>
+            <double name="The weight of the previous ball's predicted position">15</double>
+            <double name="The weight of vision detections">100</double>
+          </category>
+        </category>
+      </category>
+      <category name="HL">
+        <category name="STP">
+          <category name="Action">
+            <category name="catch">
+              <double name="Catch Primitive activation distance">0.300</double>
+              <double name="Edge catch distance">0.2000</double>
+              <double name="Factor to overestimate the intercept time by">1.3000</double>
+            </category>
+            <category name="Dribble">
+              <double name="dribble angle increment (deg)">50.0</double>
+              <double name="dribble linear increment">0.300</double>
+            </category>
+            <category name="pivot">
+              <integer name="Amount of rotation for each point (in degrees)">10</integer>
+              <double name="the default final velocity for points generated while pivoting">0.500</double>
+            </category>
+            <category name="Shoot">
+              <boolean name="Use mp_move or MP_intercept">true</boolean>
+            </category>
+            <category name="shoot">
+              <degrees name="Angle threshold that defines passing accuracy, smaller is more accurate (degrees)">30.0</degrees>
+              <degrees name="Angle threshold that the passee must be with respect to passer when shot, smaller is more accurate (degrees)">80.0</degrees>
+              <double name="Decay constant for the ball velocity">0.100</double>
+            </category>
+          </category>
+          <category name="ball">
+            <boolean name="Calc baller always return">true</boolean>
+            <double name="circle radius in front of enemy robot to consider possession (meters)">0.100</double>
+            <double name="circle radius in front of robot to enable pivot (meters)">0.100</double>
+            <boolean name="Smart possess ball (instead of has ball only)">false</boolean>
+          </category>
+          <category name="defense">
+            <double name="ball2side ratio">0.70</double>
+            <boolean name="defense protect against baller">false</boolean>
+            <boolean name="goalie hug switch">false</boolean>
+            <double name="max goalie dist from goal (robot radius)">5.00</double>
+            <boolean name="open net enemy is dangerous">true</boolean>
+            <double name="shrink robot radius">0.900</double>
+          </category>
+          <category name="enemy">
+            <boolean name="enemy closest use grab ball position">true</boolean>
+            <degrees name="Enemy shoot accuracy (degrees)">1.0</degrees>
+          </category>
+          <category name="evaluation">
+            <double name="speed goalie should ignore direction of ball">1.000</double>
+            <double name="Steal threshold: distance of ball from enemy (robot radius)">1.100</double>
+          </category>
+          <category name="Goalie">
+            <boolean name="Goalie is lowest index">false</boolean>
+            <integer name="Goalie pattern index">4</integer>
+            <boolean name="Override refbox goalie">true</boolean>
+            <boolean name="Play can't execute without goalie">false</boolean>
+          </category>
+          <category name="offense">
+            <double name="Dont block increase multiplier">4.00</double>
+            <double name="enemy avoidance distance (robot radius)">2.50</double>
+            <integer name="grid x size">10</integer>
+            <integer name="grid y size">10</integer>
+            <double name="Offensive friendly avoidance increase radius (robot radius)">2.00</double>
+            <double name="Scoring weight for angle from ball to goal at robot (-ve)">2.0</double>
+            <double name="Scoring weight for angle to goal (POWER, careful)">2.5</double>
+            <double name="Scoring weight for baller angle (-ve)">20</double>
+            <double name="Scoring weight for ball progress (+ve)">1.0</double>
+            <double name="Scoring weight for distance to ball (-ve)">1.0</double>
+            <double name="Scoring weight for distance to enemy goal (-ve)">1.0</double>
+            <double name="Scoring weight for everything">2000</double>
+            <double name="Scoring weight for nearest enemy (+ve)">1.0</double>
+            <boolean name="Triangle check">true</boolean>
+          </category>
+          <category name="param">
+            <degrees name="minimum region available for baller_can_shoot to be true (degrees)">5.7</degrees>
+          </category>
+          <category name="Pass">
+            <double name="Average ball pass velocity (HACK)">2.0</double>
+            <double name="Avoid goal radius when passing (m)">0.90</double>
+            <double name="Enemy pass checking width (robot radius)">1.00</double>
+            <double name="Friendly pass checking width (robot radius)">1.00</double>
+            <double name="kicking speed for making a pass">4.75</double>
+            <double name="Minimum distance for pass play">0.500</double>
+          </category>
+          <category name="PassRay">
+            <degrees name="Max ray shoot rotation (degrees)">75.0</degrees>
+            <integer name="Ray # of intervals">30</integer>
+            <double name="Ray pass threat multiplier">2.0</double>
+            <boolean name="Ray pass use calc fastest">true</boolean>
+          </category>
+          <category name="Play">
+            <category name="Enable">
+              <boolean name="BasicOffense">true</boolean>
+              <boolean name="CornerKickEnemy">true</boolean>
+              <boolean name="FreeKickEnemy">true</boolean>
+              <boolean name="FreeKickFriendly">true</boolean>
+              <boolean name="FreeKickPass">true</boolean>
+              <boolean name="GOALIE">false</boolean>
+              <boolean name="GrabBallDefensive">true</boolean>
+              <boolean name="GrabBallOffensive">true</boolean>
+              <boolean name="Idle">false</boolean>
+              <boolean name="KickoffEnemy">true</boolean>
+              <boolean name="KickoffFriendly">true</boolean>
+              <boolean name="MOVE">false</boolean>
+              <boolean name="PassSimple">false</boolean>
+              <boolean name="PenaltyEnemy">true</boolean>
+              <boolean name="PenaltyFriendly">true</boolean>
+              <boolean name="SHOOT">false</boolean>
+              <boolean name="Stop">true</boolean>
+            </category>
+            <category name="Playbook">
+              <integer name="BasicOffense">1023</integer>
+              <integer name="CornerKickEnemy">1023</integer>
+              <integer name="FreeKickEnemy">1023</integer>
+              <integer name="FreeKickFriendly">1023</integer>
+              <integer name="FreeKickPass">1023</integer>
+              <integer name="GOALIE">1023</integer>
+              <integer name="GrabBallDefensive">1023</integer>
+              <integer name="GrabBallOffensive">1023</integer>
+              <integer name="Idle">1023</integer>
+              <integer name="KickoffEnemy">1023</integer>
+              <integer name="KickoffFriendly">1023</integer>
+              <integer name="MOVE">1023</integer>
+              <integer name="PassSimple">1023</integer>
+              <integer name="PenaltyEnemy">1023</integer>
+              <integer name="PenaltyFriendly">1023</integer>
+              <integer name="SHOOT">1023</integer>
+              <integer name="Stop">1023</integer>
+            </category>
+            <category name="Priority 0=low, 10=hi, 5=default">
+              <integer name="BasicOffense">5</integer>
+              <integer name="CornerKickEnemy">5</integer>
+              <integer name="FreeKickEnemy">5</integer>
+              <integer name="FreeKickFriendly">3</integer>
+              <integer name="FreeKickPass">5</integer>
+              <integer name="GOALIE">2</integer>
+              <integer name="GrabBallDefensive">5</integer>
+              <integer name="GrabBallOffensive">5</integer>
+              <integer name="Idle">5</integer>
+              <integer name="KickoffEnemy">5</integer>
+              <integer name="KickoffFriendly">5</integer>
+              <integer name="MOVE">5</integer>
+              <integer name="PassSimple">5</integer>
+              <integer name="PenaltyEnemy">5</integer>
+              <integer name="PenaltyFriendly">5</integer>
+              <integer name="SHOOT">5</integer>
+              <integer name="Stop">5</integer>
+            </category>
+            <category name="StaticRoleAssignment">
+              <boolean name="BasicOffense">false</boolean>
+              <boolean name="CornerKickEnemy">false</boolean>
+              <boolean name="FreeKickEnemy">false</boolean>
+              <boolean name="FreeKickFriendly">false</boolean>
+              <boolean name="FreeKickPass">false</boolean>
+              <boolean name="GOALIE">false</boolean>
+              <boolean name="GrabBallDefensive">false</boolean>
+              <boolean name="GrabBallOffensive">false</boolean>
+              <boolean name="Idle">false</boolean>
+              <boolean name="KickoffEnemy">false</boolean>
+              <boolean name="KickoffFriendly">false</boolean>
+              <boolean name="MOVE">false</boolean>
+              <boolean name="PassSimple">false</boolean>
+              <boolean name="PenaltyEnemy">false</boolean>
+              <boolean name="PenaltyFriendly">false</boolean>
+              <boolean name="SHOOT">false</boolean>
+              <boolean name="Stop">false</boolean>
+            </category>
+          </category>
+          <category name="PlayExecutor">
+            <integer name="Current Playbook, use bitwise operations">0</integer>
+            <boolean name="enable robot 0">true</boolean>
+            <boolean name="enable robot 1">true</boolean>
+            <boolean name="enable robot 10">true</boolean>
+            <boolean name="enable robot 11">true</boolean>
+            <boolean name="enable robot 2">true</boolean>
+            <boolean name="enable robot 3">true</boolean>
+            <boolean name="enable robot 4">true</boolean>
+            <boolean name="enable robot 5">true</boolean>
+            <boolean name="enable robot 6">true</boolean>
+            <boolean name="enable robot 7">true</boolean>
+            <boolean name="enable robot 8">true</boolean>
+            <boolean name="enable robot 9">true</boolean>
+            <boolean name="If higher priority play exists, switch">false</boolean>
+          </category>
+          <category name="predicates">
+            <double name="distance to trigger loose_ball predicate">1.000</double>
+            <double name="dist thresh to start fight ball with enemy (robot radius)">2.000</double>
+            <double name="enemy avoidance distance (robot radius)">3.00</double>
+            <double name="estimate of our chip distance (m)">1.000</double>
+            <boolean name="new fight">true</boolean>
+            <integer name="randomize factor that the baller will shoot even if blocked">5</integer>
+          </category>
+          <boolean name="Run pass calculation">true</boolean>
+          <category name="Shoot">
+            <radians name="Angle threshold that defines shoot accuracy, bigger is more accurate (radians)">0.0</radians>
+            <double name="big reduced radius for calculating best shot (robot radius ratio)">0.500</double>
+            <double name="Maximum speed ball can shoot at">6.00</double>
+            <double name="Shoot accuracy (for various purposes)">5.0</double>
+            <double name="small reduced radius for calculating best shot (robot radius ratio)">0.400</double>
+          </category>
+          <category name="Stop">
+            <degrees name="stop: angle to separate players (degrees)">15.0</degrees>
+          </category>
+          <category name="Tactic">
+            <category name="free_kick_to_goal">
+              <double name="chipping power level">0.50</double>
+            </category>
+            <category name="indirect_chip">
+              <double name="chip dist bounce threshold">0.750</double>
+              <double name="chip_dist_fraction.  adjusts how far between ball and target the player will try chip">0.5</double>
+              <double name="max power the robot can chip the ball at without problems">2.0</double>
+              <double name="percentage of distance to center of triangle to return as target">0.8</double>
+              <double name="the closest distance to the edge of the field the robot could chip-and-chase to">0.3</double>
+              <double name="the min angle (deg) between chip triangles edges required to be valid">20.0</double>
+              <double name="the min area of the chip target triangle required to be valid">0.5</double>
+              <double name="the min edge len of the chip target tri required to be valid">0.8</double>
+            </category>
+            <category name="pass">
+              <double name=" the buffer (meters) in which passee must be with repect to target region before valid ">0.000</double>
+            </category>
+            <category name="penalty_goalie">
+              <boolean name="Whether the penalty goalie should choose random points">true</boolean>
+            </category>
+          </category>
+          <category name="tdefend">
+            <double name="Distance between the tdefenders">2.500</double>
+          </category>
+          <category name="tri_attack">
+            <boolean name="attack going against enemy baller">true</boolean>
+          </category>
+          <category name="UI">
+            <boolean name="Draw defense circles">true</boolean>
+            <boolean name="Draw enemy pass lines">false</boolean>
+            <boolean name="Draw friendly pass lines">false</boolean>
+            <boolean name="Draw offense circles">false</boolean>
+            <boolean name="draw ray">false</boolean>
+            <boolean name="Draw shoot lines">false</boolean>
+          </category>
+        </category>
+      </category>
+      <category name="Movement">
+        <category name="Primitives">
+          <double name="The default desired rpm for dribbling">20000</double>
+        </category>
+      </category>
+      <category name="Nav">
+        <double name="Average Player Velocity">1.5</double>
+        <category name="CustomStuff">
+          <double name="The maximum x coordinate of the area our robots may occupy">10.00</double>
+          <double name="The minimum x coordinate of the area our robots may occupy">0.00</double>
+          <boolean name="Whether or not to enable custom bounds for testing">false</boolean>
+        </category>
+        <radians name="Orientation tolerance in angle">5.00</radians>
+        <category name="Pivot">
+          <degrees name="offset angle (degrees)">80</degrees>
+          <double name="offset distance">0</double>
+          <degrees name="orientation offset (degrees)">30</degrees>
+        </category>
+        <category name="PivotAram">
+          <double name="max acceleration">10</double>
+          <double name="pivot radius">1.00</double>
+        </category>
+        <double name="Position tolerance in destination">0.0500</double>
+        <category name="RRT">
+          <double name="angle increment (deg)">10.0</double>
+          <double name="Distance to destination when we stop looking for a path (m)">0.080</double>
+          <double name="Distance to extend the tree on each step (m)">0.100</double>
+          <integer name="Jon Hysteris Hack">2</integer>
+          <double name="linear increment (m)">0.050</double>
+          <integer name="Number of iterations to go through before we give best partial path">200</integer>
+        </category>
+        <category name="Util">
+          <double name="Angle increment in ball approach (deg)">10.00</double>
+          <double name="Ball avoidance dist during penalty kick (rule=0.4) ">0.400</double>
+          <double name="Defense avoidance dist">0.000</double>
+          <double name="Enemy half avoidance dist if enabled">0.000</double>
+          <double name="Enemy position interp length">0.000</double>
+          <double name="Field boundary avoidance dist">0.000</double>
+          <double name="Friendly kick avoidance dist (rule=0.2)">0.200</double>
+          <double name="Friendly movement extrapolation factor">1.000</double>
+          <double name="Friendly robot braking decel">1.50</double>
+          <double name="Goal post avoidance dist">0.0000</double>
+          <double name="Intercept challenge friendly avoidance">1.000</double>
+          <double name="Long enemy avoidance dist">0.400</double>
+          <double name="Long friendly avoidance dist">0.400</double>
+          <double name="Normal enemy avoidance dist">0.100</double>
+          <double name="Normal friendly avoidance dist">0.200</double>
+          <double name="Ref area avoidance dist">-0.180</double>
+          <double name="Regular ball avoidance dist">0.160</double>
+          <boolean name="Robots must stay in own half">false</boolean>
+          <double name="Short enemy avoidance dist">-0.050</double>
+          <double name="Short friendly avoidance dist">0.100</double>
+          <double name="Small ball avoidance dist">0.050</double>
+        </category>
+        <double name="Velocity tolerance in destination">0.0600</double>
+      </category>
+    </category>
+    <category name="MRF">
+    </category>
+  </params>
+  <joysticks>
+    <joystick name="Xbox 360 Wireless Receiver (XBOX)" bus_type="3" vendor_id="1118" product_id="657" version="263">
+      <axes>
+        <mapping logical="0" physical="1"/>
+        <mapping logical="1" physical="0"/>
+        <mapping logical="2" physical="3"/>
+        <mapping logical="3" physical="4"/>
+      </axes>
+      <buttons>
+        <mapping logical="dribble" physical="2"/>
+        <mapping logical="kick" physical="0"/>
+      </buttons>
+    </joystick>
+    <joystick name="Xbox 360 Wireless Receiver" bus_type="3" vendor_id="1118" product_id="1817" version="256">
+      <axes>
+        <mapping logical="0" physical="1"/>
+        <mapping logical="1" physical="0"/>
+        <mapping logical="2" physical="3"/>
+        <mapping logical="3" physical="4"/>
+      </axes>
+      <buttons>
+        <mapping logical="dribble" physical="2"/>
+        <mapping logical="kick" physical="0"/>
+      </buttons>
+    </joystick>
+    <joystick name="Logitech Logitech Dual Action" bus_type="3" vendor_id="1133" product_id="49686" version="272">
+      <axes>
+        <mapping logical="0" physical="1"/>
+        <mapping logical="1" physical="0"/>
+        <mapping logical="2" physical="2"/>
+        <mapping logical="3" physical="3"/>
+      </axes>
+      <buttons>
+        <mapping logical="dribble" physical="0"/>
+        <mapping logical="kick" physical="1"/>
+      </buttons>
+    </joystick>
+  </joysticks>
+</thunderbots>

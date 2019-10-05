@@ -1,0 +1,44 @@
+syntax = "proto2";
+
+package Log;
+
+// Identifies a severity level of a debug message.
+enum DebugMessageLevel {
+	DEBUG_MESSAGE_LEVEL_DEBUG = 0;
+	DEBUG_MESSAGE_LEVEL_INFO = 1;
+	DEBUG_MESSAGE_LEVEL_WARN = 2;
+	DEBUG_MESSAGE_LEVEL_ERROR = 3;
+}
+
+// Identifies the event occurring with respect to an annunciator message.
+enum AnnunciatorAction {
+	ANNUNCIATOR_ACTION_ASSERT = 0;
+	ANNUNCIATOR_ACTION_DEASSERT = 1;
+	ANNUNCIATOR_ACTION_EDGE = 2;
+}
+
+// Information specific to the MRF backend.
+message MRF {
+	message OutMessage {
+		required uint32 Index = 1;
+		optional uint32 ID = 2;
+		required bytes Data = 3;
+	}
+
+	message InMessage {
+		required uint32 Index = 1;
+		required bytes Data = 2;
+		required uint32 LQI = 3;
+		required uint32 RSSI = 4;
+	}
+
+	message MDR {
+		required uint32 ID = 1;
+		required uint32 Code = 2;
+	}
+
+	optional bytes drive_packet = 1;
+	optional OutMessage out_message = 2;
+	optional InMessage in_message = 3;
+	optional MDR mdr = 4;
+}
