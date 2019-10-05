@@ -4,28 +4,16 @@
 .settings/
 .vscode/
 
-# Firmware
-firmware/stm32lib/internal
-firmware/stm32lib/public
-firmware/stm32lib/stm32lib.tag
-firmware/stm32lib/tags
-firmware/usb/internal
-firmware/usb/public
-firmware/usb/tags
-firmware/usb/usb.tag
-firmware/test/test
-firmware/test/test.c
-
 # Software
-software/.cproject
-software/.metadata
-software/.project
-software/bin
-software/html
-software/obj
-software/proto/*.cc
-software/proto/*.h
-software/tags
+.cproject
+.metadata
+.project
+bin
+html
+obj
+proto/*.cc
+proto/*.h
+tags
 
 # C++ default ignores
 # Prerequisites

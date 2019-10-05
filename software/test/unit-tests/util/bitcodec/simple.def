@@ -1,3 +1,0 @@
-BITCODEC_DATA_U(uint8_t, byte1, 0, 8, 0)
-BITCODEC_DATA_U(uint8_t, byte2, 8, 8, 27)
-BITCODEC_DATA_U(uint32_t, dword, 16, 32, 1234)

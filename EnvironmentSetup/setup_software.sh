@@ -47,89 +47,19 @@ host_software_packages=(
     libprotobuf-dev             # Google protocol buffers
     g++                         # The C++ compiler
     libgtkmm-3.0-dev            # gtkmm-3.0, used to create the gui?
-    libode-dev                  # libode-dev
     libxml++2.6-dev             # libxml++
     libgsl0-dev                 # libgsl0-dev
     libgsl0ldbl                 # dependency for libgsl1-dev
     libusb-1.0.0-dev            # libusb-1.0.0-dev
     libbz2-dev                  # bzip2, used for archiving and storing our log files
-
-    doxygen                     # Used for generating documentation
-    graphviz                    # Required for generating graphs with Doxygen
-
-    libgtest-dev                # The source files for the Google Test framework
     cmake                       # Required to build the Google Test libraries
 )
 
 # Update sources before we try install software-properties-common
 apt-get update
 
-# Install `software-properties-common` that provides the `add-apt-repository`
-# command used later on in this script
-# Although the -y and --force-yes seems redundant, CI does not work otherwise
-# and some people have reported that only -y is not always effective
-apt-get install software-properties-common -y --force-yes
-
-# This if-block will add the required repositories to install coroutines-1.54.
-# The full entry that must be added to the list of sources is
-# http://ca.archive.ubuntu.com/ubuntu trusty main universe
-#
-# The script first checks that it can find /etc/apt/sources.list since this
-# is where the repository will need to be added. If the file is not found
-# the script will exit with an error.
-#
-# The inner if-blocks add each component of the repository individually (main and universe)
-# They first check if any other entries in the sources already include this component, since
-# if there are duplicated entries many warnings will show up when running apt-get update
-# 
-# The regex expressions match lines such as deb http://ca.archive.ubuntu.com/ubuntu trusty main restricted.
-# Even if "main" is embedded somewhere in the line it is still detected as already being added
-# so the main repository won't be added again, If the repository is not found in
-# the file already, it is added
-#
-sources_file="/etc/apt/sources.list"
-if [ -f $sources_file ]; then
-    if ! grep -q "^deb.*trusty .*main.*" $sources_file; then
-        echo "Adding the trusty main repository..."
-        add-apt-repository "deb http://ca.archive.ubuntu.com/ubuntu trusty main"
-    fi
-
-    if ! grep -q "^deb.*trusty .*universe.*" $sources_file; then
-        echo "Adding the trusty universe repository..."
-        add-apt-repository "deb http://ca.archive.ubuntu.com/ubuntu trusty universe"
-    fi
-else
-    echo "Error: Could not find file /etc/apt/sources.list"
-    exit
-fi
-
-# Update sources after adding repositories
-apt-get update
-
 # Install the packages
 apt-get install ${host_software_packages[@]} -y --force-yes
-
-
-# Install Google Test (Out unit testing framework)
-echo "================================================================"
-echo "Installing Google Test"
-echo "================================================================"
-
-# The path to the gtest source installed in the previous step. We must build it
-# oursleves
-gtest_src="/usr/src/gtest"
-cd $gtest_src
-cmake CMakeLists.txt
-make
-
-# Make aliases to the library files so they can be found by the system
-if [ ! -f /usr/lib/libgtest.a ]; then
-    ln -s $gtest_src/libgtest.a /usr/lib
-fi
-if [ ! -f /usr/lib/libgtest_main.a ]; then
-    ln -s $gtest_src/libgtest_main.a /usr/lib
-fi
-
 
 # Set up MRF/USB permissions. This allows the user to run the ai (with the
 # dongle and radio) and flash the robots without requiring `sudo` permissions
