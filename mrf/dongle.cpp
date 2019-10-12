@@ -32,10 +32,10 @@ struct RadioConfig
 };
 
 const RadioConfig DEFAULT_CONFIGS[4] = {
-    {25U, 250, 0x1846U},
-    {25U, 250, 0x1847U},
-    {25U, 250, 0x1848U},
-    {25U, 250, 0x1849U},
+    {24U, 250, 0x1846U},
+    {24U, 250, 0x1847U},
+    {24U, 250, 0x1848U},
+    {24U, 250, 0x1849U},
 };
 
 const unsigned int ANNUNCIATOR_BEEP_LENGTH = 750;
